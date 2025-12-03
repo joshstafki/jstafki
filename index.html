@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joshua Stafki</title>
+    <style>
+        /* CSS Styles */
+        body {
+            background-color: #ffffff; /* Completely white */
+            color: #000000; /* Dark black ink color */
+            font-family: 'Courier New', Courier, monospace; /* Typewriter face */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center; /* Central alignment usually fits this aesthetic best */
+        }
+
+        .container {
+            max-width: 800px;
+            padding: 40px;
+            line-height: 1.6; /* Comfortable reading spacing */
+        }
+
+        /* Typography & Emphasis */
+        h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .sub-header {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            font-style: italic;
+        }
+
+        .section {
+            margin-bottom: 2.5rem;
+        }
+
+        .role-title {
+            font-weight: bold;
+            display: block;
+        }
+
+        .company {
+            font-weight: bold;
+        }
+
+        .philosophy {
+            font-style: italic;
+        }
+
+        .list-roles {
+            margin-top: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        h2.projects-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: underline;
+            text-underline-offset: 5px;
+            margin-top: 3rem;
+        }
+
+        /* The Blinking Cursor Effect */
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.2em;
+            background-color: black;
+            vertical-align: text-bottom;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <h1>My Name is Joshua Stafki</h1>
+        <div class="sub-header">I go by Josh.</div>
+
+        <div class="section">
+            <span class="role-title">Associate Account Manager</span>
+            For<br>
+            <span class="company">Globus Global Safety.</span><br>
+            <small>A Firm specializing in PPE Production</small>
+        </div>
+
+        <div class="section">
+            Student of the School of Philosophy,<br>
+            <span class="philosophy">Stoikós</span>
+        </div>
+
+        <div class="section list-roles">
+            Reader, Artist, Producer,<br>
+            Entrepreneur, Athlete
+        </div>
+
+        <h2 class="projects-header">PROJECTS<span id="cursor" class="cursor"></span></h2>
+        
+        </main>
+
+    <script>
+        // JavaScript 
+        // This script adds a subtle interaction. 
+        // It ensures the page fades in smoothly to mimic paper appearing.
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            const body = document.body;
+            body.style.opacity = 0;
+            body.style.transition = "opacity 1.5s ease-in";
+            
+            // Trigger the fade in
+            setTimeout(() => {
+                body.style.opacity = 1;
+            }, 100);
+        });
+    </script>
+
+</body>
+</html>
