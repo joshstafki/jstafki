@@ -7,25 +7,43 @@
     <style>
         /* CSS Styles */
         body {
-            background-color: #ffffff; /* Completely white */
-            color: #000000; /* Dark black ink color */
-            font-family: 'Courier New', Courier, monospace; /* Typewriter face */
+            background-color: #ffffff;
+            color: #000000;
+            font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 0;
+            overflow: hidden; /* Prevents scrollbars during transition */
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* The container that holds both "pages" side by side */
+        #main-wrapper {
+            display: flex;
+            width: 200vw; /* Double the screen width */
+            height: 100vh;
+            transition: transform 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* "Roll" effect easing */
+        }
+
+        /* Common style for both slides */
+        .slide {
+            width: 50vw; /* Each slide takes up half the wrapper (1 full screen) */
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            text-align: center; /* Central alignment usually fits this aesthetic best */
+            text-align: center;
+            flex-shrink: 0;
+            overflow-y: auto; /* Allow scrolling if content gets too tall */
         }
 
         .container {
             max-width: 800px;
             padding: 40px;
-            line-height: 1.6; /* Comfortable reading spacing */
+            line-height: 1.6;
         }
 
-        /* Typography & Emphasis */
+        /* Typography */
         h1 {
             font-size: 2rem;
             font-weight: bold;
@@ -43,12 +61,7 @@
             margin-bottom: 2.5rem;
         }
 
-        .role-title {
-            font-weight: bold;
-            display: block;
-        }
-
-        .company {
+        .role-title, .company, .projects-header {
             font-weight: bold;
         }
 
@@ -61,15 +74,55 @@
             margin-bottom: 4rem;
         }
 
-        h2.projects-header {
+        /* Interaction Styles */
+        .projects-header {
             font-size: 1.5rem;
-            font-weight: bold;
             text-decoration: underline;
             text-underline-offset: 5px;
             margin-top: 3rem;
+            cursor: pointer; /* Shows it's clickable */
+            display: inline-block;
+            transition: color 0.3s;
+        }
+        
+        .projects-header:hover {
+            color: #555;
         }
 
-        /* The Blinking Cursor Effect */
+        /* Project Links Styles */
+        .project-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .project-list li {
+            margin-bottom: 2rem;
+        }
+
+        .project-link {
+            text-decoration: none;
+            color: black;
+            font-size: 1.5rem;
+            border-bottom: 1px dashed transparent;
+            transition: border-bottom 0.3s;
+        }
+
+        .project-link:hover {
+            border-bottom: 1px dashed black;
+        }
+
+        .return-btn {
+            margin-top: 4rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        .return-btn:hover {
+            opacity: 1;
+        }
+
+        /* Blinking Cursor */
         .cursor {
             display: inline-block;
             width: 10px;
@@ -84,52 +137,100 @@
             50% { opacity: 0; }
         }
 
-        /* Responsive adjustments for mobile */
+        /* Responsive */
         @media (max-width: 600px) {
             h1 { font-size: 1.5rem; }
             .container { padding: 20px; }
+            .project-link { font-size: 1.2rem; }
         }
     </style>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/joshstafki/jstafki/main/J.png">
 </head>
 <body>
 
-    <main class="container">
-        <h1>My Name is Joshua Stafki</h1>
-        <div class="sub-header">Josh</div>
-
-        <div class="section">
-            <span class="role-title">Associate Account Manager</span>
-            For<br>
-            <span class="company">Globus Global Safety.</span><br>
-            <small>A Firm specializing in PPE Production</small>
-        </div>
-
-        <div class="section">
-            Student of the School of Philosophy,<br>
-            <span class="philosophy">Stoikós</span>
-        </div>
-
-        <div class="section list-roles">
-            Reader, Artist, Producer,<br>
-            Entrepreneur, Athlete
-        </div>
-
-        <h2 class="projects-header">PROJECTS<span id="cursor" class="cursor"></span></h2>
+    <div id="main-wrapper">
         
-        </main>
+        <div class="slide" id="slide-1">
+            <main class="container">
+                <h1>My Name is Joshua Stafki</h1>
+                <div class="sub-header">I go by Josh.</div>
+
+                <div class="section">
+                    <span class="role-title">Associate Account Manager</span>
+                    For<br>
+                    <span class="company">Globus Global Safety.</span><br>
+                    <small>A Firm specializing in PPE Production</small>
+                </div>
+
+                <div class="section">
+                    Student of the School of Philosophy,<br>
+                    <span class="philosophy">Stoikós</span>
+                </div>
+
+                <div class="section list-roles">
+                    Reader, Artist, Producer,<br>
+                    Entrepreneur, Athlete
+                </div>
+
+                <div onclick="goToProjects()" class="projects-header">
+                    PROJECTS<span class="cursor"></span>
+                </div>
+            </main>
+        </div>
+
+        <div class="slide" id="slide-2">
+            <main class="container">
+                <ul class="project-list">
+                    <li><a href="#" class="project-link" target="_blank">LinkedIn</a></li>
+                    <li><a href="#" class="project-link" target="_blank">Podcasts</a></li>
+                    <li><a href="#" class="project-link" target="_blank">Intrepid Flights</a></li>
+                    <li><a href="#" class="project-link" target="_blank">Astrønautik</a></li>
+                    <li><a href="#" class="project-link" target="_blank">Socials</a></li>
+                </ul>
+
+                <div class="return-btn" onclick="goHome()">
+                    &lt; return
+                </div>
+            </main>
+        </div>
+
+    </div>
 
     <script>
-        // JavaScript 
-        // This script adds a subtle interaction. 
-        // It ensures the page fades in smoothly to mimic paper appearing.
-        
+        // Variables
+        const wrapper = document.getElementById('main-wrapper');
+        let onProjectsPage = false;
+
+        // Function to slide to Projects
+        function goToProjects() {
+            wrapper.style.transform = "translateX(-50%)";
+            onProjectsPage = true;
+        }
+
+        // Function to slide back Home
+        function goHome() {
+            wrapper.style.transform = "translateX(0)";
+            onProjectsPage = false;
+        }
+
+        // Keydown Event Listener (Enter and Backspace)
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                if (!onProjectsPage) {
+                    goToProjects();
+                }
+            } else if (event.key === 'Backspace' || event.key === 'Escape') {
+                if (onProjectsPage) {
+                    goHome();
+                }
+            }
+        });
+
+        // Intro Fade-in
         document.addEventListener("DOMContentLoaded", function() {
             const body = document.body;
             body.style.opacity = 0;
             body.style.transition = "opacity 1.5s ease-in";
-            
-            // Trigger the fade in
             setTimeout(() => {
                 body.style.opacity = 1;
             }, 100);
