@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>THE MONOLITH</title>
+<style>
+:root{
+  --bg:#050505;
+  --fg:#f5f5f2;
+  --muted:#8d8d8d;
+  --gold:#d4af37;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:Inter,system-ui,sans-serif;
+  min-height:100vh;
+  overflow:hidden;
+  transition:background 700ms ease;
+}
+.center{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:2rem;
+}
+h1{
+  margin:0;
+  font-size:clamp(3rem,10vw,8rem);
+  letter-spacing:-0.08em;
+  font-weight:800;
+}
+.tag{
+  color:var(--muted);
+  letter-spacing:.4em;
+  margin-top:1rem;
+  text-transform:uppercase;
+  font-size:.8rem;
+}
+.projects{
+  margin-top:4rem;
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+}
+.project{
+  font-size:clamp(1.2rem,3vw,2rem);
+  text-decoration:none;
+  color:var(--fg);
+  transition:all .4s ease;
+  letter-spacing:.08em;
+}
+.project:hover{
+  transform:scale(1.06);
+}
+.aura{
+  position:fixed;
+  inset:-20%;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .7s ease;
+  filter:blur(80px);
+}
+body.fintech .aura{
+  opacity:1;
+  background:radial-gradient(circle,var(--gold),transparent 40%);
+}
+body.flight .aura{
+  opacity:1;
+  background:linear-gradient(to top,rgba(255,255,255,.15),transparent 30%);
+}
+body.space .aura{
+  opacity:1;
+  background:
+    radial-gradient(circle at 20% 30%,rgba(255,255,255,.4),transparent 1%),
+    radial-gradient(circle at 70% 60%,rgba(255,255,255,.4),transparent 1%),
+    radial-gradient(circle at 40% 80%,rgba(255,255,255,.4),transparent 1%);
+}
+.footer{
+ position:fixed;bottom:24px;width:100%;text-align:center;
+ color:#666;font-size:.75rem;letter-spacing:.25em;
+}
+</style>
+</head>
+<body>
+<div class="aura"></div>
+<section class="center">
+<h1>JOSH STAFKI</h1>
+<div class="tag">SYSTEMS • FLIGHT • FUTURE</div>
+
+<div class="projects">
+<a href="/projects/fintech" class="project" data-mode="fintech">FINTECH</a>
+<a href="/projects/intrepid-flights" class="project" data-mode="flight">INTREPID FLIGHTS</a>
+<a href="/projects/astronautik" class="project" data-mode="space">ASTRØNAUTIK</a>
+</div>
+</section>
+
+<div class="footer">THE MONOLITH</div>
+
+<script>
+const body=document.body;
+document.querySelectorAll('.project').forEach(el=>{
+ el.addEventListener('mouseenter',()=>{
+   body.className=el.dataset.mode;
+ });
+ el.addEventListener('mouseleave',()=>{
+   body.className='';
+ });
+});
+</script>
+</body>
+</html>
