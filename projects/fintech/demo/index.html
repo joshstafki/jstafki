@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Dashboard - Local Demo</title>
+    <!-- Primary SEO Meta Tags -->
+<title>Financial Dashboard | Built by Josh Stafki</title>
+<meta name="description" content="An interactive, automated Financial Dashboard by Josh Stafki. Track out-of-pocket expenses, bank-initiated transactions, and visualize your revenue vs. expenses in one place.">
+<meta name="keywords" content="Financial Dashboard, Expense Tracker, Personal Finance, Josh Stafki, Fintech, Budget Management, Revenue Visualization">
+<meta name="author" content="Josh Stafki">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="[INSERT_YOUR_LIVE_URL_HERE]">
+<meta property="og:title" content="Financial Dashboard | Built by Josh Stafki">
+<meta property="og:description" content="A clean, automated finance tool to track expenses, monitor grocery budgets, and reconcile bank accounts.">
+<meta property="og:image" content="https://joshstafki.github.io/fintech/demo.png">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="[INSERT_YOUR_LIVE_URL_HERE]">
+<meta name="twitter:title" content="Financial Dashboard | Built by Josh Stafki">
+<meta name="twitter:description" content="A clean, automated finance tool to track expenses, monitor grocery budgets, and reconcile bank accounts.">
+<meta name="twitter:image" content="https://joshstafki.github.io/fintech/demo.png">
+    <link rel="icon" type="image/svg+xml" href="https://joshstafki.github.io/fintech/favicon.svg">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #6b7280;
+            --primary-blue: #3b82f6;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+            --border-color: #e5e7eb;
+            --header-blue: #eff6ff;
+            --header-red: #fef2f2;
+            --header-green: #ecfdf5;
+            --header-purple: #faf5ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem; }
+        .dashboard-header { margin-bottom: 2rem; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start; }
+        .card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .card-header { padding: 1rem 1.25rem; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
+        .header-blue { background-color: var(--header-blue); color: #1d4ed8; }
+        .header-red { background-color: var(--header-red); color: #b91c1c; }
+        .header-green { background-color: var(--header-green); color: #047857; }
+        .header-purple { background-color: var(--header-purple); color: #6d28d9; }
+        .card-body { padding: 0; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color); }
+        th { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); background-color: #f9fafb; font-weight: 500; }
+        tr:last-child td { border-bottom: none; }
+        
+        .badge { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+        .badge-paid { background-color: #d1fae5; color: #065f46; }
+        .badge-unpaid { background-color: #fee2e2; color: #991b1b; }
+        
+        .total-row { background-color: #f9fafb; font-weight: 700; font-size: 1.1rem; }
+        .amount-cell { font-family: "Courier New", Courier, monospace; font-weight: 600; }
+        .amount-red { color: var(--danger-red); }
+        .amount-green { color: var(--success-green); }
+        
+        .add-row-btn { cursor: pointer; color: var(--primary-blue); font-weight: 600; text-align: center; background-color: #ffffff; transition: background-color 0.2s; }
+        .add-row-btn:hover { background-color: #eff6ff; }
+        .inline-input { width: 100%; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; font-family: inherit; }
+        .save-btn { background: var(--success-green); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        .save-btn:hover { background: #059669; }
+        
+        .summary-card { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .summary-title { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+        .summary-value { font-size: 2rem; font-weight: 700; }
+        .ghost-input { border: none; background: transparent; font-size: 2rem; font-weight: 700; color: var(--text-main); width: 100%; outline: none; font-family: inherit; border-bottom: 2px dashed transparent; transition: border-bottom 0.2s; padding: 0; }
+        .ghost-input:focus { border-bottom: 2px dashed var(--border-color); }
+        
+        @media (max-width: 768px) { body { padding: 1rem; } .dashboard-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-header">
+        <h1>Financial Dashboard <span class="badge badge-paid" style="margin-left: 10px; font-size: 0.9rem;">LOCAL DEMO</span></h1>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Data saved securely in your browser.</p>
+        <button onclick="performHardReset()" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
+            Hard Reset (Wipe & Load Defaults)
+        </button>
+    </div>
+
+    <div class="dashboard-grid">
+        
+        <div>
+            <div class="card">
+                <div class="card-header header-blue">Out of Pocket Expenses</div>
+                <div class="card-body">
+                    <table>
+                        <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
+                        <tbody id="outOfPocket-body"></tbody>
+                        <tr class="total-row"><td colspan="3">Total: <span id="outOfPocket-total">$0.00</span></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header header-red">Bank Initiated Expenses</div>
+                <div class="card-body">
+                    <table>
+                        <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
+                        <tbody id="bankInitiated-body"></tbody>
+                        <tr class="total-row"><td colspan="3">Total: <span id="bankInitiated-total">$0.00</span></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+            <div class="card">
+                <div class="summary-card">
+                    <span class="summary-title">Total Spendable Income</span>
+                    <div style="display: flex; align-items: baseline; font-size: 2rem; font-weight: 700;">
+                        <span style="color: var(--text-muted); margin-right: 4px;">$</span>
+                        <input type="number" id="spendable-income" class="ghost-input" step="0.01" oninput="calculateRevenue()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="summary-card">
+                    <span class="summary-title">Actual Total Revenue</span>
+                    <span class="summary-value" id="actual-revenue">$0.00</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header header-blue">Revenue vs. Expenses</div>
+                <div class="card-body" style="padding: 1.5rem;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+            <div class="card">
+                <div class="card-header header-green">Fill Ups</div>
+                <div class="card-body">
+                    <table>
+                        <thead><tr><th>Name</th><th>Status</th></tr></thead>
+                        <tbody id="fillUps-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header header-blue">Bank Reconciliation</div>
+                <div class="card-body">
+                    <table>
+                        <tbody id="bankRecon-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header header-purple">Grocery Budget</div>
+                <div class="card-body">
+                    <table>
+                        <tbody id="groceryBudget-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default Demo Data
+        const defaultData = {
+            spendableIncome: 3500.00,
+            outOfPocket: [{ Amount: 45.00, Name: "Dinner", Status: "PAID" }, { Amount: 15.50, Name: "Coffee", Status: "UNPAID" }],
+            bankInitiated: [{ Amount: 1200.00, Name: "Rent", Status: "PAID" }, { Amount: 85.00, Name: "Internet", Status: "UNPAID" }],
+            fillUps: [{ Name: "Honda Civic", Status: "PAID" }],
+            bankRecon: [{ Name: "Checking Account", Amount: 2500.00, Type: "STARTING" }, { Name: "Target Run", Amount: 145.00, Type: "OTHER" }],
+            groceryBudget: [{ Name: "Monthly Allotment", Amount: 500.00, Type: "STARTING" }, { Name: "Trader Joe's", Amount: 89.20, Type: "OTHER" }]
+        };
+
+        // Load from Local Storage or use Defaults
+        let appData = JSON.parse(localStorage.getItem('fintechDemoData')) || defaultData;
+        
+        const saveToLocal = () => localStorage.setItem('fintechDemoData', JSON.stringify(appData));
+
+        const expenseTotals = { outOfPocket: 0, bankInitiated: 0 };
+        const reconBalances = { bankRecon: 0, groceryBudget: 0 };
+        let revenueChartInstance = null;
+
+        const updateChart = () => {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const expenses = expenseTotals.outOfPocket + expenseTotals.bankInitiated;
+            const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
+            const remaining = Math.max(0, spendable - expenses);
+
+            const data = {
+                labels: ['Expenses', 'Remaining'],
+                datasets: [{ data: [expenses, remaining], backgroundColor: ['#ef4444', '#10b981'], borderWidth: 0 }]
+            };
+
+            if (revenueChartInstance) {
+                revenueChartInstance.data = data;
+                revenueChartInstance.update();
+            } else {
+                revenueChartInstance = new Chart(ctx, { type: 'pie', data: data, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
+            }
+        };
+
+        const calculateRevenue = () => {
+            const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
+            appData.spendableIncome = spendable;
+            saveToLocal(); // Save income changes instantly
+
+            const actualRevenue = spendable - (expenseTotals.outOfPocket + expenseTotals.bankInitiated);
+            const display = document.getElementById('actual-revenue');
+            display.innerText = formatMoney(actualRevenue);
+            display.style.color = (actualRevenue < 0) ? 'var(--danger-red)' : 'var(--text-main)';
+            updateChart();
+        };
+
+        const formatMoney = (amount) => {
+            const num = parseFloat(amount);
+            return (isNaN(num) ? '$0.00' : (num < 0 ? '-' : '') + '$' + Math.abs(num).toFixed(2));
+        };
+
+        const getBadgeClass = (status) => {
+            if (!status) return '';
+            const s = status.toString().toUpperCase();
+            return (s === 'PAID') ? 'badge-paid' : 'badge-unpaid';
+        };
+
+        const openInlineForm = (dataKey) => {
+            document.getElementById(`add-btn-${dataKey}`).style.display = 'none';
+            document.getElementById(`inline-form-${dataKey}`).style.display = 'table-row';
+            document.getElementById(`input-name-${dataKey}`).focus();
+        };
+
+        const saveInlineExpense = (dataKey, isFillUp = false) => {
+            const nameInput = document.getElementById(`input-name-${dataKey}`);
+            const statusInput = document.getElementById(`input-status-${dataKey}`);
+            const amountInput = document.getElementById(`input-amount-${dataKey}`);
+            
+            const name = nameInput.value.trim();
+            const status = statusInput.value;
+            const amount = parseFloat(amountInput?.value || 0);
+
+            if (!name) { alert("Please enter a name."); return; }
+
+            // 1. Update Data Model & Local Storage
+            if (isFillUp) {
+                appData[dataKey].push({ Name: name, Status: status });
+            } else {
+                appData[dataKey].push({ Amount: amount, Name: name, Status: status });
+                expenseTotals[dataKey] += amount;
+                const totalDisplay = document.getElementById(`${dataKey}-total`);
+                if (totalDisplay) totalDisplay.innerText = formatMoney(expenseTotals[dataKey]);
+                calculateRevenue(); 
+            }
+            saveToLocal();
+
+            // 2. Optimistic UI Updates
+            let newRowHTML = "";
+            if (isFillUp) {
+                newRowHTML = `<tr><td>${name}</td><td style="text-align: right;"><span class="badge ${getBadgeClass(status)}">${status}</span></td></tr>`;
+            } else {
+                newRowHTML = `<tr><td class="amount-cell amount-red">${formatMoney(amount)}</td><td>${name}</td><td><span class="badge ${getBadgeClass(status)}">${status}</span></td></tr>`;
+            }
+
+            const addBtnRow = document.getElementById(`add-btn-${dataKey}`);
+            addBtnRow.insertAdjacentHTML('beforebegin', newRowHTML);
+
+            if (amountInput) amountInput.value = '';
+            nameInput.value = '';
+            statusInput.value = 'PAID';
+            document.getElementById(`inline-form-${dataKey}`).style.display = 'none';
+            addBtnRow.style.display = 'table-row';
+        };
+
+        const saveReconciliation = (dataKey) => {
+            const amountInput = document.getElementById(`input-amount-${dataKey}`);
+            const nameInput = document.getElementById(`input-name-${dataKey}`);
+            const amount = parseFloat(amountInput.value);
+            const name = nameInput.value;
+
+            if (!name || isNaN(amount)) { alert("Please enter both a name and an amount."); return; }
+
+            // 1. Update Data Model & Local Storage
+            appData[dataKey].push({ Name: name, Amount: amount, Type: "OTHER" });
+            saveToLocal();
+
+            // 2. Optimistic UI: Instant Math & DOM Updates
+            reconBalances[dataKey] -= amount;
+            const newBalance = reconBalances[dataKey];
+            
+            const balanceAmountCell = document.getElementById(`balance-amount-${dataKey}`);
+            const balanceStatusCell = document.getElementById(`balance-status-${dataKey}`);
+            
+            balanceAmountCell.innerText = formatMoney(newBalance);
+            balanceAmountCell.className = newBalance < 0 ? 'amount-red' : (newBalance === 0 ? 'amount-green' : '');
+            
+            balanceStatusCell.innerText = newBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED';
+            balanceStatusCell.style.color = newBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)';
+
+            const newRowHTML = `<tr><td>${name}</td><td class="amount-cell amount-red" style="text-align: right;">-${formatMoney(amount)}</td></tr>`;
+            const totalRow = document.getElementById(`total-row-${dataKey}`);
+            totalRow.insertAdjacentHTML('beforebegin', newRowHTML);
+
+            amountInput.value = '';
+            nameInput.value = '';
+            document.getElementById(`inline-form-${dataKey}`).style.display = 'none';
+            document.getElementById(`add-btn-${dataKey}`).style.display = 'table-row';
+        };
+
+        const performHardReset = () => {
+            if (confirm("⚠️ Wipe all local demo data and reload default templates?")) {
+                localStorage.removeItem('fintechDemoData');
+                location.reload();
+            }
+        };
+
+        // Render Functions
+        const renderExpenseTable = (dataKey) => {
+            const tbody = document.getElementById(`${dataKey}-body`);
+            tbody.innerHTML = ''; let total = 0;
+            appData[dataKey].forEach(item => {
+                total += (item.Amount || 0);
+                tbody.innerHTML += `<tr><td class="amount-cell amount-red">${formatMoney(item.Amount || 0)}</td><td>${item.Name}</td><td><span class="badge ${getBadgeClass(item.Status)}">${item.Status || ''}</span></td></tr>`;
+            });
+            expenseTotals[dataKey] = total;
+            document.getElementById(`${dataKey}-total`).innerText = formatMoney(total);
+            
+            tbody.innerHTML += `<tr id="add-btn-${dataKey}" class="add-row-btn" onclick="openInlineForm('${dataKey}')"><td colspan="3">+ Add New</td></tr>
+                <tr id="inline-form-${dataKey}" style="display: none; background-color: #f9fafb;">
+                    <td><input type="number" id="input-amount-${dataKey}" class="inline-input" placeholder="0.00" step="0.01"></td>
+                    <td><input type="text" id="input-name-${dataKey}" class="inline-input" placeholder="Name"></td>
+                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><select id="input-status-${dataKey}" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select><button class="save-btn" onclick="saveInlineExpense('${dataKey}')">Save</button></div></td>
+                </tr>`;
+        };
+
+        const renderFillUps = (dataKey) => {
+            const tbody = document.getElementById(`${dataKey}-body`);
+            tbody.innerHTML = '';
+            appData[dataKey].forEach(item => { 
+                tbody.innerHTML += `<tr><td>${item.Name}</td><td style="text-align: right;"><span class="badge ${getBadgeClass(item.Status)}">${item.Status || ''}</span></td></tr>`; 
+            });
+            
+            tbody.innerHTML += `<tr id="add-btn-${dataKey}" class="add-row-btn" onclick="openInlineForm('${dataKey}')"><td colspan="2">+ Add New</td></tr>
+                <tr id="inline-form-${dataKey}" style="display: none; background-color: #f9fafb;">
+                    <td><input type="text" id="input-name-${dataKey}" class="inline-input" placeholder="Name"></td>
+                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><select id="input-status-${dataKey}" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select><button class="save-btn" onclick="saveInlineExpense('${dataKey}', true)">Save</button></div></td>
+                </tr>`;
+        };
+
+        const renderReconciliation = (dataKey) => {
+            const tbody = document.getElementById(`${dataKey}-body`);
+            tbody.innerHTML = ''; 
+            let balance = 0;
+
+            appData[dataKey].forEach(item => {
+                const amount = parseFloat(item.Amount) || 0;
+                if ((item.Type || '').toString().toUpperCase() === 'STARTING') { 
+                    balance += amount; 
+                    tbody.innerHTML += `<tr style="background: #f9fafb;"><td class="amount-cell" style="font-weight: bold;">${formatMoney(amount)}</td><td style="text-align: right; color: var(--text-muted);">${item.Name} (STARTING)</td></tr>`; 
+                } else { 
+                    balance -= amount; 
+                    tbody.innerHTML += `<tr><td>${item.Name}</td><td class="amount-cell amount-red" style="text-align: right;">-${formatMoney(amount)}</td></tr>`; 
+                }
+            });
+
+            reconBalances[dataKey] = balance; 
+
+            tbody.innerHTML += `<tr id="total-row-${dataKey}" class="total-row"><td id="balance-amount-${dataKey}" class="${balance < 0 ? 'amount-red' : (balance === 0 ? 'amount-green' : '')}">${formatMoney(balance)}</td><td id="balance-status-${dataKey}" style="text-align: right; font-size: 0.8rem; color: ${balance === 0 ? 'var(--success-green)' : 'var(--danger-red)'};">${balance === 0 ? 'RECONCILED' : 'NOT RECONCILED'}</td></tr>`;
+
+            tbody.innerHTML += `
+                <tr id="add-btn-${dataKey}" class="add-row-btn" onclick="openInlineForm('${dataKey}')"><td colspan="2">+ Add New</td></tr>
+                <tr id="inline-form-${dataKey}" style="display: none; background-color: #f9fafb;">
+                    <td><input type="number" id="input-amount-${dataKey}" class="inline-input" placeholder="0.00" step="0.01"></td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="text" id="input-name-${dataKey}" class="inline-input" placeholder="Name">
+                            <button class="save-btn" onclick="saveReconciliation('${dataKey}')">Save</button>
+                        </div>
+                    </td>
+                </tr>`;
+        };
+
+        // Initialize Dashboard
+        const loadDashboard = () => {
+            document.getElementById('spendable-income').value = appData.spendableIncome;
+            renderExpenseTable('outOfPocket');
+            renderExpenseTable('bankInitiated');
+            renderFillUps('fillUps');
+            renderReconciliation('bankRecon');
+            renderReconciliation('groceryBudget');
+            calculateRevenue();
+        };
+
+        loadDashboard();
+    </script>
+</body>
+</html>
