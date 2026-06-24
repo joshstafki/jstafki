@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Features — FINTECH</title>
+<meta name="description" content="See exactly how FINTECH syncs in real time, isolates your data, and tracks spending without ever touching your bank.">
+<link rel="icon" type="image/svg+xml" href="https://joshstafki.github.io/fintech/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg: #07111f;
+    --card: rgba(255, 255, 255, 0.07);
+    --card-border: rgba(255, 255, 255, 0.12);
+    --text: #eaf0ff;
+    --muted: rgba(234, 240, 255, 0.70);
+
+    --grad-violet: #7c3aed;
+    --grad-blue: #3b82f6;
+    --grad-teal: #2dd4bf;
+    --tile-a: #93c5fd;
+    --tile-b: #5eead4;
+    --ink: #0f172a;
+
+    --radius: 22px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.22), transparent 32%),
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.20), transparent 30%),
+        radial-gradient(circle at bottom center, rgba(45, 212, 191, 0.14), transparent 38%),
+        linear-gradient(180deg, var(--bg) 0%, #08101d 45%, #050912 100%);
+    overflow-x: hidden;
+}
+
+.wrap {
+    width: min(1100px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 24px 0 60px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0 30px;
+}
+
+.brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+
+.mark {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--tile-a), var(--tile-b));
+    display: grid; place-items: center;
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 1.1rem;
+    flex: none;
+}
+
+.brand-word { font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.05rem; letter-spacing: 0.04em; }
+
+.nav { display: flex; align-items: center; gap: 22px; color: var(--muted); font-size: 0.92rem; }
+.nav a { color: inherit; text-decoration: none; }
+.nav a:hover { color: var(--text); }
+
+/* ---------- Shared type ---------- */
+.eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-bottom: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.eyebrow-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--grad-teal);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .eyebrow-dot { animation: pulseDot 2s infinite; }
+}
+
+@keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.55); }
+    70% { box-shadow: 0 0 0 6px rgba(45, 212, 191, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0); }
+}
+
+h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; margin: 0; font-weight: 700; }
+
+.gradient {
+    background: linear-gradient(90deg, var(--grad-violet), var(--grad-blue), var(--grad-teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* ---------- Hero ---------- */
+.hero { text-align: center; padding: 10px 0 36px; }
+.hero h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 14px; }
+.hero p { color: var(--muted); font-size: 1.08rem; max-width: 50ch; margin: 0 auto; line-height: 1.65; }
+
+.stat-row {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; margin-top: 26px;
+}
+
+.stat-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem; letter-spacing: 0.04em;
+    color: var(--muted);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--card-border);
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+}
+
+/* ---------- Demo panel ---------- */
+.panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+    backdrop-filter: blur(16px);
+    padding: 32px 28px;
+    margin-top: 30px;
+}
+
+.sync-frames {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+}
+
+.device-frame {
+    flex: 1;
+    max-width: 320px;
+    background: #050b16;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03), 0 14px 30px rgba(0,0,0,0.35);
+}
+
+.device-mini-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+
+.pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-size: 0.62rem; color: var(--muted);
+    background: rgba(0,0,0,0.25);
+    padding: 0.25rem 0.6rem; border-radius: 999px;
+}
+
+.pill-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--grad-teal); }
+
+.device-label { font-size: 0.74rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+
+.mini-balance { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.6rem; margin-bottom: 12px; transition: color 0.2s ease; }
+
+.mini-ledger { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; min-height: 124px; }
+
+.mini-ledger li {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.84rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+
+.mini-ledger li span { color: var(--muted); }
+.mini-ledger li strong { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .mini-ledger li.entering {
+        animation: entryDrop 0.45s ease;
+    }
+}
+
+@keyframes entryDrop {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sync-connector {
+    flex: none;
+    width: 70px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--grad-blue), var(--grad-teal));
+    border-radius: 999px;
+    position: relative;
+    opacity: 0.35;
+}
+
+.sync-pulse {
+    position: absolute;
+    top: -4px; left: -2px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--grad-teal);
+    box-shadow: 0 0 14px var(--grad-teal);
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .sync-pulse.active { animation: pulseX 0.65s ease forwards; }
+}
+
+@keyframes pulseX {
+    0% { opacity: 1; left: -2px; }
+    100% { opacity: 0; left: 60px; }
+}
+
+.sync-controls {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center;
+    margin-top: 26px;
+}
+
+select, input[type="number"] {
+    font-family: Inter, sans-serif;
+    font-size: 0.92rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+}
+
+select:focus-visible, input:focus-visible, button:focus-visible, .category-chip:focus-visible {
+    outline: 2px solid var(--grad-teal);
+    outline-offset: 2px;
+}
+
+input[type="number"] { width: 130px; }
+input::placeholder { color: var(--muted); }
+
+.btn {
+    border: none; cursor: pointer;
+    border-radius: 999px;
+    padding: 0.72rem 1.3rem;
+    font-weight: 700; font-size: 0.92rem;
+    font-family: inherit;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary { background: linear-gradient(135deg, var(--tile-a), var(--tile-b)); color: var(--ink); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
+.btn-secondary { background: rgba(255,255,255,0.07); color: var(--text); border: 1px solid var(--card-border); }
+.btn-secondary:hover { background: rgba(255,255,255,0.13); }
+
+.demo-caption { text-align: center; color: var(--muted); font-size: 0.86rem; margin-top: 16px; }
+
+/* ---------- Section shells ---------- */
+.section { margin-top: 70px; }
+.section-head { text-align: center; max-width: 58ch; margin: 0 auto 32px; }
+.section-head h2 { font-size: clamp(1.7rem, 3vw, 2.3rem); letter-spacing: -0.02em; margin-bottom: 10px; }
+.section-head p { color: var(--muted); line-height: 1.6; }
+
+/* ---------- Categories ---------- */
+.category-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
+
+.category-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--card-border);
+    color: var(--muted);
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.category-chip.active {
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(45,212,191,0.25));
+    border-color: rgba(255,255,255,0.3);
+    color: var(--text);
+}
+
+.category-detail {
+    max-width: 560px;
+    margin: 0 auto;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 26px 28px;
+    min-height: 110px;
+}
+
+.category-detail h3 { font-size: 1.15rem; margin-bottom: 8px; }
+.category-detail p { color: var(--muted); line-height: 1.6; margin: 0; font-size: 0.96rem; }
+
+/* ---------- Privacy diagram ---------- */
+.privacy-diagram {
+    display: flex; align-items: center; justify-content: center;
+    gap: 26px; flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.node {
+    width: 220px;
+    padding: 20px;
+    border-radius: 16px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    text-align: center;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: default;
+}
+
+.node-label { font-family: 'Space Grotesk', sans-serif; font-weight: 700; margin-bottom: 8px; }
+
+.node-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    color: var(--muted);
+    background: rgba(0,0,0,0.25);
+    padding: 6px 8px;
+    border-radius: 8px;
+    word-break: break-all;
+}
+
+.node:hover, .node:focus-within {
+    border-color: var(--grad-teal);
+    box-shadow: 0 0 0 1px var(--grad-teal), 0 10px 30px rgba(45,212,191,0.15);
+}
+
+.node:hover .node-path, .node:focus-within .node-path { color: var(--grad-teal); }
+
+.node-core {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* ---------- Compare table ---------- */
+.compare {
+    max-width: 640px; margin: 0 auto;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.compare-row {
+    display: grid; grid-template-columns: 1.4fr 1fr 1fr;
+    align-items: center;
+    font-size: 0.92rem;
+}
+
+.compare-row + .compare-row { border-top: 1px solid var(--card-border); }
+
+.compare-row > div { padding: 14px 16px; }
+.compare-row.compare-head { background: rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.7rem; color: var(--muted); }
+.compare-row .col-claim { color: var(--text); }
+.compare-row .col-other { color: var(--muted); }
+.compare-row .col-fintech { color: var(--grad-teal); font-weight: 600; }
+
+/* ---------- CTA ---------- */
+.cta {
+    margin-top: 70px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 20px; flex-wrap: wrap;
+    padding: 28px; border-radius: 24px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(45,212,191,0.10));
+    border: 1px solid var(--card-border);
+}
+
+.cta h2 { font-size: 1.5rem; margin-bottom: 6px; }
+.cta p { margin: 0; color: var(--muted); }
+
+footer {
+    margin-top: 50px;
+    text-align: center;
+    color: rgba(234, 240, 255, 0.48);
+    font-size: 0.88rem;
+}
+
+footer .footer-tagline {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    font-size: 0.7rem; margin-top: 6px; opacity: 0.8;
+}
+
+/* ---------- Reveal on scroll ---------- */
+.reveal { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+    .nav { display: none; }
+    .sync-frames { flex-direction: column; }
+    .sync-connector { width: 4px; height: 50px; background: linear-gradient(180deg, var(--grad-blue), var(--grad-teal)); }
+    .sync-pulse { top: -2px; left: -4px; }
+    @media (prefers-reduced-motion: no-preference) {
+        .sync-pulse.active { animation: pulseY 0.65s ease forwards; }
+    }
+    .compare-row { grid-template-columns: 1.2fr 0.9fr 0.9fr; font-size: 0.84rem; }
+    .compare-row > div { padding: 12px 10px; }
+    .cta { flex-direction: column; align-items: flex-start; }
+}
+
+@keyframes pulseY {
+    0% { opacity: 1; top: -2px; }
+    100% { opacity: 0; top: 46px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+    <header class="topbar">
+        <a class="brand" href="https://joshstafki.github.io/fintech/">
+            <span class="mark">F</span><span class="brand-word">INTECH</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+            <a href="https://joshstafki.github.io/fintech/">Home</a>
+        </nav>
+    </header>
+
+    <section class="hero" id="demo">
+        <div class="eyebrow"><span class="eyebrow-dot"></span>Live Demo</div>
+        <h1>Watch your money <span class="gradient">move instantly.</span></h1>
+        <p>Every entry you add shows up everywhere you're signed in — the same second. This is a live preview of exactly that, running right here on the page.</p>
+
+        <div class="stat-row">
+            <span class="stat-chip">5 real categories</span>
+            <span class="stat-chip">0 bank logins required</span>
+            <span class="stat-chip">Synced in real time</span>
+            <span class="stat-chip">Visible to only you</span>
+        </div>
+
+        <div class="panel reveal">
+            <div class="sync-frames">
+                <div class="device-frame" aria-label="First device preview">
+                    <div class="device-mini-header">
+                        <span class="pill"><span class="pill-dot"></span>Live</span>
+                        <span class="device-label">Laptop</span>
+                    </div>
+                    <div class="mini-balance" id="balance-a">$1,248.30</div>
+                    <ul class="mini-ledger" id="ledger-a">
+                        <li><span>Grocery Budget</span><strong>&minus;$54.20</strong></li>
+                        <li><span>Fill-Ups</span><strong>&minus;$38.10</strong></li>
+                    </ul>
+                </div>
+
+                <div class="sync-connector" aria-hidden="true">
+                    <div class="sync-pulse" id="pulse"></div>
+                </div>
+
+                <div class="device-frame" aria-label="Second device preview">
+                    <div class="device-mini-header">
+                        <span class="pill"><span class="pill-dot"></span>Live</span>
+                        <span class="device-label">Phone</span>
+                    </div>
+                    <div class="mini-balance" id="balance-b">$1,248.30</div>
+                    <ul class="mini-ledger" id="ledger-b">
+                        <li><span>Grocery Budget</span><strong>&minus;$54.20</strong></li>
+                        <li><span>Fill-Ups</span><strong>&minus;$38.10</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <form class="sync-controls" id="sync-form">
+                <select id="sync-category" aria-label="Category">
+                    <option>Out-of-Pocket</option>
+                    <option>Bank-Initiated</option>
+                    <option>Fill-Ups</option>
+                    <option>Bank Reconciliation</option>
+                    <option>Grocery Budget</option>
+                </select>
+                <input type="number" id="sync-amount" placeholder="Amount" min="0" step="0.01" aria-label="Amount" required>
+                <button type="submit" class="btn btn-primary">Add entry →</button>
+            </form>
+            <p class="demo-caption">Add an entry on the left — watch it land on the right. Simulated here for the demo; your real dashboard syncs exactly this way, every time.</p>
+        </div>
+    </section>
+
+    <section class="section" id="categories">
+        <div class="section-head reveal">
+            <div class="eyebrow"><span class="eyebrow-dot"></span>Categories</div>
+            <h2>Five categories. Built from real spending.</h2>
+            <p>Not a generic template — these are the actual ways money moves, tracked the way it's actually tracked.</p>
+        </div>
+
+        <div class="category-grid reveal" id="category-grid"></div>
+        <div class="category-detail reveal" id="category-detail">
+            <h3>Out-of-Pocket</h3>
+            <p>Cash or personal-card spend, logged the moment it happens — no waiting for a statement to catch up.</p>
+        </div>
+    </section>
+
+    <section class="section" id="privacy">
+        <div class="section-head reveal">
+            <div class="eyebrow"><span class="eyebrow-dot"></span>Privacy</div>
+            <h2>Your data, walled off.</h2>
+            <p>Isolation isn't a setting you turn on — it's how the database is structured. Every account gets its own subtree, and nothing reads across the line.</p>
+        </div>
+
+        <div class="privacy-diagram reveal">
+            <div class="node" tabindex="0">
+                <div class="node-label">You</div>
+                <div class="node-path">users/your-uid/entries</div>
+            </div>
+            <div class="node-core">Firestore</div>
+            <div class="node" tabindex="0">
+                <div class="node-label">Anyone else</div>
+                <div class="node-path">users/their-uid/entries</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="no-bank-linking">
+        <div class="section-head reveal">
+            <div class="eyebrow"><span class="eyebrow-dot"></span>No Bank Linking</div>
+            <h2>We never ask for your bank password.</h2>
+            <p>Most finance apps need your bank login to pull transactions automatically. FINTECH doesn't — you stay the only one with access.</p>
+        </div>
+
+        <div class="compare reveal">
+            <div class="compare-row compare-head">
+                <div></div><div>Most apps</div><div>FINTECH</div>
+            </div>
+            <div class="compare-row">
+                <div class="col-claim">Bank login required</div>
+                <div class="col-other">Yes</div>
+                <div class="col-fintech">Never</div>
+            </div>
+            <div class="compare-row">
+                <div class="col-claim">Credentials shared with a third party</div>
+                <div class="col-other">Yes</div>
+                <div class="col-fintech">Never</div>
+            </div>
+            <div class="compare-row">
+                <div class="col-claim">You decide what's logged</div>
+                <div class="col-other">Sometimes</div>
+                <div class="col-fintech">Always</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta reveal" id="access">
+        <div>
+            <h2>Ready when you are.</h2>
+            <p>Sign in with Google and open your private ledger — nothing else required.</p>
+        </div>
+        <a class="btn btn-primary" href="https://joshstafki.github.io/fintech/onboarding/">Access FINTECH →</a>
+    </section>
+
+    <footer>
+        © 2026 FINTECH. All rights reserved.
+        <div class="footer-tagline">Personal. Finance. Reimagined.</div>
+    </footer>
+
+</div>
+
+<script>
+// ---------- Category explorer ----------
+const categories = [
+    { name: "Out-of-Pocket", text: "Cash or personal-card spend, logged the moment it happens — no waiting for a statement to catch up." },
+    { name: "Bank-Initiated", text: "Transactions your bank kicks off on its own — transfers, autopay, anything that moves without you typing a card number." },
+    { name: "Fill-Ups", text: "Every trip to the pump, tracked on its own line so fuel spending never gets lost inside a generic 'other' bucket." },
+    { name: "Bank Reconciliation", text: "A running check that your ledger and your actual bank balance still agree with each other." },
+    { name: "Grocery Budget", text: "Spend tracked against a grocery allowance you set yourself, not one a bank decided for you." }
+];
+
+const grid = document.getElementById("category-grid");
+const detail = document.getElementById("category-detail");
+
+categories.forEach((cat, i) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "category-chip" + (i === 0 ? " active" : "");
+    chip.textContent = cat.name;
+    chip.addEventListener("click", () => {
+        document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        detail.querySelector("h3").textContent = cat.name;
+        detail.querySelector("p").textContent = cat.text;
+    });
+    grid.appendChild(chip);
+});
+
+// ---------- Live sync demo ----------
+let balance = 1248.30;
+const balanceA = document.getElementById("balance-a");
+const balanceB = document.getElementById("balance-b");
+const ledgerA = document.getElementById("ledger-a");
+const ledgerB = document.getElementById("ledger-b");
+const pulse = document.getElementById("pulse");
+
+function formatMoney(n) {
+    return "$" + n.toFixed(2);
+}
+
+function addEntry(list, category, amount) {
+    const li = document.createElement("li");
+    li.className = "entering";
+    li.innerHTML = `<span>${category}</span><strong>&minus;${formatMoney(amount)}</strong>`;
+    list.prepend(li);
+    while (list.children.length > 3) list.removeChild(list.lastChild);
+}
+
+document.getElementById("sync-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const category = document.getElementById("sync-category").value;
+    const amountInput = document.getElementById("sync-amount");
+    const amount = parseFloat(amountInput.value);
+    if (!amount || amount <= 0) return;
+
+    balance -= amount;
+    const formatted = formatMoney(balance);
+
+    balanceA.textContent = formatted;
+    addEntry(ledgerA, category, amount);
+
+    pulse.classList.remove("active");
+    void pulse.offsetWidth; // restart animation
+    pulse.classList.add("active");
+
+    setTimeout(() => {
+        balanceB.textContent = formatted;
+        addEntry(ledgerB, category, amount);
+    }, 550);
+
+    amountInput.value = "";
+});
+
+// ---------- Scroll reveal ----------
+if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add("visible");
+        });
+    }, { threshold: 0.15 });
+    document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+}
+</script>
+
+</body>
+</html>
