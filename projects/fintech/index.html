@@ -1,1 +1,551 @@
-txt
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FINTECH — Personal. Finance. Reimagined.</title>
+  <link rel="icon" type="image/svg+xml" href="https://joshstafki.github.io/fintech/favicon.svg">
+  <meta name="description" content="A private, manual-entry personal finance dashboard — no bank linking, real-time sync, fully isolated per account.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://joshstafki.github.io/fintech/">
+  <meta property="og:title" content="FINTECH — Personal. Finance. Reimagined.">
+  <meta property="og:description" content="Track spending, monitor cash flow, and manage your finances with clarity — no bank linking required.">
+  <meta property="og:image" content="https://joshstafki.github.io/fintech/FINTECH.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="FINTECH">
+
+  <!-- Twitter/X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://joshstafki.github.io/fintech/">
+  <meta name="twitter:title" content="FINTECH — Personal. Finance. Reimagined.">
+  <meta name="twitter:description" content="Track spending, monitor cash flow, and manage your finances with clarity — no bank linking required.">
+  <meta name="twitter:image" content="https://joshstafki.github.io/fintech/FINTECH.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #07111f;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --text: #eaf0ff;
+      --muted: rgba(234, 240, 255, 0.72);
+
+      --grad-violet: #7c3aed;
+      --grad-blue: #3b82f6;
+      --grad-teal: #2dd4bf;
+      --tile-a: #93c5fd;
+      --tile-b: #5eead4;
+      --ink: #0f172a;
+
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.22), transparent 32%),
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.20), transparent 30%),
+        radial-gradient(circle at bottom center, rgba(45, 212, 191, 0.16), transparent 36%),
+        linear-gradient(180deg, var(--bg) 0%, #08101d 45%, #050912 100%);
+      overflow-x: hidden;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0.25;
+      mix-blend-mode: soft-light;
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0 26px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--tile-a) 0%, var(--tile-b) 100%);
+      box-shadow: 0 14px 40px rgba(45, 212, 191, 0.2);
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      flex: none;
+    }
+
+    .brand-word {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: center;
+      min-height: calc(100vh - 120px);
+      padding: 24px 0 40px;
+    }
+
+    .headline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: clamp(3rem, 6vw, 5.9rem);
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      margin: 0 0 18px;
+      max-width: 11ch;
+    }
+
+    .gradient {
+      background: linear-gradient(90deg, var(--grad-violet) 0%, var(--grad-blue) 50%, var(--grad-teal) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subcopy {
+      max-width: 58ch;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.7;
+      margin: 0 0 28px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 15px 22px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+      cursor: pointer;
+      will-change: transform;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); opacity: 0.95; }
+    .btn-primary {
+      color: var(--ink);
+      background: linear-gradient(135deg, var(--tile-a) 0%, var(--tile-b) 100%);
+      box-shadow: 0 18px 40px rgba(45, 212, 191, 0.22);
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+    }
+
+    .micro {
+      margin-top: 16px;
+      color: rgba(234, 240, 255, 0.54);
+      font-size: 0.92rem;
+    }
+
+    .panel {
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      overflow: hidden;
+    }
+
+    .dashboard {
+      padding: 20px;
+    }
+
+    .mini-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .tag-mono {
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 0.72rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--muted);
+    }
+
+    .pill-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--grad-teal);
+      box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.6);
+      animation: pulseDot 2s infinite;
+    }
+
+    @keyframes pulseDot {
+      0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.6); }
+      70% { box-shadow: 0 0 0 6px rgba(45, 212, 191, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0); }
+    }
+
+    .balance-label {
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .balance {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      letter-spacing: -0.03em;
+      margin: 10px 0 8px;
+      font-weight: 700;
+    }
+
+    .chart {
+      height: 180px;
+      margin: 18px 0 18px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(124,58,237,0.08), rgba(45,212,191,0.08)),
+        linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 18px;
+      background:
+        linear-gradient(to right, rgba(255,255,255,0.10) 1px, transparent 1px) 0 0 / 20% 100%,
+        linear-gradient(to top, rgba(255,255,255,0.10) 1px, transparent 1px) 0 0 / 100% 20%,
+        linear-gradient(135deg, transparent 0 18%, rgba(124,58,237,0.9) 18% 38%, rgba(59,130,246,0.95) 38% 60%, rgba(45,212,191,0.95) 60% 78%, transparent 78% 100%);
+      clip-path: polygon(0 75%, 12% 67%, 24% 72%, 39% 55%, 52% 60%, 66% 38%, 80% 44%, 100% 18%, 100% 100%, 0 100%);
+      opacity: 0.95;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .stat span {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-size: 0.74rem;
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 0 0 30px;
+    }
+
+    .feature {
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .feature .icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(45,212,191,0.2));
+      border: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 14px;
+      font-size: 1.2rem;
+    }
+
+    .feature h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 0.96rem;
+    }
+
+    .section {
+      margin-top: 24px;
+      padding: 0 0 28px;
+    }
+
+    .cta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 24px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(45,212,191,0.10));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: var(--shadow);
+    }
+
+    .cta h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      margin: 0 0 6px;
+      font-size: 1.45rem;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+
+    .cta p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    footer {
+      padding: 22px 0 0;
+      color: rgba(234, 240, 255, 0.48);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    footer .footer-tagline {
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      margin-top: 6px;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .features,
+      .cta {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .hero { min-height: auto; padding-top: 10px; }
+      .headline { max-width: 12ch; }
+      .nav { display: none; }
+      .cards { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 20px, 1180px); }
+      .topbar { padding-bottom: 16px; }
+      .headline { font-size: clamp(2.7rem, 15vw, 4rem); }
+      .subcopy { font-size: 1rem; }
+      .btn { width: 100%; }
+      .actions { width: 100%; }
+      .cta { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="FINTECH home">
+        <span class="mark">F</span>
+        <span class="brand-word">INTECH</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="https://joshstafki.github.io/fintech/features/">Features</a>
+        <a href="https://joshstafki.github.io/fintech/onboarding/">Dashboard</a>
+        <a href="https://joshstafki.github.io/fintech/access/">Access</a>
+        <a href="https://joshstafki.github.io/fintech/privacy/">Privacy</a>
+      </nav>
+    </header>
+
+    <main id="home" class="hero">
+      <section>
+        <h1 class="headline"><span class="gradient">Personal finance</span>, reimagined.</h1>
+        <p class="subcopy">
+          A private ledger you actually control. Every entry is manual, on purpose — no bank
+          credentials shared with anyone, no automatic pulls. Sign in with Google and your
+          numbers sync in real time, visible to no one but you.
+        </p>
+
+        <div class="actions">
+          <a class="btn btn-primary" href="https://joshstafki.github.io/fintech/onboarding/">Access FINTECH →</a>
+          <a class="btn btn-secondary" href="https://joshstafki.github.io/fintech/demo/">Explore Demo</a>
+        </div>
+
+        <div class="micro">Private by design. No bank linking. Yours alone.</div>
+      </section>
+
+      <aside id="dashboard" class="panel dashboard" aria-label="Preview dashboard">
+        <div class="mini-header">
+          <span>Today's overview</span>
+          <span class="pill tag-mono"><span class="pill-dot"></span>Live</span>
+        </div>
+
+        <div class="balance">
+          <span class="balance-label">Accumulate</span>
+          $48,920.14
+        </div>
+
+        <div class="chart" aria-hidden="true"></div>
+
+        <div class="cards">
+          <div class="stat">
+            <span>Out-of-Pocket</span>
+            <strong>$612</strong>
+          </div>
+          <div class="stat">
+            <span>Fill-Ups</span>
+            <strong>$184</strong>
+          </div>
+          <div class="stat">
+            <span>Grocery Budget</span>
+            <strong>$340</strong>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <section id="features" class="section">
+      <div class="features">
+        <article class="feature">
+          <div class="icon">⟡</div>
+          <h3>No bank linking, ever</h3>
+          <p>Every entry is manual, by design. Nothing connects to your bank — you decide what goes in and when.</p>
+        </article>
+
+        <article class="feature">
+          <div class="icon">↗</div>
+          <h3>Real-time, everywhere</h3>
+          <p>Edit on your laptop, see it update instantly on your phone. Built on live sync, not a save button.</p>
+        </article>
+
+        <article class="feature">
+          <div class="icon">◎</div>
+          <h3>Private by default</h3>
+          <p>Sign in with Google and that's it. Your ledger lives in its own private space — no one else can reach it.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="access" class="section">
+      <div class="cta">
+        <div>
+          <h2>Ready when you are.</h2>
+          <p>Sign in with Google and open your private ledger — nothing else required.</p>
+        </div>
+        <a class="btn btn-primary" href="https://joshstafki.github.io/fintech/onboarding/">Launch FINTECH</a>
+      </div>
+    </section>
+
+    <footer>
+      © 2026 FINTECH. All rights reserved.
+      <div class="footer-tagline">Personal. Finance. Reimagined.</div>
+    </footer>
+  </div>
+</body>
+</html>
