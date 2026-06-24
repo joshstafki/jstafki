@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Page Not Found | FINTECH</title>
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="3;url=https://joshstafki.github.io/fintech/">
+<link rel="icon" type="image/svg+xml" href="https://joshstafki.github.io/fintech/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --grad-violet: #7c3aed;
+    --grad-blue: #3b82f6;
+    --grad-teal: #2dd4bf;
+    --ink: #0f172a;
+    --text: #ffffff;
+    --muted: rgba(255, 255, 255, 0.72);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    padding: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: linear-gradient(135deg, var(--grad-violet) 0%, var(--grad-blue) 50%, var(--grad-teal) 100%);
+    background-size: 200% 200%;
+    animation: gradientDrift 12s ease infinite;
+}
+
+body::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+}
+
+@keyframes gradientDrift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.card {
+    position: relative;
+    z-index: 1;
+    width: min(440px, 100%);
+    padding: 2.75rem 2.25rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+.logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+}
+
+.logo-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #93c5fd, #5eead4);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 1.25rem;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.logo-word {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 1.3rem;
+    letter-spacing: 0.04em;
+}
+
+.code {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 5rem;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, var(--grad-violet) 0%, var(--grad-blue) 50%, var(--grad-teal) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+}
+
+.tag-mono {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: rgba(0, 0, 0, 0.15);
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    margin-bottom: 2rem;
+}
+
+.tag-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #fb7185;
+}
+
+footer {
+    margin-top: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+    <div class="logo-row">
+        <div class="logo-tile">F</div>
+        <div class="logo-word">INTECH</div>
+    </div>
+
+    <div class="code">404</div>
+    <h1>This page didn't reconcile.</h1>
+    <p class="subtitle">
+        We checked the ledger twice and couldn't find anything that balances
+        with this link. It may have moved, or never existed at all.
+    </p>
+
+    <div class="tag-mono"><span class="tag-dot"></span> ERROR &middot; NOT FOUND</div>
+
+    <footer>Personal. Finance. Reimagined.</footer>
+
+</div>
+
+</body>
+</html>
