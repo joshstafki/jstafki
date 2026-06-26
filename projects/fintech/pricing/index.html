@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — FINTECH</title>
+<meta name="description" content="One simple price, three ways to pay. Choose monthly, quarterly, or lifetime access to FINTECH.">
+<link rel="icon" type="image/svg+xml" href="https://jstafki.com/assets/fintech/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg: #07111f;
+    --card: rgba(255, 255, 255, 0.07);
+    --card-border: rgba(255, 255, 255, 0.12);
+    --text: #eaf0ff;
+    --muted: rgba(234, 240, 255, 0.70);
+
+    --grad-violet: #7c3aed;
+    --grad-blue: #3b82f6;
+    --grad-teal: #2dd4bf;
+    --tile-a: #93c5fd;
+    --tile-b: #5eead4;
+    --ink: #0f172a;
+
+    --radius: 22px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.22), transparent 32%),
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.20), transparent 30%),
+        radial-gradient(circle at bottom center, rgba(45, 212, 191, 0.14), transparent 38%),
+        linear-gradient(180deg, var(--bg) 0%, #08101d 45%, #050912 100%);
+    overflow-x: hidden;
+}
+
+.wrap {
+    width: min(1080px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 24px 0 60px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ---------- Topbar ---------- */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0 30px; }
+.brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+.mark {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--tile-a), var(--tile-b));
+    display: grid; place-items: center; color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.1rem;
+    flex: none;
+}
+.brand-word { font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.05rem; letter-spacing: 0.04em; }
+.nav { display: flex; align-items: center; gap: 22px; color: var(--muted); font-size: 0.92rem; }
+.nav a { color: inherit; text-decoration: none; }
+.nav a:hover { color: var(--text); }
+
+/* ---------- Type ---------- */
+h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; margin: 0; font-weight: 700; }
+
+.gradient {
+    background: linear-gradient(90deg, var(--grad-violet), var(--grad-blue), var(--grad-teal));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+.eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    font-size: 0.72rem; color: var(--muted);
+    margin-bottom: 0.9rem;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+
+.eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--grad-teal); }
+
+@media (prefers-reduced-motion: no-preference) {
+    .eyebrow-dot { animation: pulseDot 2s infinite; }
+}
+
+@keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.55); }
+    70% { box-shadow: 0 0 0 6px rgba(45, 212, 191, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0); }
+}
+
+/* ---------- Hero ---------- */
+.hero { text-align: center; padding: 10px 0 44px; }
+.hero h1 { font-size: clamp(2.4rem, 5vw, 3.5rem); letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 14px; }
+.hero p { color: var(--muted); font-size: 1.05rem; max-width: 48ch; margin: 0 auto; line-height: 1.6; }
+
+/* ---------- Pricing grid ---------- */
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.plan {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 30px 26px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.plan.featured {
+    background: linear-gradient(180deg, rgba(124,58,237,0.10), rgba(45,212,191,0.06));
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    box-shadow:
+        0 0 0 1.5px rgba(124, 58, 237, 0.5),
+        0 30px 60px rgba(45, 212, 191, 0.18);
+    transform: translateY(-10px);
+}
+
+@media (min-width: 721px) {
+    .plan.featured { padding-top: 42px; }
+}
+
+.badge {
+    position: absolute;
+    top: -13px; left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--tile-a), var(--tile-b));
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 999px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.plan-name {
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.plan-price {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 2.6rem;
+    letter-spacing: -0.03em;
+}
+
+.plan-cadence { color: var(--muted); font-size: 0.88rem; margin-top: -10px; }
+
+.plan-breakdown {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.84rem;
+    color: var(--muted);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.plan-breakdown strong { color: var(--text); }
+
+.plan.featured .plan-breakdown {
+    background: rgba(45, 212, 191, 0.12);
+    border-color: rgba(45, 212, 191, 0.4);
+    color: var(--text);
+}
+
+.plan.featured .plan-breakdown strong { color: var(--grad-teal); }
+
+.savings-tag {
+    display: inline-flex;
+    align-self: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--grad-teal);
+    background: rgba(45, 212, 191, 0.12);
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.plan-features {
+    list-style: none;
+    margin: 0; padding: 0;
+    text-align: left;
+    display: flex; flex-direction: column; gap: 9px;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.plan-features li { display: flex; gap: 8px; align-items: flex-start; }
+.plan-features li::before { content: "✓"; color: var(--grad-teal); flex: none; font-weight: 700; }
+
+.btn {
+    border: none; cursor: pointer; text-decoration: none;
+    border-radius: 999px; padding: 0.8rem 1.2rem;
+    font-weight: 700; font-size: 0.92rem; font-family: inherit;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+
+.btn-primary { background: linear-gradient(135deg, var(--tile-a), var(--tile-b)); color: var(--ink); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
+.btn-quiet { background: rgba(255,255,255,0.08); color: var(--text); }
+.btn-quiet:hover { background: rgba(255,255,255,0.15); }
+
+.btn:focus-visible { outline: 2px solid var(--grad-teal); outline-offset: 2px; }
+
+/* ---------- Footnote ---------- */
+.footnote {
+    max-width: 640px; margin: 30px auto 0;
+    text-align: center;
+    font-size: 0.78rem;
+    color: rgba(234, 240, 255, 0.45);
+    line-height: 1.6;
+}
+
+footer {
+    margin-top: 60px;
+    text-align: center;
+    color: rgba(234, 240, 255, 0.48);
+    font-size: 0.88rem;
+}
+
+footer .footer-tagline {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    font-size: 0.7rem; margin-top: 6px; opacity: 0.8;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+    .pricing-grid { grid-template-columns: 1fr; max-width: 380px; margin: 0 auto; }
+    .plan.featured { transform: none; order: -1; }
+}
+
+@media (max-width: 720px) {
+    .nav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+    <header class="topbar">
+        <a class="brand" href="https://jstafki.com/projects/fintech/">
+            <span class="mark">F</span><span class="brand-word">INTECH</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+            <a href="https://jstafki.com/projects/fintech/">Home</a>
+            <a href="https://jstafki.com/projects/fintech/features/">Features</a>
+            <a href="https://jstafki.com/projects/fintech/onboarding/">Access</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="eyebrow"><span class="eyebrow-dot"></span>Pricing</div>
+        <h1>Pay for what <span class="gradient">you'll actually use.</span></h1>
+        <p>One private ledger. No bank linking, no ads, no surprise charges — just pick the term that fits how long you plan to stick around.</p>
+    </section>
+
+    <div class="pricing-grid">
+
+        <div class="plan">
+            <div class="plan-name">Monthly</div>
+            <div class="plan-price">$9.00</div>
+            <div class="plan-cadence">billed every month</div>
+            <ul class="plan-features">
+                <li>Full access to your private ledger</li>
+                <li>Real-time sync across every device</li>
+                <li>No bank linking, ever</li>
+                <li>Cancel any time</li>
+            </ul>
+            <a class="btn btn-quiet" href="https://buy.stripe.com/28EbJ09bn5TbbXY5xAbAs00">Choose Monthly</a>
+        </div>
+
+        <div class="plan featured">
+            <div class="badge">Best Value</div>
+            <div class="plan-name">3 Months</div>
+            <div class="plan-price">$25.03</div>
+            <div class="plan-cadence">billed every 3 months</div>
+            <div class="plan-breakdown">≈ <strong>$8.34</strong> / month</div>
+            <span class="savings-tag">Save 7% vs. monthly</span>
+            <ul class="plan-features">
+                <li>Everything in Monthly</li>
+                <li>Lower rate, fewer charges</li>
+                <li>Real-time sync across every device</li>
+                <li>No bank linking, ever</li>
+            </ul>
+            <a class="btn btn-primary" href="https://buy.stripe.com/7sY00igDPchz9PQf8abAs01">Choose 3 Months</a>
+        </div>
+
+        <div class="plan">
+            <div class="plan-name">Lifetime</div>
+            <div class="plan-price">$99.96</div>
+            <div class="plan-cadence">one-time payment</div>
+            <div class="plan-breakdown">≈ <strong>$8.33</strong> / month in your first year</div>
+            <ul class="plan-features">
+                <li>Everything in Monthly</li>
+                <li>Pay once — no renewals, ever</li>
+                <li>Real-time sync across every device</li>
+                <li>No bank linking, ever</li>
+            </ul>
+            <a class="btn btn-quiet" href="https://buy.stripe.com/fZu7sKdrD1CVe662lobAs02">Choose Lifetime</a>
+        </div>
+
+    </div>
+
+    <p class="footnote">
+        3-month price reflects the total charged once per 3-month cycle. Lifetime's per-month figure is for comparison only, based on a 12-month window — there's nothing further to pay after the one-time charge.
+    </p>
+
+    <footer>
+        © 2026 FINTECH. All rights reserved.
+        <div class="footer-tagline">Personal. Finance. Reimagined.</div>
+    </footer>
+
+</div>
+
+</body>
+</html>
