@@ -466,15 +466,54 @@ async function loadGymList(){
     gymSource = MOCK_GYMS;
     return;
   }
-  await initFirebaseIfNeeded();
-  const snap = await fb.getDocs(fb.collection(db, 'gyms'));
-  gymSource = snap.docs
-    .map(d => ({ id: d.id, name: d.data().name }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  try{
+    await initFirebaseIfNeeded();
+    const snap = await fb.getDocs(fb.collection(db, 'gyms'));
+    gymSource = snap.docs
+      .map(d => ({ id: d.id, name: d.data().name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    if(gymSource.length === 0){
+      console.warn('Gym list loaded but is empty — check the "gyms" collection in Firestore.');
+    }
+  } catch(err){
+    console.error('Could not load the gym list:', err);
+    const suggestionsEl = document.getElementById('gymSuggestions');
+    suggestionsEl.innerHTML = `<div class="gym-suggestion" style="cursor:default;color:var(--signal);">Couldn't load the gym list — check the browser console for details.</div>`;
+    suggestionsEl.style.display = 'block';
+  }
 }
 
 initGymPicker();
 loadGymList();
+prefillGymFromUrl();
+
+// If the URL has ?gym=<id> (e.g. from a gym's QR code), look that gym up
+// directly and pre-confirm it — same selectGym() the search box uses, so
+// it shows up as the same "selected, with a Change link" chip either way.
+// Doesn't touch anything else: a bad or missing id just falls back to the
+// normal empty search box, no error, no dead end.
+async function prefillGymFromUrl(){
+  const gymIdFromUrl = new URLSearchParams(window.location.search).get('gym');
+  if(!gymIdFromUrl) return;
+
+  if(DEMO_MODE){
+    const match = MOCK_GYMS.find(g => g.id === gymIdFromUrl);
+    if(match){ selectGym(match.id, match.name); }
+    return;
+  }
+
+  try{
+    await initFirebaseIfNeeded();
+    const snap = await fb.getDoc(fb.doc(db, 'gyms', gymIdFromUrl));
+    if(snap.exists()){
+      selectGym(gymIdFromUrl, snap.data().name);
+    } else {
+      console.warn(`"?gym=${gymIdFromUrl}" doesn't match any gym in Firestore — showing normal search instead.`);
+    }
+  } catch(err){
+    console.error('Could not look up gym from URL:', err);
+  }
+}
 
 /* ---------- "my gym isn't listed" ---------- */
 function showGymView(id){
