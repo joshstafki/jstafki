@@ -200,7 +200,7 @@ async function initLive(){
 
   fb.onAuthStateChanged(auth, async (user) => {
     if(!user){
-      messagesEl.innerHTML = `<p class="state-msg">Sign in to view this conversation.</p>`;
+      messagesEl.innerHTML = `<p class="state-msg">Sign in to view this conversation — <a href="../login/" style="color:var(--signal);">log in here</a>.</p>`;
       composer.style.display = 'none';
       return;
     }
