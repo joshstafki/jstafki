@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBRO — Get started</title>
+<link rel="icon" type="image/png" href="https://www.jstafki.com/assets/main/monolith.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@400..900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --charcoal:#15171A;
+  --charcoal-deep:#0B0C0D;
+  --steel:#212427;
+  --steel-light:#3D4147;
+  --brushed:#9BA1A7;
+  --brushed-dim:#6E7378;
+  --chalk:#F3F4F1;
+  --signal:#FF5A1F;
+  --line:rgba(243,244,241,0.09);
+  --font-display:'Big Shoulders', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--charcoal);color:var(--chalk);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+button{font-family:inherit;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--line);}
+.logo{font-family:var(--font-display);font-weight:800;font-size:20px;display:flex;align-items:center;gap:7px;text-decoration:none;}
+.logo svg{width:18px;height:18px;}
+.login-link{font-size:13px;color:var(--brushed);text-decoration:none;}
+.login-link:hover{color:var(--chalk);}
+.demo-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--brushed-dim);border:1px solid var(--steel-light);padding:5px 8px;border-radius:3px;margin-right:14px;}
+
+.wizard{max-width:440px;margin:0 auto;padding:48px 24px 80px;}
+.step-indicator{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.step-indicator .seg{flex:1;height:3px;background:var(--steel-light);border-radius:2px;}
+.step-indicator .seg.filled{background:var(--signal);}
+.step-label{font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--brushed-dim);margin-bottom:30px;}
+
+.step-panel{display:none;}
+.step-panel.active{display:block;}
+.step-title{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:26px;letter-spacing:-0.01em;}
+.step-sub{color:var(--brushed);font-size:14.5px;margin:8px 0 28px;line-height:1.6;}
+
+.form-group{margin-bottom:18px;position:relative;}
+.form-group label{display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--brushed-dim);margin-bottom:8px;}
+input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{
+  width:100%;background:var(--steel);border:1px solid var(--steel-light);color:var(--chalk);
+  padding:13px 14px;border-radius:3px;font-size:15px;font-family:var(--font-body);outline:none;
+}
+input::placeholder,textarea::placeholder{color:var(--brushed-dim);}
+input:focus,select:focus,textarea:focus{border-color:var(--signal);}
+input:disabled{opacity:0.5;}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239BA1A7' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px;}
+textarea{resize:vertical;min-height:80px;}
+.char-count{font-family:var(--font-mono);font-size:11px;color:var(--brushed-dim);text-align:right;margin-top:6px;}
+.field-error{color:var(--signal);font-size:12.5px;margin-top:4px;margin-bottom:14px;font-family:var(--font-mono);}
+
+.google-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:var(--chalk);color:var(--charcoal-deep);border:none;border-radius:3px;
+  padding:13px;font-weight:600;font-size:14.5px;cursor:pointer;margin-bottom:20px;
+}
+.google-btn:hover{background:#fff;}
+.google-btn svg{width:16px;height:16px;}
+.or-divider{display:flex;align-items:center;gap:12px;margin:0 0 20px;color:var(--brushed-dim);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;}
+.or-divider::before,.or-divider::after{content:"";flex:1;height:1px;background:var(--line);}
+
+.gym-suggestions{
+  position:absolute;top:100%;left:0;right:0;background:var(--steel);border:1px solid var(--steel-light);
+  border-radius:3px;margin-top:4px;max-height:220px;overflow-y:auto;z-index:5;
+}
+.gym-suggestion{padding:12px 14px;font-size:14px;color:var(--brushed);cursor:pointer;}
+.gym-suggestion:hover{background:var(--charcoal-deep);color:var(--chalk);}
+.selected-gym{
+  display:flex;justify-content:space-between;align-items:center;background:var(--steel);
+  border:1px solid var(--signal);border-radius:3px;padding:14px 16px;margin-top:6px;
+}
+.selected-gym .name{font-weight:600;font-size:15px;}
+.selected-gym button{background:none;border:none;color:var(--brushed-dim);font-family:var(--font-mono);font-size:12px;cursor:pointer;text-decoration:underline;}
+
+.btn-row{display:flex;gap:12px;margin-top:28px;}
+.btn-primary{flex:1;background:var(--signal);color:var(--charcoal-deep);border:none;padding:14px;border-radius:3px;font-family:var(--font-mono);font-weight:600;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;text-align:center;text-decoration:none;display:block;}
+.btn-primary:hover{background:#ff7440;}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-back{background:none;border:1px solid var(--steel-light);color:var(--brushed);padding:14px 18px;border-radius:3px;font-family:var(--font-mono);font-size:13px;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer;}
+.btn-back:hover{color:var(--chalk);border-color:var(--brushed);}
+
+.success-icon{width:46px;height:46px;border-radius:50%;background:var(--signal);display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.success-icon svg{width:22px;height:22px;color:var(--charcoal-deep);}
+.summary-card{background:var(--steel);border:1px solid var(--line);border-radius:5px;padding:6px 20px;margin:22px 0;}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px;}
+.summary-row:last-child{border-bottom:none;}
+.summary-row .k{color:var(--brushed-dim);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.04em;}
+.summary-row .v{color:var(--chalk);font-weight:500;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="#" class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="9" width="4" height="6"/><rect x="18" y="9" width="4" height="6"/><rect x="6" y="6" width="3" height="12"/><rect x="15" y="6" width="3" height="12"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+    GBRO
+  </a>
+  <div style="display:flex;align-items:center;">
+    <span class="demo-tag" id="demoTag">Demo mode</span>
+    <a href="#" class="login-link">Log in</a>
+  </div>
+</header>
+
+<main class="wizard">
+  <div class="step-indicator" id="stepIndicator">
+    <div class="seg filled"></div><div class="seg"></div><div class="seg"></div>
+  </div>
+  <p class="step-label" id="stepLabel">Step 1 of 3</p>
+
+  <!-- STEP 1 — account -->
+  <section class="step-panel active" data-step="1">
+    <h1 class="step-title">Create your account</h1>
+    <p class="step-sub">No photo needed. Just the basics.</p>
+
+    <button class="google-btn" id="googleBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a9 9 0 0 1 0 18a9 9 0 0 1 0-18Z"/></svg>
+      Continue with Google
+    </button>
+    <div class="or-divider">or use email</div>
+
+    <div class="form-group">
+      <label for="firstName">First name</label>
+      <input type="text" id="firstName" placeholder="Marcus">
+    </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@email.com">
+    </div>
+    <div class="form-group" id="passwordGroup">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="At least 6 characters">
+    </div>
+    <p class="field-error" id="step1Error" style="display:none;"></p>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="step1Next" type="button">Continue</button>
+    </div>
+  </section>
+
+  <!-- STEP 2 — gym -->
+  <section class="step-panel" data-step="2">
+    <h1 class="step-title">Find your gym</h1>
+    <p class="step-sub">We match you with people training at this exact location — not just nearby.</p>
+
+    <div class="form-group" id="gymSearchWrap">
+      <label for="gymInput">Gym name</label>
+      <input type="text" id="gymInput" placeholder="Start typing your gym's name…" autocomplete="off">
+      <div class="gym-suggestions" id="gymSuggestions" style="display:none;"></div>
+    </div>
+
+    <div id="placesContainer" style="display:none;"></div>
+
+    <div class="selected-gym" id="selectedGym" style="display:none;">
+      <span class="name" id="selectedGymName"></span>
+      <button id="changeGymBtn" type="button">Change</button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-back" id="step2Back" type="button">Back</button>
+      <button class="btn-primary" id="step2Next" type="button" disabled>Continue</button>
+    </div>
+  </section>
+
+  <!-- STEP 3 — stats -->
+  <section class="step-panel" data-step="3">
+    <h1 class="step-title">Your stats</h1>
+    <p class="step-sub">Strict metrics, no profile picture. This is what people will actually see.</p>
+
+    <div class="form-group">
+      <label for="age">Age</label>
+      <input type="number" id="age" min="13" max="99" placeholder="27">
+    </div>
+    <div class="form-group">
+      <label for="trainingStyle">Training style</label>
+      <select id="trainingStyle">
+        <option value="">Select one</option>
+        <option>HYROX</option>
+        <option>Powerlifting</option>
+        <option>Bodybuilding</option>
+        <option>Functional Fitness</option>
+        <option>Strength &amp; Conditioning</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="experienceLevel">Experience level</label>
+      <select id="experienceLevel">
+        <option value="">Select one</option>
+        <option>Beginner</option>
+        <option>Intermediate</option>
+        <option>Advanced</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="schedule">Preferred schedule</label>
+      <select id="schedule">
+        <option value="">Select one</option>
+        <option>Early Mornings</option>
+        <option>Midday</option>
+        <option>Evenings</option>
+        <option>Weekends</option>
+        <option>Flexible</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="goal">Your goal</label>
+      <textarea id="goal" maxlength="140" placeholder="What are you training for right now?"></textarea>
+      <p class="char-count"><span id="goalCount">0</span>/140</p>
+    </div>
+    <p class="field-error" id="step3Error" style="display:none;"></p>
+
+    <div class="btn-row">
+      <button class="btn-back" id="step3Back" type="button">Back</button>
+      <button class="btn-primary" id="createProfileBtn" type="button">Create my profile</button>
+    </div>
+  </section>
+
+  <!-- DONE -->
+  <section class="step-panel" data-step="done">
+    <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="5 13 9 17 19 7"/></svg></div>
+    <h1 class="step-title">You're in.</h1>
+    <p class="step-sub">Your profile is live. Here's what people at your gym will see.</p>
+    <div class="summary-card" id="summaryCard"></div>
+    <div class="btn-row">
+      <a class="btn-primary" href="roster.html">View your roster →</a>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+/* ============================================================
+   GBRO onboarding
+   - Runs fully in demo mode out of the box: simulated account
+     creation + a typed mock gym list standing in for Places.
+   - Fill in firebaseConfig to turn on real Firebase Auth + Firestore.
+   - Fill in GOOGLE_MAPS_API_KEY to swap the mock gym list for the
+     real Google Places picker.
+   The two are independent — you can flip on either one first.
+   ============================================================ */
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+const DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
+
+const GOOGLE_MAPS_API_KEY = "YOUR_GOOGLE_MAPS_API_KEY";
+const PLACES_DEMO = GOOGLE_MAPS_API_KEY === "YOUR_GOOGLE_MAPS_API_KEY";
+
+if(!DEMO_MODE && !PLACES_DEMO){
+  document.getElementById('demoTag').remove();
+} else {
+  document.getElementById('demoTag').textContent =
+    DEMO_MODE && PLACES_DEMO ? 'Demo mode' : (DEMO_MODE ? 'Demo account' : 'Demo gym search');
+}
+
+const MOCK_GYMS = [
+  { id: "mock_001", name: "Crunch Fitness – Blaine" },
+  { id: "mock_002", name: "LA Fitness – Maple Grove" },
+  { id: "mock_003", name: "Anytime Fitness – Rogers" },
+  { id: "mock_004", name: "Lifetime Fitness – Champlin" },
+  { id: "mock_005", name: "Snap Fitness – Elk River" },
+  { id: "mock_006", name: "Title Boxing Club – Brooklyn Park" },
+  { id: "mock_007", name: "Iron Sport Gym – Minneapolis" },
+  { id: "mock_008", name: "The Gym – Hanover" }
+];
+
+const state = {
+  firstName: "", email: "", password: "", authUid: null, usedGoogleDemo: false,
+  gymId: null, gymName: null,
+  age: null, trainingStyle: "", experienceLevel: "", schedule: "", goal: ""
+};
+
+let auth, db, fb, firebaseReady = false;
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+/* ---------- step navigation ---------- */
+function goToStep(n){
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.step-panel[data-step="${n}"]`).classList.add('active');
+  const indicator = document.getElementById('stepIndicator');
+  const label = document.getElementById('stepLabel');
+  if(n === 'done'){
+    indicator.style.display = 'none';
+    label.style.display = 'none';
+  } else {
+    indicator.style.display = 'flex';
+    label.style.display = 'block';
+    document.querySelectorAll('.step-indicator .seg').forEach((seg,i) => seg.classList.toggle('filled', i < n));
+    label.textContent = `Step ${n} of 3`;
+  }
+}
+
+/* ---------- firebase (lazy) ---------- */
+async function initFirebaseIfNeeded(){
+  if(DEMO_MODE || firebaseReady) return;
+  const appMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js");
+  const authMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js");
+  const fsMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+  const app = appMod.initializeApp(firebaseConfig);
+  auth = authMod.getAuth(app);
+  db = fsMod.getFirestore(app);
+  fb = { ...authMod, ...fsMod };
+  firebaseReady = true;
+}
+
+async function createAccountWithEmail(){
+  await initFirebaseIfNeeded();
+  const cred = await fb.createUserWithEmailAndPassword(auth, state.email, state.password);
+  await fb.updateProfile(cred.user, { displayName: state.firstName });
+  state.authUid = cred.user.uid;
+}
+
+async function signInWithGoogle(){
+  await initFirebaseIfNeeded();
+  const provider = new fb.GoogleAuthProvider();
+  const result = await fb.signInWithPopup(auth, provider);
+  state.authUid = result.user.uid;
+  state.firstName = (result.user.displayName || '').split(' ')[0] || 'Athlete';
+  state.email = result.user.email || '';
+}
+
+async function saveProfile(){
+  await initFirebaseIfNeeded();
+  await fb.setDoc(fb.doc(db, 'users', state.authUid), {
+    name: state.firstName,
+    age: Number(state.age),
+    gym_id: state.gymId,
+    gym_name: state.gymName,
+    training_style: state.trainingStyle,
+    experience_level: state.experienceLevel,
+    preferred_schedule: state.schedule,
+    goal: state.goal,
+    created_at: fb.serverTimestamp()
+  });
+}
+
+/* ---------- step 1: account ---------- */
+document.getElementById('googleBtn').addEventListener('click', async () => {
+  if(DEMO_MODE){
+    state.usedGoogleDemo = true;
+    state.firstName = 'Josh';
+    state.email = 'josh@example.com';
+    document.getElementById('firstName').value = state.firstName;
+    document.getElementById('email').value = state.email;
+    document.getElementById('firstName').disabled = true;
+    document.getElementById('email').disabled = true;
+    document.getElementById('passwordGroup').style.display = 'none';
+    return;
+  }
+  try {
+    await signInWithGoogle();
+    goToStep(2);
+  } catch(e){
+    console.error('Google sign-in failed:', e);
+  }
+});
+
+document.getElementById('step1Next').addEventListener('click', async () => {
+  const err = document.getElementById('step1Error');
+  if(state.usedGoogleDemo){ goToStep(2); return; }
+
+  const firstName = document.getElementById('firstName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if(!firstName || !email.includes('@') || password.length < 6){
+    err.textContent = 'Enter your name, a valid email, and a password of at least 6 characters.';
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  state.firstName = firstName; state.email = email; state.password = password;
+
+  if(!DEMO_MODE){
+    try { await createAccountWithEmail(); }
+    catch(e){ err.textContent = e.message || 'Could not create account.'; err.style.display = 'block'; return; }
+  }
+  goToStep(2);
+});
+
+/* ---------- step 2: gym ---------- */
+function selectGym(id, name){
+  state.gymId = id;
+  state.gymName = name;
+  document.getElementById('selectedGymName').textContent = name;
+  document.getElementById('selectedGym').style.display = 'flex';
+  document.getElementById('step2Next').disabled = false;
+}
+
+document.getElementById('changeGymBtn').addEventListener('click', () => {
+  state.gymId = null; state.gymName = null;
+  document.getElementById('selectedGym').style.display = 'none';
+  document.getElementById('step2Next').disabled = true;
+});
+
+function initMockGymPicker(){
+  const input = document.getElementById('gymInput');
+  const suggestionsEl = document.getElementById('gymSuggestions');
+  input.addEventListener('input', () => {
+    const v = input.value.trim().toLowerCase();
+    if(!v){ suggestionsEl.style.display = 'none'; return; }
+    const matches = MOCK_GYMS.filter(g => g.name.toLowerCase().includes(v)).slice(0,5);
+    if(matches.length === 0){ suggestionsEl.style.display = 'none'; return; }
+    suggestionsEl.innerHTML = matches.map(g =>
+      `<div class="gym-suggestion" data-id="${g.id}" data-name="${escapeHtml(g.name)}">${escapeHtml(g.name)}</div>`
+    ).join('');
+    suggestionsEl.style.display = 'block';
+  });
+  suggestionsEl.addEventListener('click', (e) => {
+    const item = e.target.closest('.gym-suggestion');
+    if(!item) return;
+    selectGym(item.dataset.id, item.dataset.name);
+    suggestionsEl.style.display = 'none';
+    input.value = '';
+  });
+}
+
+function loadGoogleMapsBootstrap(apiKey){
+  ((g) => {
+    let h, a, k;
+    const p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__",
+          m = document, b = window;
+    b = b[c] || (b[c] = {});
+    const d = b.maps || (b.maps = {});
+    const r = new Set();
+    const e = new URLSearchParams();
+    const u = () => h || (h = new Promise(async (f, n) => {
+      a = m.createElement("script");
+      e.set("libraries", [...r] + "");
+      for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
+      e.set("callback", c + ".maps." + q);
+      a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
+      d[q] = f;
+      a.onerror = () => h = n(Error(p + " could not load."));
+      a.nonce = m.querySelector("script[nonce]")?.nonce || "";
+      m.head.append(a);
+    }));
+    d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
+  })({ key: apiKey, v: "weekly" });
+}
+
+async function initRealGymPicker(){
+  document.getElementById('gymSearchWrap').style.display = 'none';
+  const container = document.getElementById('placesContainer');
+  container.style.display = 'block';
+  loadGoogleMapsBootstrap(GOOGLE_MAPS_API_KEY);
+  // Note: gmp-place-autocomplete renders in a closed shadow DOM, so it
+  // keeps Google's default look — the GBRO input styles above won't reach
+  // inside it. Worth knowing going in, not much to do about it currently.
+  const { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
+  const placeAutocomplete = new PlaceAutocompleteElement({ includedPrimaryTypes: ['gym'] });
+  container.appendChild(placeAutocomplete);
+  placeAutocomplete.addEventListener('gmp-select', async ({ placePrediction }) => {
+    const place = placePrediction.toPlace();
+    await place.fetchFields({ fields: ['displayName', 'id'] });
+    selectGym(place.id, place.displayName);
+  });
+}
+
+if(PLACES_DEMO){ initMockGymPicker(); } else { initRealGymPicker(); }
+
+document.getElementById('step2Back').addEventListener('click', () => goToStep(1));
+document.getElementById('step2Next').addEventListener('click', () => goToStep(3));
+
+/* ---------- step 3: stats ---------- */
+document.getElementById('goal').addEventListener('input', (e) => {
+  document.getElementById('goalCount').textContent = e.target.value.length;
+});
+document.getElementById('step3Back').addEventListener('click', () => goToStep(2));
+
+document.getElementById('createProfileBtn').addEventListener('click', async () => {
+  const age = document.getElementById('age').value;
+  const trainingStyle = document.getElementById('trainingStyle').value;
+  const experienceLevel = document.getElementById('experienceLevel').value;
+  const schedule = document.getElementById('schedule').value;
+  const goal = document.getElementById('goal').value.trim();
+  const err = document.getElementById('step3Error');
+
+  if(!age || !trainingStyle || !experienceLevel || !schedule || !goal){
+    err.textContent = 'Fill in every field — this is the whole profile, make it count.';
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  state.age = age; state.trainingStyle = trainingStyle; state.experienceLevel = experienceLevel;
+  state.schedule = schedule; state.goal = goal;
+
+  const btn = document.getElementById('createProfileBtn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+
+  try {
+    if(!DEMO_MODE){ await saveProfile(); }
+    renderSummary();
+    goToStep('done');
+  } catch(e){
+    err.textContent = e.message || 'Could not save your profile.';
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Create my profile';
+  }
+});
+
+function renderSummary(){
+  document.getElementById('summaryCard').innerHTML = `
+    <div class="summary-row"><span class="k">Name</span><span class="v">${escapeHtml(state.firstName)}, ${escapeHtml(state.age)}</span></div>
+    <div class="summary-row"><span class="k">Gym</span><span class="v">${escapeHtml(state.gymName)}</span></div>
+    <div class="summary-row"><span class="k">Style</span><span class="v">${escapeHtml(state.trainingStyle)}</span></div>
+    <div class="summary-row"><span class="k">Level</span><span class="v">${escapeHtml(state.experienceLevel)}</span></div>
+    <div class="summary-row"><span class="k">Schedule</span><span class="v">${escapeHtml(state.schedule)}</span></div>
+  `;
+}
+</script>
+
+</body>
+</html>
