@@ -93,6 +93,8 @@ main{max-width:680px;margin:0 auto;padding:32px 24px 80px;}
 .status-badge.pending{color:var(--brushed);border:1px solid var(--steel-light);}
 .status-badge.accepted{color:var(--signal);border:1px solid var(--signal);}
 .status-badge.declined{color:var(--brushed-dim);border:1px solid var(--steel-light);}
+.message-link{font-family:var(--font-mono);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:var(--signal);}
+.message-link:hover{color:#ff7440;}
 
 .state-msg{color:var(--brushed);font-size:14.5px;padding:18px 0;}
 
@@ -132,6 +134,11 @@ main{max-width:680px;margin:0 auto;padding:32px 24px 80px;}
   </div>
 
   <div class="section">
+    <p class="section-title">Active chats</p>
+    <div class="roster-list" id="chatsList"></div>
+  </div>
+
+  <div class="section">
     <p class="section-title">Sent</p>
     <div class="roster-list" id="sentList"></div>
   </div>
@@ -146,13 +153,12 @@ main{max-width:680px;margin:0 auto;padding:32px 24px 80px;}
    ============================================================ */
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCJ3vJGgc_iRh7H17sHpVT4N8DDFYpNHYQ",
-  authDomain: "gbro-36d18.firebaseapp.com",
-  projectId: "gbro-36d18",
-  storageBucket: "gbro-36d18.firebasestorage.app",
-  messagingSenderId: "789191744943",
-  appId: "1:789191744943:web:055b88ec3ddcb5a1f8635a",
-  measurementId: "G-H2H4J19Z98"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 const DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
 
@@ -169,8 +175,12 @@ const MOCK_SENT = [
   { requestId:"r3", to_uid:"u1", recipient:{ name:"Marcus", age:27 }, status:"pending" },
   { requestId:"r4", to_uid:"u4", recipient:{ name:"Sam", age:22 }, status:"accepted" }
 ];
+let currentChats = [
+  { id: "demo-chat-001", otherUser: { name: "Sam", age: 22 } }
+];
 
 const incomingListEl = document.getElementById('incomingList');
+const chatsListEl = document.getElementById('chatsList');
 const sentListEl = document.getElementById('sentList');
 const requestMeta = {};
 let auth, db, fb, firebaseReady = false;
@@ -249,6 +259,12 @@ async function acceptRequest(requestId){
       training_request_id: requestId,
       created_at: fb.serverTimestamp()
     });
+  } else {
+    const item = MOCK_INCOMING.find(i => i.requestId === requestId);
+    if(item){
+      currentChats = [...currentChats, { id: `demo-chat-${requestId}`, otherUser: item.sender }];
+      renderChats(currentChats);
+    }
   }
 }
 
@@ -280,6 +296,20 @@ incomingListEl.addEventListener('click', async (e) => {
   if(toggle){ toggleRow(toggle.dataset.toggle); }
 });
 
+/* ---------- active chats ---------- */
+function renderChats(items){
+  if(items.length === 0){
+    chatsListEl.innerHTML = `<p class="state-msg">No active chats yet — accept a request to start one.</p>`;
+    return;
+  }
+  chatsListEl.innerHTML = items.map(c => `
+    <div class="sent-row">
+      <span class="who">${escapeHtml(c.otherUser.name)} <span class="age">${c.otherUser.age}</span></span>
+      <a href="../chat/?chat=${encodeURIComponent(c.id)}" class="message-link">Message →</a>
+    </div>
+  `).join('');
+}
+
 /* ---------- sent ---------- */
 function renderSent(items){
   if(items.length === 0){
@@ -310,6 +340,7 @@ async function initFirebaseIfNeeded(){
 if(DEMO_MODE){
   document.getElementById('avatarInitials').textContent = initials(MOCK_ME.name);
   renderIncoming(MOCK_INCOMING);
+  renderChats(currentChats);
   renderSent(MOCK_SENT);
 } else {
   initLive();
@@ -322,6 +353,7 @@ async function initLive(){
   fb.onAuthStateChanged(auth, async (user) => {
     if(!user){
       incomingListEl.innerHTML = `<p class="state-msg">Sign in to see your requests.</p>`;
+      chatsListEl.innerHTML = '';
       sentListEl.innerHTML = '';
       return;
     }
@@ -347,6 +379,17 @@ async function initLive(){
         return { requestId: d.id, from_uid: r.from_uid, to_uid: r.to_uid, sender: senderSnap.data() };
       }));
       renderIncoming(items);
+    });
+
+    const chatsQuery = fb.query(fb.collection(db, 'chats'), fb.where('participants', 'array-contains', myUid));
+    fb.onSnapshot(chatsQuery, async (snap) => {
+      const items = await Promise.all(snap.docs.map(async (d) => {
+        const c = d.data();
+        const otherUid = c.participants.find(p => p !== myUid);
+        const otherSnap = await fb.getDoc(fb.doc(db, 'users', otherUid));
+        return { id: d.id, otherUser: otherSnap.data() || {} };
+      }));
+      renderChats(items);
     });
 
     const sentQuery = fb.query(fb.collection(db, 'training_requests'), fb.where('from_uid', '==', myUid));
