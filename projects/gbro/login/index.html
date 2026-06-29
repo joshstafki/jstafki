@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBRO — Log in</title>
+<link rel="icon" type="image/png" href="https://www.jstafki.com/assets/main/monolith.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@400..900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --charcoal:#15171A;
+  --charcoal-deep:#0B0C0D;
+  --steel:#212427;
+  --steel-light:#3D4147;
+  --brushed:#9BA1A7;
+  --brushed-dim:#6E7378;
+  --chalk:#F3F4F1;
+  --signal:#FF5A1F;
+  --line:rgba(243,244,241,0.09);
+  --font-display:'Big Shoulders', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--charcoal);color:var(--chalk);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+button{font-family:inherit;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--line);}
+.logo{font-family:var(--font-display);font-weight:800;font-size:20px;display:flex;align-items:center;gap:7px;text-decoration:none;}
+.logo svg{width:18px;height:18px;}
+.demo-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--brushed-dim);border:1px solid var(--steel-light);padding:5px 8px;border-radius:3px;}
+
+.wizard{max-width:400px;margin:0 auto;padding:64px 24px 80px;}
+.step-title{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:26px;letter-spacing:-0.01em;}
+.step-sub{color:var(--brushed);font-size:14.5px;margin:8px 0 28px;line-height:1.6;}
+
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--brushed-dim);margin-bottom:8px;}
+input[type=email],input[type=password]{
+  width:100%;background:var(--steel);border:1px solid var(--steel-light);color:var(--chalk);
+  padding:13px 14px;border-radius:3px;font-size:15px;font-family:var(--font-body);outline:none;
+}
+input::placeholder{color:var(--brushed-dim);}
+input:focus{border-color:var(--signal);}
+.field-error{color:var(--signal);font-size:12.5px;margin-top:4px;margin-bottom:14px;font-family:var(--font-mono);}
+
+.google-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:var(--chalk);color:var(--charcoal-deep);border:none;border-radius:3px;
+  padding:13px;font-weight:600;font-size:14.5px;cursor:pointer;margin-bottom:20px;
+}
+.google-btn:hover{background:#fff;}
+.google-btn svg{width:16px;height:16px;}
+.or-divider{display:flex;align-items:center;gap:12px;margin:0 0 20px;color:var(--brushed-dim);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;}
+.or-divider::before,.or-divider::after{content:"";flex:1;height:1px;background:var(--line);}
+
+.btn-row{margin-top:24px;}
+.btn-primary{
+  width:100%;background:var(--signal);color:var(--charcoal-deep);border:none;padding:14px;border-radius:3px;
+  font-family:var(--font-mono);font-weight:600;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;
+  cursor:pointer;text-align:center;text-decoration:none;display:block;
+}
+.btn-primary:hover{background:#ff7440;}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+
+.link-row{font-size:13px;color:var(--brushed);text-align:center;margin-top:16px;}
+.link-row a{color:var(--signal);cursor:pointer;}
+.link-row a:hover{color:#ff7440;}
+.link-row.muted{color:var(--brushed-dim);}
+
+.success-icon{width:46px;height:46px;border-radius:50%;background:var(--signal);display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.success-icon svg{width:22px;height:22px;color:var(--charcoal-deep);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../" class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="9" width="4" height="6"/><rect x="18" y="9" width="4" height="6"/><rect x="6" y="6" width="3" height="12"/><rect x="15" y="6" width="3" height="12"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+    GBRO
+  </a>
+  <span class="demo-tag" id="demoTag">Demo mode</span>
+</header>
+
+<main class="wizard">
+
+  <section id="signInPanel">
+    <h1 class="step-title">Welcome back</h1>
+    <p class="step-sub">Sign in to see your roster.</p>
+
+    <button class="google-btn" id="googleBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a9 9 0 0 1 0 18a9 9 0 0 1 0-18Z"/></svg>
+      Continue with Google
+    </button>
+    <div class="or-divider">or use email</div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@email.com">
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Your password">
+    </div>
+    <p class="field-error" id="loginError" style="display:none;"></p>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="signInBtn" type="button">Sign in</button>
+    </div>
+
+    <p class="link-row"><a id="forgotLink">Forgot password?</a></p>
+    <p class="link-row muted">New to GBRO? <a href="../onboarding/" style="color:var(--brushed);">Get started</a></p>
+  </section>
+
+  <section id="resetPanel" style="display:none;">
+    <h1 class="step-title">Reset your password</h1>
+    <p class="step-sub">Enter your email and we'll send you a reset link.</p>
+    <div class="form-group">
+      <label for="resetEmail">Email</label>
+      <input type="email" id="resetEmail" placeholder="you@email.com">
+    </div>
+    <p class="field-error" id="resetError" style="display:none;"></p>
+    <div class="btn-row">
+      <button class="btn-primary" id="sendResetBtn" type="button">Send reset link</button>
+    </div>
+    <p class="link-row"><a id="backToSignIn">← Back to sign in</a></p>
+  </section>
+
+  <section id="resetSentPanel" style="display:none;">
+    <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="5 13 9 17 19 7"/></svg></div>
+    <h1 class="step-title">Check your email</h1>
+    <p class="step-sub">If an account exists for that address, a reset link is on its way.</p>
+    <p class="link-row"><a id="backToSignIn2">← Back to sign in</a></p>
+  </section>
+
+  <section id="successPanel" style="display:none;">
+    <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="5 13 9 17 19 7"/></svg></div>
+    <h1 class="step-title">You're in.</h1>
+    <p class="step-sub" id="successSub">Signed in.</p>
+    <div class="btn-row"><a class="btn-primary" href="../roster/">Go to your roster →</a></div>
+  </section>
+
+</main>
+
+<script type="module">
+/* ============================================================
+   GBRO login
+   - Demo mode out of the box: any email/password "works."
+   - Fill in firebaseConfig (same block as the other screens) to
+     check real sessions, sign in for real, and send real reset emails.
+   - If a real session already exists when this page loads, it
+     redirects straight to ../roster/ instead of showing the form —
+     this is what makes "stay logged in across visits" actually visible
+     to the person, rather than just working silently underneath.
+   ============================================================ */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCJ3vJGgc_iRh7H17sHpVT4N8DDFYpNHYQ",
+  authDomain: "gbro-36d18.firebaseapp.com",
+  projectId: "gbro-36d18",
+  storageBucket: "gbro-36d18.firebasestorage.app",
+  messagingSenderId: "789191744943",
+  appId: "1:789191744943:web:055b88ec3ddcb5a1f8635a",
+  measurementId: "G-H2H4J19Z98"
+};
+const DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
+if(!DEMO_MODE){ document.getElementById('demoTag').remove(); }
+
+let auth, fb, firebaseReady = false;
+
+async function initFirebaseIfNeeded(){
+  if(DEMO_MODE || firebaseReady) return;
+  const appMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js");
+  const authMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js");
+  const app = appMod.initializeApp(firebaseConfig);
+  auth = authMod.getAuth(app);
+  fb = { ...authMod };
+  firebaseReady = true;
+}
+
+function showPanel(id){
+  ['signInPanel','resetPanel','resetSentPanel','successPanel'].forEach(p => {
+    document.getElementById(p).style.display = (p === id) ? 'block' : 'none';
+  });
+}
+
+function friendlyError(code){
+  if(['auth/invalid-credential','auth/wrong-password','auth/user-not-found'].includes(code)){
+    return "That email and password don't match.";
+  }
+  if(code === 'auth/too-many-requests') return 'Too many attempts — try again in a bit.';
+  if(code === 'auth/invalid-email') return 'That email address looks off.';
+  return "Couldn't sign you in. Try again.";
+}
+
+document.getElementById('forgotLink').addEventListener('click', () => showPanel('resetPanel'));
+document.getElementById('backToSignIn').addEventListener('click', () => showPanel('signInPanel'));
+document.getElementById('backToSignIn2').addEventListener('click', () => showPanel('signInPanel'));
+
+document.getElementById('googleBtn').addEventListener('click', async () => {
+  if(DEMO_MODE){
+    document.getElementById('successSub').textContent = 'Signed in with Google.';
+    showPanel('successPanel');
+    return;
+  }
+  try{
+    await initFirebaseIfNeeded();
+    const provider = new fb.GoogleAuthProvider();
+    await fb.signInWithPopup(auth, provider);
+    window.location.href = '../roster/';
+  } catch(e){ console.error('Google sign-in failed:', e); }
+});
+
+document.getElementById('signInBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const err = document.getElementById('loginError');
+  if(!email || !password){
+    err.textContent = 'Enter your email and password.';
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  const btn = document.getElementById('signInBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+
+  if(DEMO_MODE){
+    document.getElementById('successSub').textContent = `Signed in as ${email.split('@')[0]}.`;
+    showPanel('successPanel');
+    return;
+  }
+  try{
+    await initFirebaseIfNeeded();
+    await fb.signInWithEmailAndPassword(auth, email, password);
+    window.location.href = '../roster/';
+  } catch(e){
+    err.textContent = friendlyError(e.code);
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+});
+
+document.getElementById('sendResetBtn').addEventListener('click', async () => {
+  const email = document.getElementById('resetEmail').value.trim();
+  const err = document.getElementById('resetError');
+  if(!email){
+    err.textContent = 'Enter your email.';
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  if(!DEMO_MODE){
+    try{
+      await initFirebaseIfNeeded();
+      await fb.sendPasswordResetEmail(auth, email);
+    } catch(e){
+      // Deliberately swallowed: showing the same "check your email" message
+      // whether or not the address exists avoids leaking which emails are
+      // registered. A real network failure would be rare enough to not
+      // worry about here.
+    }
+  }
+  showPanel('resetSentPanel');
+});
+
+// If a session already exists, skip the form entirely.
+if(!DEMO_MODE){
+  initFirebaseIfNeeded().then(() => {
+    fb.onAuthStateChanged(auth, (user) => {
+      if(user){ window.location.href = '../roster/'; }
+    });
+  });
+}
+</script>
+
+</body>
+</html>
