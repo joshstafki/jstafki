@@ -353,7 +353,7 @@ async function initLive(){
 
   fb.onAuthStateChanged(auth, async (user) => {
     if(!user){
-      incomingListEl.innerHTML = `<p class="state-msg">Sign in to see your requests.</p>`;
+      incomingListEl.innerHTML = `<p class="state-msg">Sign in to see your requests — <a href="../login/" style="color:var(--signal);">log in here</a>.</p>`;
       chatsListEl.innerHTML = '';
       sentListEl.innerHTML = '';
       return;
