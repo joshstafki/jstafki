@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBRO — Requests</title>
+<link rel="icon" type="image/png" href="https://www.jstafki.com/assets/main/monolith.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@400..900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --charcoal:#15171A;
+  --charcoal-deep:#0B0C0D;
+  --steel:#212427;
+  --steel-light:#3D4147;
+  --brushed:#9BA1A7;
+  --brushed-dim:#6E7378;
+  --chalk:#F3F4F1;
+  --signal:#FF5A1F;
+  --line:rgba(243,244,241,0.09);
+  --font-display:'Big Shoulders', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--charcoal);color:var(--chalk);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;}
+
+.topbar{
+  position:sticky;top:0;z-index:10;background:var(--charcoal);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;border-bottom:1px solid var(--line);
+}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.logo{font-family:var(--font-display);font-weight:800;font-size:20px;display:flex;align-items:center;gap:7px;}
+.logo svg{width:18px;height:18px;}
+.divider{width:1px;height:18px;background:var(--line);}
+.back-link{font-size:14px;color:var(--brushed);transition:color .2s ease;}
+.back-link:hover{color:var(--chalk);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.demo-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--brushed-dim);border:1px solid var(--steel-light);padding:5px 8px;border-radius:3px;}
+.avatar{
+  width:36px;height:36px;border-radius:50%;background:var(--steel);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-weight:600;font-size:12.5px;color:var(--chalk);
+  border:1px solid var(--steel-light);
+}
+
+main{max-width:680px;margin:0 auto;padding:32px 24px 80px;}
+.page-head{margin-bottom:30px;}
+.page-head h1{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:28px;letter-spacing:-0.01em;}
+.page-head .count{font-family:var(--font-mono);font-size:12px;color:var(--brushed-dim);letter-spacing:0.04em;text-transform:uppercase;margin-top:4px;}
+
+.section{margin-bottom:40px;}
+.section-title{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--brushed-dim);border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:14px;
+}
+
+.roster-list{display:flex;flex-direction:column;gap:10px;}
+.roster-row{background:var(--steel);border:1px solid var(--line);border-radius:5px;padding:16px 18px;transition:border-color .2s ease, opacity .3s ease, transform .3s ease;}
+.roster-row:hover{border-color:var(--steel-light);}
+.row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+.row-name{font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:19px;letter-spacing:0.01em;}
+.row-name .age{color:var(--brushed-dim);font-weight:400;}
+.row-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.badge{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;
+  color:var(--brushed);background:var(--charcoal-deep);border:1px solid var(--line);
+  padding:5px 10px;border-radius:3px;
+}
+.row-actions{display:flex;align-items:center;gap:8px;flex:none;}
+.accept-btn,.decline-btn{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;
+  padding:9px 14px;border-radius:3px;cursor:pointer;transition:background .2s ease, color .2s ease;white-space:nowrap;border:none;
+}
+.accept-btn{background:var(--signal);color:var(--charcoal-deep);}
+.accept-btn:hover{background:#ff7440;}
+.decline-btn{background:transparent;border:1px solid var(--steel-light);color:var(--brushed);}
+.decline-btn:hover{color:var(--chalk);border-color:var(--brushed);}
+.accept-btn:disabled,.decline-btn:disabled{opacity:0.4;cursor:default;}
+
+.row-detail{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.row-detail-inner{padding-top:14px;border-top:1px solid var(--line);margin-top:14px;}
+.row-detail-inner p{color:var(--brushed);font-size:14px;line-height:1.6;}
+.toggle-zone{cursor:pointer;}
+
+.sent-row{display:flex;justify-content:space-between;align-items:center;background:var(--steel);border:1px solid var(--line);border-radius:5px;padding:14px 18px;}
+.sent-row .who{font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:16px;}
+.sent-row .who .age{color:var(--brushed-dim);font-weight:400;}
+.status-badge{font-family:var(--font-mono);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;padding:6px 12px;border-radius:3px;white-space:nowrap;}
+.status-badge.pending{color:var(--brushed);border:1px solid var(--steel-light);}
+.status-badge.accepted{color:var(--signal);border:1px solid var(--signal);}
+.status-badge.declined{color:var(--brushed-dim);border:1px solid var(--steel-light);}
+
+.state-msg{color:var(--brushed);font-size:14.5px;padding:18px 0;}
+
+@media (max-width:560px){
+  main{padding:24px 18px 60px;}
+  .row-top{flex-wrap:wrap;}
+  .row-actions{width:100%;justify-content:flex-end;}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <a href="#" class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="9" width="4" height="6"/><rect x="18" y="9" width="4" height="6"/><rect x="6" y="6" width="3" height="12"/><rect x="15" y="6" width="3" height="12"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+      GBRO
+    </a>
+    <span class="divider"></span>
+    <a href="../roster/" class="back-link">← Back to roster</a>
+  </div>
+  <div class="topbar-right">
+    <span class="demo-tag" id="demoTag">Demo data</span>
+    <div class="avatar" id="avatarInitials">—</div>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>Requests</h1>
+    <p class="count" id="incomingCount">— pending</p>
+  </div>
+
+  <div class="section">
+    <p class="section-title">Incoming</p>
+    <div class="roster-list" id="incomingList"></div>
+  </div>
+
+  <div class="section">
+    <p class="section-title">Sent</p>
+    <div class="roster-list" id="sentList"></div>
+  </div>
+</main>
+
+<script type="module">
+/* ============================================================
+   GBRO requests screen
+   - Demo mode out of the box.
+   - Fill in firebaseConfig (same block as roster.html / onboarding.html)
+     to switch to live Firestore — nothing else changes.
+   ============================================================ */
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+const DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
+
+const MOCK_ME = { name: "Josh" };
+const MOCK_INCOMING = [
+  { requestId:"r1", from_uid:"u2", to_uid:"me",
+    sender:{ name:"Devon", age:24, training_style:"Powerlifting", experience_level:"Intermediate", preferred_schedule:"Evenings",
+      goal:"Chasing a 500lb deadlift by spring. Looking for someone to hand off plates and call my depth on squats." } },
+  { requestId:"r2", from_uid:"u3", to_uid:"me",
+    sender:{ name:"Theo", age:31, training_style:"Functional Fitness", experience_level:"Advanced", preferred_schedule:"Midday",
+      goal:"Coach by trade, lifter by obsession. Want a regular midday session partner who actually shows up." } }
+];
+const MOCK_SENT = [
+  { requestId:"r3", to_uid:"u1", recipient:{ name:"Marcus", age:27 }, status:"pending" },
+  { requestId:"r4", to_uid:"u4", recipient:{ name:"Sam", age:22 }, status:"accepted" }
+];
+
+const incomingListEl = document.getElementById('incomingList');
+const sentListEl = document.getElementById('sentList');
+const requestMeta = {};
+let auth, db, fb, firebaseReady = false;
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+function initials(name){
+  return (name || '').trim().split(/\s+/).map(s => s[0]).join('').slice(0,2).toUpperCase() || '—';
+}
+
+/* ---------- incoming ---------- */
+function renderIncoming(items){
+  document.getElementById('incomingCount').textContent = `${items.length} pending`;
+  if(items.length === 0){
+    incomingListEl.innerHTML = `<p class="state-msg">No pending requests right now.</p>`;
+    return;
+  }
+  incomingListEl.innerHTML = items.map(item => {
+    requestMeta[item.requestId] = { from_uid: item.from_uid, to_uid: item.to_uid };
+    const s = item.sender;
+    return `
+    <div class="roster-row" data-row="${item.requestId}">
+      <div class="row-top">
+        <div class="toggle-zone" data-toggle="${item.requestId}">
+          <div class="row-name">${escapeHtml(s.name)} <span class="age">${s.age}</span></div>
+          <div class="row-badges">
+            <span class="badge">${escapeHtml(s.training_style)}</span>
+            <span class="badge">${escapeHtml(s.experience_level)}</span>
+            <span class="badge">${escapeHtml(s.preferred_schedule)}</span>
+          </div>
+        </div>
+        <div class="row-actions">
+          <button class="accept-btn" data-action="accept">Accept</button>
+          <button class="decline-btn" data-action="decline">Decline</button>
+        </div>
+      </div>
+      <div class="row-detail">
+        <div class="row-detail-inner"><p>${escapeHtml(s.goal)}</p></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleRow(requestId){
+  const row = incomingListEl.querySelector(`[data-row="${requestId}"]`);
+  if(!row) return;
+  const detail = row.querySelector('.row-detail');
+  const isOpen = row.classList.toggle('open');
+  detail.style.maxHeight = isOpen ? detail.scrollHeight + 'px' : null;
+}
+
+function fadeOutRow(row){
+  row.style.opacity = '0';
+  row.style.transform = 'translateX(8px)';
+  setTimeout(() => {
+    row.remove();
+    const remaining = incomingListEl.querySelectorAll('.roster-row').length;
+    document.getElementById('incomingCount').textContent = `${remaining} pending`;
+    if(remaining === 0){
+      incomingListEl.innerHTML = `<p class="state-msg">No pending requests right now.</p>`;
+    }
+  }, 300);
+}
+
+async function acceptRequest(requestId){
+  const meta = requestMeta[requestId];
+  if(!DEMO_MODE){
+    await fb.updateDoc(fb.doc(db, 'training_requests', requestId), {
+      status: 'accepted', updated_at: fb.serverTimestamp()
+    });
+    await fb.addDoc(fb.collection(db, 'chats'), {
+      participants: [meta.from_uid, meta.to_uid],
+      training_request_id: requestId,
+      created_at: fb.serverTimestamp()
+    });
+  }
+}
+
+async function declineRequest(requestId){
+  if(!DEMO_MODE){
+    await fb.updateDoc(fb.doc(db, 'training_requests', requestId), {
+      status: 'declined', updated_at: fb.serverTimestamp()
+    });
+  }
+}
+
+incomingListEl.addEventListener('click', async (e) => {
+  const actionBtn = e.target.closest('[data-action]');
+  if(actionBtn){
+    const row = e.target.closest('.roster-row');
+    const requestId = row.dataset.row;
+    row.querySelectorAll('button').forEach(b => b.disabled = true);
+    try{
+      if(actionBtn.dataset.action === 'accept'){ await acceptRequest(requestId); }
+      else { await declineRequest(requestId); }
+      fadeOutRow(row);
+    } catch(err){
+      console.error('Could not update request:', err);
+      row.querySelectorAll('button').forEach(b => b.disabled = false);
+    }
+    return;
+  }
+  const toggle = e.target.closest('[data-toggle]');
+  if(toggle){ toggleRow(toggle.dataset.toggle); }
+});
+
+/* ---------- sent ---------- */
+function renderSent(items){
+  if(items.length === 0){
+    sentListEl.innerHTML = `<p class="state-msg">You haven't sent any requests yet — head to the roster to find a partner.</p>`;
+    return;
+  }
+  sentListEl.innerHTML = items.map(item => `
+    <div class="sent-row">
+      <span class="who">${escapeHtml(item.recipient.name)} <span class="age">${item.recipient.age}</span></span>
+      <span class="status-badge ${item.status}">${item.status}</span>
+    </div>
+  `).join('');
+}
+
+/* ---------- firebase (lazy) ---------- */
+async function initFirebaseIfNeeded(){
+  if(DEMO_MODE || firebaseReady) return;
+  const appMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js");
+  const authMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js");
+  const fsMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+  const app = appMod.initializeApp(firebaseConfig);
+  auth = authMod.getAuth(app);
+  db = fsMod.getFirestore(app);
+  fb = { ...authMod, ...fsMod };
+  firebaseReady = true;
+}
+
+if(DEMO_MODE){
+  document.getElementById('avatarInitials').textContent = initials(MOCK_ME.name);
+  renderIncoming(MOCK_INCOMING);
+  renderSent(MOCK_SENT);
+} else {
+  initLive();
+}
+
+async function initLive(){
+  await initFirebaseIfNeeded();
+  document.getElementById('demoTag').remove();
+
+  fb.onAuthStateChanged(auth, async (user) => {
+    if(!user){
+      incomingListEl.innerHTML = `<p class="state-msg">Sign in to see your requests.</p>`;
+      sentListEl.innerHTML = '';
+      return;
+    }
+    const myUid = user.uid;
+    const myProfileSnap = await fb.getDoc(fb.doc(db, 'users', myUid));
+    if(myProfileSnap.exists()){
+      document.getElementById('avatarInitials').textContent = initials(myProfileSnap.data().name);
+    }
+
+    // Incoming — note: this fetches the sender's profile per request
+    // (one extra read each) rather than denormalizing their stats onto
+    // the training_requests doc. Fine at this scale; if the read count
+    // ever matters, that's the first thing worth caching instead.
+    const incomingQuery = fb.query(
+      fb.collection(db, 'training_requests'),
+      fb.where('to_uid', '==', myUid),
+      fb.where('status', '==', 'pending')
+    );
+    fb.onSnapshot(incomingQuery, async (snap) => {
+      const items = await Promise.all(snap.docs.map(async (d) => {
+        const r = d.data();
+        const senderSnap = await fb.getDoc(fb.doc(db, 'users', r.from_uid));
+        return { requestId: d.id, from_uid: r.from_uid, to_uid: r.to_uid, sender: senderSnap.data() };
+      }));
+      renderIncoming(items);
+    });
+
+    const sentQuery = fb.query(fb.collection(db, 'training_requests'), fb.where('from_uid', '==', myUid));
+    fb.onSnapshot(sentQuery, async (snap) => {
+      const items = await Promise.all(snap.docs.map(async (d) => {
+        const r = d.data();
+        const recipientSnap = await fb.getDoc(fb.doc(db, 'users', r.to_uid));
+        return { requestId: d.id, to_uid: r.to_uid, recipient: recipientSnap.data(), status: r.status };
+      }));
+      renderSent(items);
+    });
+  });
+}
+</script>
+
+</body>
+</html>
