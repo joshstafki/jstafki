@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBRO — Roster</title>
+<link rel="icon" type="image/png" href="https://www.jstafki.com/assets/main/monolith.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@400..900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --charcoal:#15171A;
+  --charcoal-deep:#0B0C0D;
+  --steel:#212427;
+  --steel-light:#3D4147;
+  --brushed:#9BA1A7;
+  --brushed-dim:#6E7378;
+  --chalk:#F3F4F1;
+  --signal:#FF5A1F;
+  --line:rgba(243,244,241,0.09);
+  --font-display:'Big Shoulders', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--charcoal);color:var(--chalk);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;}
+
+.topbar{
+  position:sticky;top:0;z-index:10;background:var(--charcoal);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;border-bottom:1px solid var(--line);
+}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.logo{font-family:var(--font-display);font-weight:800;font-size:20px;display:flex;align-items:center;gap:7px;}
+.logo svg{width:18px;height:18px;}
+.divider{width:1px;height:18px;background:var(--line);}
+.gym-name{font-family:var(--font-body);font-weight:600;font-size:15px;color:var(--chalk);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.demo-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--brushed-dim);border:1px solid var(--steel-light);padding:5px 8px;border-radius:3px;}
+.icon-btn{
+  background:none;border:1px solid var(--steel-light);border-radius:4px;
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  color:var(--brushed);cursor:pointer;transition:color .2s ease, border-color .2s ease;
+}
+.icon-btn:hover{color:var(--chalk);border-color:var(--brushed);}
+.icon-btn svg{width:17px;height:17px;}
+.avatar{
+  width:36px;height:36px;border-radius:50%;background:var(--steel);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-weight:600;font-size:12.5px;color:var(--chalk);
+  border:1px solid var(--steel-light);
+}
+
+main{max-width:680px;margin:0 auto;padding:32px 24px 80px;}
+.page-head{margin-bottom:22px;}
+.page-head h1{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:28px;letter-spacing:-0.01em;}
+.page-head .count{font-family:var(--font-mono);font-size:12px;color:var(--brushed-dim);letter-spacing:0.04em;text-transform:uppercase;margin-top:4px;}
+
+.banner{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  background:var(--steel);border-left:3px solid var(--signal);border-radius:4px;
+  padding:18px 20px;margin-bottom:20px;
+}
+.banner p{font-size:14px;color:var(--brushed);line-height:1.5;margin:0;max-width:380px;}
+.banner strong{color:var(--chalk);}
+.banner button{
+  flex:none;background:transparent;border:1px solid var(--signal);color:var(--signal);
+  padding:10px 16px;border-radius:3px;font-family:var(--font-mono);font-size:11px;
+  letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:background .2s ease, color .2s ease;
+}
+.banner button:hover{background:var(--signal);color:var(--charcoal-deep);}
+
+.roster-list{display:flex;flex-direction:column;gap:10px;}
+.roster-row{background:var(--steel);border:1px solid var(--line);border-radius:5px;padding:16px 18px;transition:border-color .2s ease;}
+.roster-row:hover{border-color:var(--steel-light);}
+.row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;cursor:pointer;}
+.row-name{font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:19px;letter-spacing:0.01em;}
+.row-name .age{color:var(--brushed-dim);font-weight:400;}
+.row-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.badge{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;
+  color:var(--brushed);background:var(--charcoal-deep);border:1px solid var(--line);
+  padding:5px 10px;border-radius:3px;
+}
+.row-actions{display:flex;align-items:center;gap:10px;flex:none;}
+.connect-btn{
+  background:var(--signal);color:var(--charcoal-deep);border:none;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;
+  padding:9px 16px;border-radius:3px;cursor:pointer;transition:background .2s ease;white-space:nowrap;
+}
+.connect-btn:hover{background:#ff7440;}
+.connect-btn.pending{background:transparent;border:1px solid var(--steel-light);color:var(--brushed-dim);cursor:default;}
+.connect-btn.connected{background:transparent;border:1px solid var(--signal);color:var(--signal);cursor:default;}
+.chevron{width:20px;height:20px;color:var(--brushed-dim);transition:transform .25s ease;flex:none;}
+.roster-row.open .chevron{transform:rotate(180deg);}
+
+.row-detail{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.row-detail-inner{padding-top:14px;border-top:1px solid var(--line);margin-top:14px;}
+.row-detail-inner p{color:var(--brushed);font-size:14px;line-height:1.6;}
+
+.state-msg{color:var(--brushed);font-size:14.5px;padding:24px 0;}
+
+@media (max-width:560px){
+  .topbar{padding:14px 18px;}
+  .gym-name{font-size:14px;}
+  main{padding:24px 18px 60px;}
+  .row-top{flex-wrap:wrap;}
+  .row-actions{width:100%;justify-content:space-between;}
+  .banner{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <a href="#" class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="9" width="4" height="6"/><rect x="18" y="9" width="4" height="6"/><rect x="6" y="6" width="3" height="12"/><rect x="15" y="6" width="3" height="12"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+      GBRO
+    </a>
+    <span class="divider"></span>
+    <span class="gym-name" id="gymNameLabel">Loading gym…</span>
+  </div>
+  <div class="topbar-right">
+    <span class="demo-tag" id="demoTag">Demo data</span>
+    <button class="icon-btn" id="inviteIconBtn" title="Invite a training partner" aria-label="Invite a training partner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+    </button>
+    <div class="avatar" id="avatarInitials">—</div>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>Lifters at your gym</h1>
+    <p class="count" id="rosterCount">— active</p>
+  </div>
+
+  <div class="banner" id="quietBanner" style="display:none;">
+    <p>Only <strong id="quietCount">0</strong> lifters here right now. Invite someone from your gym to get the roster going.</p>
+    <button id="inviteBannerBtn">Invite a training partner</button>
+  </div>
+
+  <div class="roster-list" id="rosterList"></div>
+</main>
+
+<script type="module">
+/* ============================================================
+   GBRO roster screen
+   - Renders with demo data out of the box.
+   - Fill in firebaseConfig below to switch to live Firestore —
+     nothing else needs to change.
+   ============================================================ */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCJ3vJGgc_iRh7H17sHpVT4N8DDFYpNHYQ",
+  authDomain: "gbro-36d18.firebaseapp.com",
+  projectId: "gbro-36d18",
+  storageBucket: "gbro-36d18.firebasestorage.app",
+  messagingSenderId: "789191744943",
+  appId: "1:789191744943:web:055b88ec3ddcb5a1f8635a",
+  measurementId: "G-H2H4J19Z98"
+};
+const DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
+
+const MOCK_GYM = { id: "demo-gym-001", name: "Crunch Fitness – Blaine" };
+const MOCK_ME = { name: "Josh" };
+const MOCK_USERS = [
+  { uid:"u1", name:"Marcus", age:27, training_style:"HYROX", experience_level:"Advanced", preferred_schedule:"Early Mornings",
+    goal:"Training for HYROX Worlds quals — need a 5am partner who won't bail." },
+  { uid:"u2", name:"Devon", age:24, training_style:"Powerlifting", experience_level:"Intermediate", preferred_schedule:"Evenings",
+    goal:"Chasing a 500lb deadlift by spring. Looking for someone to hand off plates and call my depth on squats." },
+  { uid:"u3", name:"Theo", age:31, training_style:"Functional Fitness", experience_level:"Advanced", preferred_schedule:"Midday",
+    goal:"Coach by trade, lifter by obsession. Want a regular midday session partner who actually shows up." },
+  { uid:"u4", name:"Sam", age:22, training_style:"Powerlifting", experience_level:"Beginner", preferred_schedule:"Weekends",
+    goal:"New to serious lifting, want someone patient to learn form with before I hurt myself." }
+];
+
+const rosterListEl = document.getElementById('rosterList');
+const connectionState = {};
+let currentGymId = null;
+let sendConnectRequestImpl = null;
+
+function initials(name){
+  return (name || '').trim().split(/\s+/).map(s => s[0]).join('').slice(0,2).toUpperCase() || '—';
+}
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+function renderRoster(users, gymName){
+  document.getElementById('gymNameLabel').textContent = gymName || 'Your gym';
+  document.getElementById('rosterCount').textContent = `${users.length} active`;
+
+  const banner = document.getElementById('quietBanner');
+  if(users.length < 5){
+    banner.style.display = 'flex';
+    document.getElementById('quietCount').textContent = users.length;
+  } else {
+    banner.style.display = 'none';
+  }
+
+  if(users.length === 0){
+    rosterListEl.innerHTML = `<p class="state-msg">No one's checked in here yet — be the first to invite a training partner.</p>`;
+    return;
+  }
+  rosterListEl.innerHTML = users.map(renderRow).join('');
+}
+
+function renderRow(u){
+  const state = connectionState[u.uid];
+  let label = 'Connect', cls = '';
+  if(state === 'pending'){ label = 'Request sent'; cls = 'pending'; }
+  if(state === 'connected'){ label = 'Connected'; cls = 'connected'; }
+
+  return `
+  <div class="roster-row" data-row="${u.uid}">
+    <div class="row-top" data-toggle="${u.uid}">
+      <div>
+        <div class="row-name">${escapeHtml(u.name)} <span class="age">${u.age}</span></div>
+        <div class="row-badges">
+          <span class="badge">${escapeHtml(u.training_style)}</span>
+          <span class="badge">${escapeHtml(u.experience_level)}</span>
+          <span class="badge">${escapeHtml(u.preferred_schedule)}</span>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="connect-btn ${cls}" data-connect="${u.uid}" ${state ? 'disabled' : ''}>${label}</button>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+    <div class="row-detail">
+      <div class="row-detail-inner"><p>${escapeHtml(u.goal)}</p></div>
+    </div>
+  </div>`;
+}
+
+function updateRowButton(uid){
+  const btn = rosterListEl.querySelector(`[data-connect="${uid}"]`);
+  if(!btn) return;
+  const state = connectionState[uid];
+  if(state === 'pending'){ btn.textContent = 'Request sent'; btn.classList.add('pending'); btn.disabled = true; }
+  if(state === 'connected'){ btn.textContent = 'Connected'; btn.classList.remove('pending'); btn.classList.add('connected'); btn.disabled = true; }
+}
+
+function toggleRow(uid){
+  const row = rosterListEl.querySelector(`[data-row="${uid}"]`);
+  if(!row) return;
+  const detail = row.querySelector('.row-detail');
+  const isOpen = row.classList.toggle('open');
+  detail.style.maxHeight = isOpen ? detail.scrollHeight + 'px' : null;
+}
+
+async function connect(uid){
+  if(connectionState[uid]) return;
+  connectionState[uid] = 'pending';
+  updateRowButton(uid);
+  if(!DEMO_MODE && sendConnectRequestImpl){
+    try { await sendConnectRequestImpl(uid, currentGymId); }
+    catch(err){ console.error('Connect request failed:', err); }
+  }
+}
+
+rosterListEl.addEventListener('click', (e) => {
+  const connectBtn = e.target.closest('.connect-btn');
+  if(connectBtn){ connect(connectBtn.dataset.connect); return; }
+  const toggle = e.target.closest('[data-toggle]');
+  if(toggle){ toggleRow(toggle.dataset.toggle); }
+});
+
+function sendInvite(){
+  const gymId = currentGymId || MOCK_GYM.id;
+  const url = `https://gbro.app/join?gym=${encodeURIComponent(gymId)}`;
+  const body = encodeURIComponent(`Train with me on GBRO — join the roster at our gym: ${url}`);
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+  window.location.href = isIOS ? `sms:&body=${body}` : `sms:?body=${body}`;
+}
+document.getElementById('inviteIconBtn').addEventListener('click', sendInvite);
+document.getElementById('inviteBannerBtn').addEventListener('click', sendInvite);
+
+if(DEMO_MODE){
+  currentGymId = MOCK_GYM.id;
+  document.getElementById('avatarInitials').textContent = initials(MOCK_ME.name);
+  renderRoster(MOCK_USERS, MOCK_GYM.name);
+} else {
+  initLive();
+}
+
+async function initLive(){
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js");
+  const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js");
+  const { getFirestore, doc, getDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp } =
+    await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  document.getElementById('demoTag').remove();
+
+  onAuthStateChanged(auth, async (user) => {
+    if(!user){
+      rosterListEl.innerHTML = `<p class="state-msg">Sign in to see your gym's roster.</p>`;
+      return;
+    }
+
+    const myUid = user.uid;
+    const myProfileSnap = await getDoc(doc(db, 'users', myUid));
+    if(!myProfileSnap.exists()){
+      rosterListEl.innerHTML = `<p class="state-msg">Finish setting up your profile to see your roster.</p>`;
+      return;
+    }
+
+    const myProfile = myProfileSnap.data();
+    currentGymId = myProfile.gym_id;
+    document.getElementById('avatarInitials').textContent = initials(myProfile.name);
+
+    sendConnectRequestImpl = async (toUid, gymId) => {
+      await addDoc(collection(db, 'training_requests'), {
+        from_uid: myUid,
+        to_uid: toUid,
+        gym_id: gymId,
+        status: 'pending',
+        created_at: serverTimestamp()
+      });
+    };
+
+    const rosterQuery = query(collection(db, 'users'), where('gym_id', '==', myProfile.gym_id));
+    onSnapshot(rosterQuery, (snap) => {
+      const users = [];
+      snap.forEach(d => { if(d.id !== myUid) users.push({ uid: d.id, ...d.data() }); });
+      renderRoster(users, myProfile.gym_name);
+    });
+
+    const outgoingQuery = query(collection(db, 'training_requests'), where('from_uid', '==', myUid));
+    onSnapshot(outgoingQuery, (snap) => {
+      snap.forEach(d => {
+        const r = d.data();
+        connectionState[r.to_uid] = r.status === 'accepted' ? 'connected' : 'pending';
+        updateRowButton(r.to_uid);
+      });
+    });
+  });
+}
+</script>
+
+</body>
+</html>
