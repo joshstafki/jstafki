@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBRO — Chat</title>
+<link rel="icon" type="image/png" href="https://www.jstafki.com/assets/main/monolith.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@400..900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --charcoal:#15171A;
+  --charcoal-deep:#0B0C0D;
+  --steel:#212427;
+  --steel-light:#3D4147;
+  --brushed:#9BA1A7;
+  --brushed-dim:#6E7378;
+  --chalk:#F3F4F1;
+  --signal:#FF5A1F;
+  --line:rgba(243,244,241,0.09);
+  --font-display:'Big Shoulders', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{background:var(--charcoal);color:var(--chalk);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none;}
+button,input{font-family:inherit;}
+
+.chat-wrap{display:flex;flex-direction:column;height:100vh;}
+
+.topbar{
+  flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:16px 20px;border-bottom:1px solid var(--line);
+}
+.back-link{font-size:14px;color:var(--brushed);justify-self:start;}
+.back-link:hover{color:var(--chalk);}
+.chat-peer{display:flex;align-items:center;gap:10px;justify-self:center;}
+.avatar{
+  width:30px;height:30px;border-radius:50%;background:var(--steel);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-weight:600;font-size:11px;color:var(--chalk);
+  border:1px solid var(--steel-light);flex:none;
+}
+.peer-name{font-weight:600;font-size:15px;}
+.demo-tag{
+  justify-self:end;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--brushed-dim);border:1px solid var(--steel-light);padding:5px 8px;border-radius:3px;
+}
+
+.messages{flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:14px;}
+.msg-row{display:flex;flex-direction:column;max-width:75%;}
+.msg-row.mine{align-self:flex-end;align-items:flex-end;}
+.msg-row.theirs{align-self:flex-start;align-items:flex-start;}
+.bubble{padding:10px 14px;border-radius:14px;font-size:14.5px;line-height:1.5;word-wrap:break-word;}
+.msg-row.mine .bubble{background:var(--signal);color:var(--charcoal-deep);border-bottom-right-radius:4px;}
+.msg-row.theirs .bubble{background:var(--steel);color:var(--chalk);border:1px solid var(--line);border-bottom-left-radius:4px;}
+.bubble-time{font-family:var(--font-mono);font-size:10px;color:var(--brushed-dim);margin-top:5px;}
+.state-msg{color:var(--brushed);font-size:14.5px;margin:auto;text-align:center;max-width:320px;}
+
+.input-bar{flex:none;display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--line);}
+.input-bar input{
+  flex:1;background:var(--steel);border:1px solid var(--steel-light);color:var(--chalk);
+  padding:12px 16px;border-radius:20px;font-size:14.5px;outline:none;
+}
+.input-bar input::placeholder{color:var(--brushed-dim);}
+.input-bar input:focus{border-color:var(--signal);}
+.send-btn{
+  background:var(--signal);color:var(--charcoal-deep);border:none;padding:0 22px;border-radius:20px;
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;
+}
+.send-btn:hover{background:#ff7440;}
+.send-btn:disabled{opacity:0.4;cursor:default;}
+</style>
+</head>
+<body>
+
+<div class="chat-wrap">
+  <header class="topbar">
+    <a href="../requests/" class="back-link">← Requests</a>
+    <div class="chat-peer">
+      <div class="avatar" id="peerAvatar">—</div>
+      <span class="peer-name" id="peerName">Loading…</span>
+    </div>
+    <span class="demo-tag" id="demoTag">Demo data</span>
+  </header>
+
+  <div class="messages" id="messages"></div>
+
+  <form class="input-bar" id="composer">
+    <input type="text" id="messageInput" placeholder="Message…" autocomplete="off">
+    <button type="submit" class="send-btn">Send</button>
+  </form>
+</div>
+
+<script type="module">
+/* ============================================================
+   GBRO chat thread
+   - Reads ?chat=<chatId> from the URL — this is the chats/{chatId}
+     doc created by requests.html when a request gets accepted.
+   - Demo mode (no chat= param, or no firebaseConfig) shows a
+     scripted sample conversation so the screen is testable on its own.
+   - Fill in firebaseConfig (same block as the other screens) to go live.
+   ============================================================ */
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+const DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
+
+const chatId = new URLSearchParams(window.location.search).get('chat');
+
+const MOCK_CHAT = {
+  otherUser: { name: "Devon", age: 24 },
+  messages: [
+    { sender: "them", text: "Hey! Saw you're into powerlifting too — want to hit legs Thursday?", time: "9:14 AM" },
+    { sender: "me", text: "Yeah for sure, I'm usually there by 6.", time: "9:16 AM" },
+    { sender: "them", text: "Perfect, I'll see you at the rack.", time: "9:17 AM" }
+  ]
+};
+
+const messagesEl = document.getElementById('messages');
+const composer = document.getElementById('composer');
+const input = document.getElementById('messageInput');
+let auth, db, fb, firebaseReady = false;
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+function initials(name){
+  return (name || '').trim().split(/\s+/).map(s => s[0]).join('').slice(0,2).toUpperCase() || '—';
+}
+function formatTime(date){
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function renderMessages(messages, myUid){
+  if(messages.length === 0){
+    messagesEl.innerHTML = `<p class="state-msg">Say hello — you're both training at the same gym, might as well introduce yourself.</p>`;
+    return;
+  }
+  messagesEl.innerHTML = messages.map(m => `
+    <div class="msg-row ${m.sender_uid === myUid ? 'mine' : 'theirs'}">
+      <div class="bubble">${escapeHtml(m.text)}</div>
+      <span class="bubble-time">${escapeHtml(m.time)}</span>
+    </div>
+  `).join('');
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+async function initFirebaseIfNeeded(){
+  if(DEMO_MODE || firebaseReady) return;
+  const appMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js");
+  const authMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js");
+  const fsMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+  const app = appMod.initializeApp(firebaseConfig);
+  auth = authMod.getAuth(app);
+  db = fsMod.getFirestore(app);
+  fb = { ...authMod, ...fsMod };
+  firebaseReady = true;
+}
+
+if(DEMO_MODE){
+  document.getElementById('peerName').textContent = MOCK_CHAT.otherUser.name;
+  document.getElementById('peerAvatar').textContent = initials(MOCK_CHAT.otherUser.name);
+
+  const demoMessages = MOCK_CHAT.messages.map(m => ({
+    sender_uid: m.sender === 'me' ? 'me-demo' : 'them-demo', text: m.text, time: m.time
+  }));
+  renderMessages(demoMessages, 'me-demo');
+
+  composer.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = input.value.trim();
+    if(!val) return;
+    demoMessages.push({ sender_uid: 'me-demo', text: val, time: formatTime(new Date()) });
+    renderMessages(demoMessages, 'me-demo');
+    input.value = '';
+  });
+} else if(!chatId){
+  document.getElementById('demoTag').remove();
+  messagesEl.innerHTML = `<p class="state-msg">No conversation selected — open this from your requests page.</p>`;
+  composer.style.display = 'none';
+} else {
+  initLive();
+}
+
+async function initLive(){
+  await initFirebaseIfNeeded();
+  document.getElementById('demoTag').remove();
+
+  fb.onAuthStateChanged(auth, async (user) => {
+    if(!user){
+      messagesEl.innerHTML = `<p class="state-msg">Sign in to view this conversation.</p>`;
+      composer.style.display = 'none';
+      return;
+    }
+    const myUid = user.uid;
+
+    const chatSnap = await fb.getDoc(fb.doc(db, 'chats', chatId));
+    if(!chatSnap.exists() || !chatSnap.data().participants.includes(myUid)){
+      messagesEl.innerHTML = `<p class="state-msg">This conversation doesn't exist, or you don't have access to it.</p>`;
+      composer.style.display = 'none';
+      return;
+    }
+
+    const otherUid = chatSnap.data().participants.find(p => p !== myUid);
+    const otherSnap = await fb.getDoc(fb.doc(db, 'users', otherUid));
+    const other = otherSnap.data() || {};
+    document.getElementById('peerName').textContent = other.name || 'Training partner';
+    document.getElementById('peerAvatar').textContent = initials(other.name);
+
+    const messagesQuery = fb.query(fb.collection(db, 'chats', chatId, 'messages'), fb.orderBy('created_at'));
+    fb.onSnapshot(messagesQuery, (snap) => {
+      const items = snap.docs.map(d => {
+        const m = d.data();
+        const t = m.created_at?.toDate ? m.created_at.toDate() : new Date();
+        return { sender_uid: m.sender_uid, text: m.text, time: formatTime(t) };
+      });
+      renderMessages(items, myUid);
+    });
+
+    composer.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const val = input.value.trim();
+      if(!val) return;
+      input.value = '';
+      try {
+        await fb.addDoc(fb.collection(db, 'chats', chatId, 'messages'), {
+          sender_uid: myUid, text: val, created_at: fb.serverTimestamp()
+        });
+      } catch(err){ console.error('Could not send message:', err); }
+    });
+  });
+}
+</script>
+
+</body>
+</html>
