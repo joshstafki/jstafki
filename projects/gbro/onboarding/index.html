@@ -58,6 +58,9 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 textarea{resize:vertical;min-height:80px;}
 .char-count{font-family:var(--font-mono);font-size:11px;color:var(--brushed-dim);text-align:right;margin-top:6px;}
 .field-error{color:var(--signal);font-size:12.5px;margin-top:4px;margin-bottom:14px;font-family:var(--font-mono);}
+.link-row{font-size:13px;color:var(--brushed);margin-top:14px;}
+.link-row a{color:var(--signal);cursor:pointer;}
+.link-row a:hover{color:#ff7440;}
 
 .google-btn{
   width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
@@ -152,13 +155,33 @@ textarea{resize:vertical;min-height:80px;}
     <h1 class="step-title">Find your gym</h1>
     <p class="step-sub">We match you with people training at this exact location — not just nearby.</p>
 
-    <div class="form-group" id="gymSearchWrap">
-      <label for="gymInput">Gym name</label>
-      <input type="text" id="gymInput" placeholder="Start typing your gym's name…" autocomplete="off">
-      <div class="gym-suggestions" id="gymSuggestions" style="display:none;"></div>
+    <div id="gymSearchView">
+      <div class="form-group" id="gymSearchWrap">
+        <label for="gymInput">Gym name</label>
+        <input type="text" id="gymInput" placeholder="Start typing your gym's name…" autocomplete="off">
+        <div class="gym-suggestions" id="gymSuggestions" style="display:none;"></div>
+      </div>
+      <p class="link-row" style="text-align:left;margin-top:-6px;"><a id="gymNotListedLink">My gym isn't listed</a></p>
     </div>
 
-    <div id="placesContainer" style="display:none;"></div>
+    <div id="gymNotListedView" style="display:none;">
+      <div class="form-group">
+        <label for="requestedGymName">Gym name</label>
+        <input type="text" id="requestedGymName" placeholder="e.g. Iron Sport Gym">
+      </div>
+      <div class="form-group">
+        <label for="requestedGymCity">City (optional)</label>
+        <input type="text" id="requestedGymCity" placeholder="e.g. Minneapolis">
+      </div>
+      <p class="field-error" id="gymRequestError" style="display:none;"></p>
+      <button class="btn-primary" id="submitGymRequestBtn" type="button" style="margin-bottom:14px;">Submit request</button>
+      <p class="link-row" style="text-align:left;"><a id="backToGymSearch">← Back to search</a></p>
+    </div>
+
+    <div id="gymRequestSentView" style="display:none;">
+      <p class="step-sub" style="margin:0 0 14px;">Thanks — we'll let you know if we add it. Already on the list, or want to try a different one?</p>
+      <p class="link-row" style="text-align:left;"><a id="backToGymSearch2">← Back to search</a></p>
+    </div>
 
     <div class="selected-gym" id="selectedGym" style="display:none;">
       <span class="name" id="selectedGymName"></span>
@@ -241,33 +264,23 @@ textarea{resize:vertical;min-height:80px;}
 /* ============================================================
    GBRO onboarding
    - Runs fully in demo mode out of the box: simulated account
-     creation + a typed mock gym list standing in for Places.
+     creation + a typed mock gym list.
    - Fill in firebaseConfig to turn on real Firebase Auth + Firestore.
-   - Fill in GOOGLE_MAPS_API_KEY to swap the mock gym list for the
-     real Google Places picker.
-   The two are independent — you can flip on either one first.
+   - The gym list is pulled from a `gyms` collection in Firestore —
+     add a gym there (Firestore console > gyms > Add document, with
+     a `name` field) and it shows up here immediately, no code change.
    ============================================================ */
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCJ3vJGgc_iRh7H17sHpVT4N8DDFYpNHYQ",
-  authDomain: "gbro-36d18.firebaseapp.com",
-  projectId: "gbro-36d18",
-  storageBucket: "gbro-36d18.firebasestorage.app",
-  messagingSenderId: "789191744943",
-  appId: "1:789191744943:web:055b88ec3ddcb5a1f8635a",
-  measurementId: "G-H2H4J19Z98"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 const DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
-
-const GOOGLE_MAPS_API_KEY = "YOUR_GOOGLE_MAPS_API_KEY";
-const PLACES_DEMO = GOOGLE_MAPS_API_KEY === "YOUR_GOOGLE_MAPS_API_KEY";
-
-if(!DEMO_MODE && !PLACES_DEMO){
-  document.getElementById('demoTag').remove();
-} else {
-  document.getElementById('demoTag').textContent =
-    DEMO_MODE && PLACES_DEMO ? 'Demo mode' : (DEMO_MODE ? 'Demo account' : 'Demo gym search');
-}
+if(!DEMO_MODE){ document.getElementById('demoTag').remove(); }
 
 const MOCK_GYMS = [
   { id: "mock_001", name: "Crunch Fitness – Blaine" },
@@ -419,18 +432,24 @@ document.getElementById('changeGymBtn').addEventListener('click', () => {
   document.getElementById('step2Next').disabled = true;
 });
 
-function initMockGymPicker(){
+let gymSource = [];
+
+function renderGymSuggestions(matches){
+  const suggestionsEl = document.getElementById('gymSuggestions');
+  if(matches.length === 0){ suggestionsEl.style.display = 'none'; return; }
+  suggestionsEl.innerHTML = matches.map(g =>
+    `<div class="gym-suggestion" data-id="${g.id}" data-name="${escapeHtml(g.name)}">${escapeHtml(g.name)}</div>`
+  ).join('');
+  suggestionsEl.style.display = 'block';
+}
+
+function initGymPicker(){
   const input = document.getElementById('gymInput');
   const suggestionsEl = document.getElementById('gymSuggestions');
   input.addEventListener('input', () => {
     const v = input.value.trim().toLowerCase();
     if(!v){ suggestionsEl.style.display = 'none'; return; }
-    const matches = MOCK_GYMS.filter(g => g.name.toLowerCase().includes(v)).slice(0,5);
-    if(matches.length === 0){ suggestionsEl.style.display = 'none'; return; }
-    suggestionsEl.innerHTML = matches.map(g =>
-      `<div class="gym-suggestion" data-id="${g.id}" data-name="${escapeHtml(g.name)}">${escapeHtml(g.name)}</div>`
-    ).join('');
-    suggestionsEl.style.display = 'block';
+    renderGymSuggestions(gymSource.filter(g => g.name.toLowerCase().includes(v)).slice(0,5));
   });
   suggestionsEl.addEventListener('click', (e) => {
     const item = e.target.closest('.gym-suggestion');
@@ -441,49 +460,59 @@ function initMockGymPicker(){
   });
 }
 
-function loadGoogleMapsBootstrap(apiKey){
-  ((g) => {
-    let h, a, k;
-    const p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__",
-          m = document, b = window;
-    b = b[c] || (b[c] = {});
-    const d = b.maps || (b.maps = {});
-    const r = new Set();
-    const e = new URLSearchParams();
-    const u = () => h || (h = new Promise(async (f, n) => {
-      a = m.createElement("script");
-      e.set("libraries", [...r] + "");
-      for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
-      e.set("callback", c + ".maps." + q);
-      a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
-      d[q] = f;
-      a.onerror = () => h = n(Error(p + " could not load."));
-      a.nonce = m.querySelector("script[nonce]")?.nonce || "";
-      m.head.append(a);
-    }));
-    d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
-  })({ key: apiKey, v: "weekly" });
+async function loadGymList(){
+  if(DEMO_MODE){
+    gymSource = MOCK_GYMS;
+    return;
+  }
+  await initFirebaseIfNeeded();
+  const snap = await fb.getDocs(fb.collection(db, 'gyms'));
+  gymSource = snap.docs
+    .map(d => ({ id: d.id, name: d.data().name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function initRealGymPicker(){
-  document.getElementById('gymSearchWrap').style.display = 'none';
-  const container = document.getElementById('placesContainer');
-  container.style.display = 'block';
-  loadGoogleMapsBootstrap(GOOGLE_MAPS_API_KEY);
-  // Note: gmp-place-autocomplete renders in a closed shadow DOM, so it
-  // keeps Google's default look — the GBRO input styles above won't reach
-  // inside it. Worth knowing going in, not much to do about it currently.
-  const { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
-  const placeAutocomplete = new PlaceAutocompleteElement({ includedPrimaryTypes: ['gym'] });
-  container.appendChild(placeAutocomplete);
-  placeAutocomplete.addEventListener('gmp-select', async ({ placePrediction }) => {
-    const place = placePrediction.toPlace();
-    await place.fetchFields({ fields: ['displayName', 'id'] });
-    selectGym(place.id, place.displayName);
+initGymPicker();
+loadGymList();
+
+/* ---------- "my gym isn't listed" ---------- */
+function showGymView(id){
+  ['gymSearchView','gymNotListedView','gymRequestSentView'].forEach(v => {
+    document.getElementById(v).style.display = (v === id) ? 'block' : 'none';
   });
 }
+document.getElementById('gymNotListedLink').addEventListener('click', () => showGymView('gymNotListedView'));
+document.getElementById('backToGymSearch').addEventListener('click', () => showGymView('gymSearchView'));
+document.getElementById('backToGymSearch2').addEventListener('click', () => showGymView('gymSearchView'));
 
-if(PLACES_DEMO){ initMockGymPicker(); } else { initRealGymPicker(); }
+document.getElementById('submitGymRequestBtn').addEventListener('click', async () => {
+  const name = document.getElementById('requestedGymName').value.trim();
+  const city = document.getElementById('requestedGymCity').value.trim();
+  const err = document.getElementById('gymRequestError');
+  if(!name){
+    err.textContent = 'Enter the name of your gym.';
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+
+  if(!DEMO_MODE){
+    try{
+      await initFirebaseIfNeeded();
+      await fb.addDoc(fb.collection(db, 'gym_requests'), {
+        requested_gym_name: name,
+        requested_gym_city: city || null,
+        requested_by: state.authUid,
+        created_at: fb.serverTimestamp()
+      });
+    } catch(e){
+      err.textContent = "Couldn't submit that — try again.";
+      err.style.display = 'block';
+      return;
+    }
+  }
+  showGymView('gymRequestSentView');
+});
 
 document.getElementById('step2Back').addEventListener('click', () => goToStep(1));
 document.getElementById('step2Next').addEventListener('click', () => goToStep(3));
