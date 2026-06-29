@@ -125,6 +125,9 @@ main{max-width:680px;margin:0 auto;padding:32px 24px 80px;}
   </div>
   <div class="topbar-right">
     <span class="demo-tag" id="demoTag">Demo data</span>
+    <a class="icon-btn" href="../requests/" title="Requests" aria-label="Requests">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 8l9 6 9-6"/></svg>
+    </a>
     <button class="icon-btn" id="inviteIconBtn" title="Invite a training partner" aria-label="Invite a training partner">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
     </button>
@@ -155,13 +158,12 @@ main{max-width:680px;margin:0 auto;padding:32px 24px 80px;}
    ============================================================ */
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCJ3vJGgc_iRh7H17sHpVT4N8DDFYpNHYQ",
-  authDomain: "gbro-36d18.firebaseapp.com",
-  projectId: "gbro-36d18",
-  storageBucket: "gbro-36d18.firebasestorage.app",
-  messagingSenderId: "789191744943",
-  appId: "1:789191744943:web:055b88ec3ddcb5a1f8635a",
-  measurementId: "G-H2H4J19Z98"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 const DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
 
