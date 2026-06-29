@@ -164,9 +164,9 @@ a{color:inherit;text-decoration:none;}
   </a>
   <div class="header-links">
     <a href="#features">Why GBRO</a>
-    <a href="#">Log in</a>
+    <a href="login/">Log in</a>
   </div>
-  <button class="btn" onclick="document.getElementById('join').scrollIntoView({behavior:'smooth'})">Get started</button>
+  <a class="btn" href="onboarding/">Get started</a>
 </header>
 
 <section class="hero">
@@ -174,7 +174,7 @@ a{color:inherit;text-decoration:none;}
     <p class="eyebrow">Gym partner matching</p>
     <h1>EVERY LIFT<br>NEEDS A<br><span class="accent">SPOTTER.</span></h1>
     <p class="hero-sub">GBRO matches you with a training partner at your own gym — same sex, same goals — so you've always got someone watching your back.</p>
-    <form class="hero-form" onsubmit="handleJoin(event,this)">
+    <form class="hero-form" onsubmit="goToOnboarding(event,this)">
       <input type="email" placeholder="you@email.com" required>
       <button class="btn" type="submit">Get started</button>
     </form>
@@ -209,7 +209,7 @@ a{color:inherit;text-decoration:none;}
 <section class="cta-final" id="join">
   <h2>Your next set<br>needs a spotter.</h2>
   <div>
-    <form class="hero-form" onsubmit="handleJoin(event,this)">
+    <form class="hero-form" onsubmit="goToOnboarding(event,this)">
       <input type="email" placeholder="you@email.com" required>
       <button class="btn" type="submit">Get started</button>
     </form>
@@ -228,7 +228,7 @@ a{color:inherit;text-decoration:none;}
     <div class="footer-col">
       <h4>Product</h4>
       <a href="#features">Why GBRO</a>
-      <a href="#join">Get started</a>
+      <a href="onboarding/">Get started</a>
     </div>
     <div class="footer-col">
       <h4>Company</h4>
@@ -251,14 +251,11 @@ a{color:inherit;text-decoration:none;}
 </footer>
 
 <script>
-function handleJoin(e, form){
+function goToOnboarding(e, form){
   e.preventDefault();
-  const btn = form.querySelector('button');
-  const input = form.querySelector('input');
-  input.disabled = true;
-  btn.textContent = "You're in";
-  btn.disabled = true;
-  btn.style.opacity = '0.7';
+  const input = form.querySelector('input[type=email]');
+  const email = input ? input.value.trim() : '';
+  window.location.href = email ? `onboarding/?email=${encodeURIComponent(email)}` : 'onboarding/';
 }
 </script>
 
