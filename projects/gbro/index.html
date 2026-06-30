@@ -24,13 +24,14 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{height:100%;}
+html,body{height:100%;overflow:hidden;}
 body{
   background:var(--charcoal);
   color:var(--chalk);
   font-family:var(--font-body);
   line-height:1.5;
   -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;
 }
 a{color:inherit;text-decoration:none;}
 
@@ -38,7 +39,7 @@ a{color:inherit;text-decoration:none;}
 .site-header{
   display:flex;align-items:center;justify-content:space-between;
   padding:22px 48px;border-bottom:1px solid var(--line);
-  position:relative;z-index:5;
+  position:relative;z-index:5;flex:none;
 }
 .logo{
   font-family:var(--font-display);font-weight:800;font-size:24px;letter-spacing:0.02em;
@@ -60,7 +61,7 @@ a{color:inherit;text-decoration:none;}
 /* ===== HERO — full-bleed, image-led ===== */
 .hero{
   display:flex;
-  min-height:calc(100vh - 73px);
+  flex:1;min-height:0;
 }
 .hero-copy{
   flex:0 0 42%;max-width:560px;
@@ -88,7 +89,7 @@ a{color:inherit;text-decoration:none;}
 .form-disclaimer{font-family:var(--font-mono);font-size:11.5px;color:var(--brushed-dim);margin-top:12px;}
 
 .hero-image{
-  position:relative;overflow:hidden;background:var(--steel);min-height:340px;
+  position:relative;overflow:hidden;background:var(--steel);
   flex:1;
 }
 .hero-image img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -107,46 +108,18 @@ a{color:inherit;text-decoration:none;}
   font-family:var(--font-mono);font-size:12px;color:var(--brushed-dim);text-align:center;padding:20px;
 }
 
-/* ===== TRUST ROW — single slim line, no cards ===== */
-.trust-row{
-  border-top:1px solid var(--line);
-  padding:26px 56px;
-  display:flex;flex-wrap:wrap;gap:36px;align-items:center;
-}
-.trust-item{display:flex;align-items:center;gap:10px;}
-.trust-item svg{width:16px;height:16px;color:var(--signal);flex:none;}
-.trust-item span{font-size:13.5px;color:var(--brushed);}
-
-/* ===== FOOTER ===== */
-.footer{background:var(--charcoal-deep);padding:48px 56px 26px;border-top:1px solid var(--line);}
-.footer-top{
-  display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;
-  padding-bottom:28px;border-bottom:1px solid var(--line);
-}
-.footer-brand p{color:var(--brushed-dim);font-size:13.5px;max-width:280px;line-height:1.6;margin-top:10px;}
-.footer-links{display:flex;gap:28px;flex-wrap:wrap;}
-.footer-links a{font-size:13.5px;color:var(--brushed);transition:color .2s ease;}
-.footer-links a:hover{color:var(--chalk);}
-.footer-bottom{
-  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
-  padding-top:18px;font-family:var(--font-mono);font-size:11.5px;color:var(--brushed-dim);
-}
-
 @media (max-width:900px){
-  .hero{flex-direction:column;min-height:auto;}
+  html,body{overflow:auto;height:auto;min-height:100%;}
+  .hero{flex-direction:column;}
   .hero-copy{flex:none;max-width:none;}
-  .hero-image{order:-1;min-height:46vh;flex:none;}
+  .hero-image{order:-1;min-height:42vh;flex:none;}
   .hero-image::after{background:linear-gradient(0deg, rgba(21,23,26,0.6) 0%, rgba(21,23,26,0) 22%);}
   .hero-copy{padding:36px 24px;}
   .site-header{padding:18px 24px;}
-  .trust-row{padding:22px 24px;gap:20px;}
-  .footer{padding:40px 24px 22px;}
 }
 @media (max-width:560px){
   .hero-form{flex-direction:column;}
   .header-links{display:none;}
-  .footer-top{flex-direction:column;}
-  .footer-bottom{flex-direction:column;align-items:flex-start;}
 }
 </style>
 </head>
@@ -158,7 +131,6 @@ a{color:inherit;text-decoration:none;}
     GBRO
   </a>
   <div class="header-links">
-    <a href="#why">Why GBRO</a>
     <a href="login/">Log in</a>
   </div>
   <a class="btn" href="onboarding/">Get started</a>
@@ -183,47 +155,6 @@ a{color:inherit;text-decoration:none;}
     <div class="img-fallback" style="display:none;">Image didn't load — check the URL in the &lt;img src&gt; tag.</div>
   </div>
 </section>
-
-<section class="trust-row" id="why">
-  <div class="trust-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-    <span>Matched to your actual gym</span>
-  </div>
-  <div class="trust-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="19" cy="9" r="3"/></svg>
-    <span>Matched by sex, always</span>
-  </div>
-  <div class="trust-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
-    <span>Verified lifters, no ghosts</span>
-  </div>
-</section>
-
-<footer class="footer">
-  <div class="footer-top">
-    <div class="footer-brand">
-      <a href="#" class="logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="9" width="4" height="6"/><rect x="18" y="9" width="4" height="6"/><rect x="6" y="6" width="3" height="12"/><rect x="15" y="6" width="3" height="12"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
-        GBRO
-      </a>
-      <p>Gym partner matching, by sex, by gym. Built for people who train better with someone in their corner.</p>
-    </div>
-    <div class="footer-links">
-      <a href="onboarding/">Get started</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© 2026 GBRO. Spot responsibly.</span>
-    <span style="display:flex;align-items:center;gap:8px;">
-      <span style="width:7px;height:7px;border-radius:50%;background:var(--signal);display:inline-block;"></span>
-      All systems operational
-    </span>
-  </div>
-</footer>
 
 <script>
 function goToOnboarding(e, form){
