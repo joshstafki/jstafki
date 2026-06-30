@@ -444,13 +444,30 @@ function renderGymSuggestions(matches){
   suggestionsEl.style.display = 'block';
 }
 
+// Strips punctuation and collapses whitespace, so "Crunch Fitness – Blaine"
+// and someone typing "crunch fitness blaine" (no dash) actually line up.
+function normalizeGymText(str){
+  return str.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function matchGyms(query){
+  const queryWords = normalizeGymText(query).split(' ').filter(Boolean);
+  if(queryWords.length === 0) return [];
+  return gymSource.filter(g => {
+    const normName = normalizeGymText(g.name);
+    // Every typed word has to appear somewhere in the name, in any order —
+    // so "blaine crunch" still finds "Crunch Fitness – Blaine" too.
+    return queryWords.every(w => normName.includes(w));
+  }).slice(0, 5);
+}
+
 function initGymPicker(){
   const input = document.getElementById('gymInput');
   const suggestionsEl = document.getElementById('gymSuggestions');
   input.addEventListener('input', () => {
-    const v = input.value.trim().toLowerCase();
+    const v = input.value.trim();
     if(!v){ suggestionsEl.style.display = 'none'; return; }
-    renderGymSuggestions(gymSource.filter(g => g.name.toLowerCase().includes(v)).slice(0,5));
+    renderGymSuggestions(matchGyms(v));
   });
   suggestionsEl.addEventListener('click', (e) => {
     const item = e.target.closest('.gym-suggestion');
@@ -603,6 +620,35 @@ function renderSummary(){
     <div class="summary-row"><span class="k">Schedule</span><span class="v">${escapeHtml(state.schedule)}</span></div>
   `;
 }
+
+// Fixes the stuck-after-refresh dead end: account creation in step 1 is
+// real and permanent the instant it succeeds, but everything after it
+// only lives in this page's memory. Refresh mid-onboarding, and you're
+// signed in with no profile yet — and step 1 would otherwise try to
+// create the same account again and fail. This checks for exactly that
+// case on load and resumes at step 2 instead, no re-signup needed.
+// If a profile already exists (fully onboarded, just landed here again),
+// it sends them on to the roster instead of showing the form at all.
+async function checkExistingSession(){
+  if(DEMO_MODE) return;
+  await initFirebaseIfNeeded();
+  const unsubscribe = fb.onAuthStateChanged(auth, async (user) => {
+    unsubscribe();
+    if(!user) return;
+
+    const profileSnap = await fb.getDoc(fb.doc(db, 'users', user.uid));
+    if(profileSnap.exists()){
+      window.location.href = '../roster/';
+      return;
+    }
+
+    state.authUid = user.uid;
+    if(!state.firstName) state.firstName = (user.displayName || '').split(' ')[0] || 'Athlete';
+    if(!state.email) state.email = user.email || '';
+    goToStep(2);
+  });
+}
+checkExistingSession();
 </script>
 
 </body>
