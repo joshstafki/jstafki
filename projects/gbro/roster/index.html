@@ -93,6 +93,8 @@ main{max-width:680px;margin:0 auto;padding:32px 24px 80px;}
 .connect-btn:hover{background:#ff7440;}
 .connect-btn.pending{background:transparent;border:1px solid var(--steel-light);color:var(--brushed-dim);cursor:default;}
 .connect-btn.connected{background:transparent;border:1px solid var(--signal);color:var(--signal);cursor:default;}
+.connect-btn.incoming{background:transparent;border:1px solid var(--signal);color:var(--signal);display:inline-flex;align-items:center;}
+.connect-btn.incoming:hover{background:var(--signal);color:var(--charcoal-deep);}
 .chevron{width:20px;height:20px;color:var(--brushed-dim);transition:transform .25s ease;flex:none;}
 .roster-row.open .chevron{transform:rotate(180deg);}
 
@@ -188,6 +190,8 @@ const rosterListEl = document.getElementById('rosterList');
 const connectionState = {};
 let currentGymId = null;
 let sendConnectRequestImpl = null;
+let latestUsers = [];
+let latestGymName = '';
 
 function initials(name){
   return (name || '').trim().split(/\s+/).map(s => s[0]).join('').slice(0,2).toUpperCase() || '—';
@@ -199,6 +203,9 @@ function escapeHtml(str){
 }
 
 function renderRoster(users, gymName){
+  latestUsers = users;
+  latestGymName = gymName;
+
   document.getElementById('gymNameLabel').textContent = gymName || 'Your gym';
   document.getElementById('rosterCount').textContent = `${users.length} active`;
 
@@ -219,9 +226,19 @@ function renderRoster(users, gymName){
 
 function renderRow(u){
   const state = connectionState[u.uid];
-  let label = 'Connect', cls = '';
-  if(state === 'pending'){ label = 'Request sent'; cls = 'pending'; }
-  if(state === 'connected'){ label = 'Connected'; cls = 'connected'; }
+  let actionHtml;
+  if(state === 'connected'){
+    actionHtml = `<button class="connect-btn connected" disabled>Connected</button>`;
+  } else if(state === 'pending'){
+    actionHtml = `<button class="connect-btn pending" disabled>Request sent</button>`;
+  } else if(state === 'incoming'){
+    // They connected with you first — send them to requests.html to
+    // accept/decline there, instead of letting a second request go out
+    // in the other direction (that's the duplicate-chat bug this fixes).
+    actionHtml = `<a class="connect-btn incoming" href="../requests/">Respond →</a>`;
+  } else {
+    actionHtml = `<button class="connect-btn" data-connect="${u.uid}">Connect</button>`;
+  }
 
   return `
   <div class="roster-row" data-row="${u.uid}">
@@ -235,7 +252,7 @@ function renderRow(u){
         </div>
       </div>
       <div class="row-actions">
-        <button class="connect-btn ${cls}" data-connect="${u.uid}" ${state ? 'disabled' : ''}>${label}</button>
+        ${actionHtml}
         <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
@@ -272,7 +289,7 @@ async function connect(uid){
 }
 
 rosterListEl.addEventListener('click', (e) => {
-  const connectBtn = e.target.closest('.connect-btn');
+  const connectBtn = e.target.closest('.connect-btn[data-connect]');
   if(connectBtn){ connect(connectBtn.dataset.connect); return; }
   const toggle = e.target.closest('[data-toggle]');
   if(toggle){ toggleRow(toggle.dataset.toggle); }
@@ -353,8 +370,40 @@ async function initLive(){
       snap.forEach(d => {
         const r = d.data();
         connectionState[r.to_uid] = r.status === 'accepted' ? 'connected' : 'pending';
-        updateRowButton(r.to_uid);
       });
+      renderRoster(latestUsers, latestGymName);
+    });
+
+    // Requests sent TO me, still pending — without this, my own roster
+    // never knew someone had already connected with me, so it kept
+    // showing a clickable "Connect" on them, which is exactly how the
+    // duplicate-request/duplicate-chat bug happened.
+    const incomingQuery = query(
+      collection(db, 'training_requests'),
+      where('to_uid', '==', myUid),
+      where('status', '==', 'pending')
+    );
+    onSnapshot(incomingQuery, (snap) => {
+      snap.forEach(d => {
+        const r = d.data();
+        if(connectionState[r.from_uid] !== 'connected'){
+          connectionState[r.from_uid] = 'incoming';
+        }
+      });
+      renderRoster(latestUsers, latestGymName);
+    });
+
+    // Active chats — covers the other half: anyone I accepted (where I
+    // wasn't the original sender, so the outgoing query above never
+    // sees it). Without this, an accepted-but-not-self-sent connection
+    // still showed as a plain, clickable "Connect" button.
+    const chatsQuery = query(collection(db, 'chats'), where('participants', 'array-contains', myUid));
+    onSnapshot(chatsQuery, (snap) => {
+      snap.forEach(d => {
+        const otherUid = d.data().participants.find(p => p !== myUid);
+        connectionState[otherUid] = 'connected';
+      });
+      renderRoster(latestUsers, latestGymName);
     });
   });
 }
