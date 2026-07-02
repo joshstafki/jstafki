@@ -428,11 +428,22 @@
   ];
 
   function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+    W = window.innerWidth;
+    H = window.innerHeight;
+    isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+    // Cap DPR on mobile to keep the pixel count (and cost) sane on
+    // high-density phone screens while staying crisp on desktop/retina.
+    const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 2 : 2.5);
+
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     cx = W / 2;
     cy = H / 2;
-    isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
   }
   window.addEventListener('resize', resize);
   resize();
@@ -461,26 +472,28 @@
       i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
 
-    // Shadow blur halved on mobile — biggest GPU win
-    const blurScale = isMobile ? 0.5 : 1;
+    // shadowBlur is by far the most expensive canvas op we use — it's the
+    // main cause of dropped frames. Only the outer pass pays for it; the
+    // mid/core passes fake glow cheaply with stacked width + opacity instead.
+    const blurScale = isMobile ? 0.45 : 0.85;
 
-    // outer glow
-    ctx.strokeStyle = hsla(w.hue, w.sat, w.lit, w.opacity * 0.16);
-    ctx.lineWidth   = w.lineW * 10;
-    ctx.shadowColor = hsla(w.hue, w.sat, w.lit, 1);
-    ctx.shadowBlur  = 42 * blurScale;
+    // outer glow (the only pass with a real blur)
+    ctx.strokeStyle = hsla(w.hue, w.sat, w.lit, w.opacity * 0.18);
+    ctx.lineWidth   = w.lineW * 9;
+    ctx.shadowColor = hsla(w.hue, w.sat, w.lit, 0.9);
+    ctx.shadowBlur  = 34 * blurScale;
+    ctx.stroke();
+    ctx.shadowBlur  = 0;
+    ctx.shadowColor = 'transparent';
+
+    // mid glow — no shadow, just a soft wide low-alpha stroke
+    ctx.strokeStyle = hsla(w.hue, w.sat, w.lit, w.opacity * 0.38);
+    ctx.lineWidth   = w.lineW * 3.2;
     ctx.stroke();
 
-    // mid glow
-    ctx.strokeStyle = hsla(w.hue, w.sat, w.lit, w.opacity * 0.42);
-    ctx.lineWidth   = w.lineW * 3;
-    ctx.shadowBlur  = 18 * blurScale;
-    ctx.stroke();
-
-    // core
+    // core — crisp bright line
     ctx.strokeStyle = hsla(w.hue, w.sat, w.lit + 12, w.opacity);
     ctx.lineWidth   = w.lineW;
-    ctx.shadowBlur  = 8 * blurScale;
     ctx.stroke();
   }
 
@@ -526,9 +539,21 @@
     requestAnimationFrame(render);
   }
 
-  // Pause animation when tab is hidden (saves battery on mobile)
+  // render() re-schedules itself every frame via requestAnimationFrame, so
+  // normally it only needs to be kicked off once. The browser naturally
+  // pauses/resumes that chain as the tab is hidden/shown. The one case that
+  // isn't reliable is a bfcache restore (hitting the browser Back button),
+  // where the chain can come back stalled — so we explicitly repaint and
+  // restart it there.
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) requestAnimationFrame(render);
+  });
+
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      resize();
+      requestAnimationFrame(render);
+    }
   });
 
   ctx.fillStyle = '#000';
@@ -542,7 +567,7 @@
   // ─────────────────────────────────────────────────────────
   // EDIT THIS: the page to land on once the transition finishes.
   // ─────────────────────────────────────────────────────────
-  const DESTINATION_URL = 'https://www.jstafki.com/projects/astronautik/playlists/'; // TBD — swap in the real destination
+  const DESTINATION_URL = 'https://www.jstafki.com/projects/astro/playlists/'; // TBD — swap in the real destination
 
   const logoWrap = document.getElementById('logo-wrap');
   let transitioning = false;
@@ -564,6 +589,17 @@
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       enter();
+    }
+  });
+
+  // If the user hits the browser Back button, the browser can restore this
+  // page from bfcache with the "transitioning" class (and its black overlay)
+  // still applied from before they navigated away — which is what makes it
+  // look like a blank screen. Clear it and unlock the logo again.
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      transitioning = false;
+      document.body.classList.remove('transitioning');
     }
   });
 })();
