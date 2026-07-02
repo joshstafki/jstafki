@@ -80,6 +80,8 @@
     animation: fadeUp 2s cubic-bezier(0.16,1,0.3,1) forwards;
     opacity: 0;
     padding: 0 24px; /* prevents svg clipping on very narrow screens */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
   @keyframes fadeUp {
@@ -92,8 +94,17 @@
     height: auto;
     filter:
       invert(1)
-      drop-shadow(0 0 20px rgba(220,30,30,0.6))
-      drop-shadow(0 0 56px rgba(180,10,10,0.28));
+      drop-shadow(0 0 20px rgba(170,40,230,0.6))
+      drop-shadow(0 0 56px rgba(130,10,200,0.28));
+    transition: filter 0.4s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  #logo-wrap:hover .logo-svg {
+    filter:
+      invert(1)
+      drop-shadow(0 0 28px rgba(190,60,255,0.85))
+      drop-shadow(0 0 78px rgba(150,20,230,0.42));
+    transform: scale(1.02);
   }
 
   .logo-subtitle {
@@ -148,7 +159,7 @@
     padding: 8px 0;
     touch-action: manipulation;
   }
-  .nav-links a:hover { color: hsl(4, 100%, 65%); }
+  .nav-links a:hover { color: hsl(275, 100%, 70%); }
 
   footer {
     position: fixed;
@@ -190,7 +201,72 @@
     padding: 8px 0;
     touch-action: manipulation;
   }
-  .social-links a:hover { color: hsl(4, 100%, 65%); }
+  .social-links a:hover { color: hsl(275, 100%, 70%); }
+
+  /* ─── Logo click transition ─────────────────────────────── */
+  #transition-glow {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%,
+      rgba(200,80,255,0.95) 0%,
+      rgba(150,20,230,0.55) 22%,
+      rgba(80,5,140,0.18) 45%,
+      rgba(0,0,0,0) 68%);
+    opacity: 0;
+    transform: scale(0.25);
+    will-change: opacity, transform;
+  }
+
+  #transition-black {
+    position: fixed;
+    inset: 0;
+    z-index: 51;
+    pointer-events: none;
+    background: #000;
+    opacity: 0;
+    will-change: opacity;
+  }
+
+  body.transitioning #transition-glow {
+    animation: glowPulse 1.15s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+
+  body.transitioning #transition-black {
+    animation: blackFade 0.65s ease-in forwards;
+    animation-delay: 0.75s;
+  }
+
+  body.transitioning #logo-wrap .logo-svg {
+    animation: logoFlash 1.15s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+
+  body.transitioning nav,
+  body.transitioning footer {
+    animation: chromeFade 0.5s ease-out forwards;
+  }
+
+  @keyframes glowPulse {
+    0%   { opacity: 0;    transform: scale(0.25); }
+    35%  { opacity: 1;    transform: scale(1.05); }
+    100% { opacity: 0.9;  transform: scale(2.6); }
+  }
+
+  @keyframes blackFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes logoFlash {
+    0%   { filter: invert(1) drop-shadow(0 0 20px rgba(180,40,230,0.6)) drop-shadow(0 0 56px rgba(140,10,200,0.28)); transform: scale(1); }
+    40%  { filter: invert(1) brightness(2.2) drop-shadow(0 0 60px rgba(210,120,255,1)) drop-shadow(0 0 140px rgba(180,60,255,0.8)); transform: scale(1.08); }
+    100% { filter: invert(1) brightness(3) drop-shadow(0 0 90px rgba(225,180,255,1)) drop-shadow(0 0 200px rgba(190,90,255,0.9)); transform: scale(1.14); }
+  }
+
+  @keyframes chromeFade {
+    to { opacity: 0; }
+  }
 
   /* ─── Mobile ────────────────────────────────────────────── */
   @media (max-width: 640px) {
@@ -281,6 +357,13 @@
       opacity: 1;
       transform: none;
     }
+    body.transitioning #transition-glow,
+    body.transitioning #transition-black,
+    body.transitioning #logo-wrap .logo-svg,
+    body.transitioning nav,
+    body.transitioning footer {
+      animation-duration: 0.3s;
+    }
   }
 </style>
 </head>
@@ -288,6 +371,8 @@
 
 <canvas id="waveCanvas"></canvas>
 <div id="grain"></div>
+<div id="transition-glow"></div>
+<div id="transition-black"></div>
 
 <nav>
   <a class="nav-logo" href="#">Astrønautik</a>
@@ -299,7 +384,7 @@
 </nav>
 
 <div id="stage">
-  <div id="logo-wrap">
+  <div id="logo-wrap" role="button" tabindex="0" aria-label="Enter Astrønautik">
     <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" preserveAspectRatio="xMidYMid meet">
       <g transform="translate(0,1080) scale(0.1,-0.1)" fill="#ffffff" stroke="none">
         <path d="M5070 7634 c-320 -37 -553 -102 -805 -223 -230 -111 -406 -234 -589 -411 -200 -194 -338 -382 -457 -625 -112 -227 -176 -433 -216 -690 -21 -136 -24 -477 -5 -610 18 -127 74 -352 116 -470 38 -105 188 -416 210 -434 14 -12 175 11 370 54 296 64 976 277 976 306 0 5 10 9 23 9 32 1 98 33 124 61 21 23 453 996 453 1020 0 25 -74 150 -115 192 -76 80 -158 105 -265 82 -18 -4 -30 -3 -30 4 0 14 22 25 99 50 189 62 330 25 469 -124 88 -93 146 -203 272 -514 63 -155 118 -281 123 -281 23 0 447 234 677 373 340 206 668 441 864 619 l49 44 -29 85 c-38 110 -164 360 -239 473 -111 169 -299 374 -465 509 -305 246 -696 419 -1095 482 -95 15 -439 28 -515 19z"/>
@@ -316,6 +401,14 @@
   </div>
 </div>
 
+<footer>
+  <span class="footer-tag">Curated by Josh Stafki</span>
+  <ul class="social-links">
+    <li><a href="https://music.apple.com/profile/astronautik">Apple Music</a></li>
+    <li><a href="https://www.jstafki.com/contact/">Contact</a></li>
+  </ul>
+</footer>
+
 <script>
 (function () {
   const canvas = document.getElementById('waveCanvas');
@@ -326,12 +419,12 @@
   let isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
   const WAVES = [
-    { hue: 0,   sat: 100, lit: 55, baseAmp: 55,  freq: 1.2,  speed: 0.012, phase: 0,     pulseSpd: 0.70, pulsePhase: 0.0, lineW: 1.8, opacity: 0.70 },
-    { hue: 8,   sat: 95,  lit: 60, baseAmp: 82,  freq: 1.85, speed: 0.009, phase: 1.1,   pulseSpd: 0.50, pulsePhase: 1.2, lineW: 1.2, opacity: 0.55 },
-    { hue: 355, sat: 100, lit: 50, baseAmp: 108, freq: 0.88, speed: 0.007, phase: 2.2,   pulseSpd: 0.90, pulsePhase: 2.4, lineW: 1.0, opacity: 0.45 },
-    { hue: 4,   sat: 90,  lit: 65, baseAmp: 68,  freq: 2.3,  speed: 0.014, phase: 0.6,   pulseSpd: 0.60, pulsePhase: 0.8, lineW: 0.8, opacity: 0.50 },
-    { hue: 12,  sat: 100, lit: 58, baseAmp: 92,  freq: 1.5,  speed: 0.010, phase: 3.0,   pulseSpd: 1.10, pulsePhase: 3.6, lineW: 1.4, opacity: 0.60 },
-    { hue: 2,   sat: 95,  lit: 44, baseAmp: 124, freq: 0.68, speed: 0.006, phase: 1.8,   pulseSpd: 0.40, pulsePhase: 1.0, lineW: 0.9, opacity: 0.38 },
+    { hue: 272, sat: 100, lit: 60, baseAmp: 55,  freq: 1.2,  speed: 0.012, phase: 0,     pulseSpd: 0.70, pulsePhase: 0.0, lineW: 1.8, opacity: 0.70 },
+    { hue: 280, sat: 95,  lit: 65, baseAmp: 82,  freq: 1.85, speed: 0.009, phase: 1.1,   pulseSpd: 0.50, pulsePhase: 1.2, lineW: 1.2, opacity: 0.55 },
+    { hue: 265, sat: 100, lit: 55, baseAmp: 108, freq: 0.88, speed: 0.007, phase: 2.2,   pulseSpd: 0.90, pulsePhase: 2.4, lineW: 1.0, opacity: 0.45 },
+    { hue: 276, sat: 90,  lit: 70, baseAmp: 68,  freq: 2.3,  speed: 0.014, phase: 0.6,   pulseSpd: 0.60, pulsePhase: 0.8, lineW: 0.8, opacity: 0.50 },
+    { hue: 288, sat: 100, lit: 62, baseAmp: 92,  freq: 1.5,  speed: 0.010, phase: 3.0,   pulseSpd: 1.10, pulsePhase: 3.6, lineW: 1.4, opacity: 0.60 },
+    { hue: 260, sat: 95,  lit: 50, baseAmp: 124, freq: 0.68, speed: 0.006, phase: 1.8,   pulseSpd: 0.40, pulsePhase: 1.0, lineW: 0.9, opacity: 0.38 },
   ];
 
   function resize() {
@@ -395,8 +488,8 @@
     const pulse = 0.84 + 0.16 * Math.sin(t * 0.55);
     const r     = Math.min(W, H) * 0.21 * pulse;
     const grad  = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    grad.addColorStop(0,   'rgba(190,18,18,0.15)');
-    grad.addColorStop(0.5, 'rgba(120,8,8,0.05)');
+    grad.addColorStop(0,   'rgba(160,30,230,0.15)');
+    grad.addColorStop(0.5, 'rgba(100,10,150,0.05)');
     grad.addColorStop(1,   'rgba(0,0,0,0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
@@ -441,6 +534,38 @@
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
   requestAnimationFrame(render);
+})();
+</script>
+
+<script>
+(function () {
+  // ─────────────────────────────────────────────────────────
+  // EDIT THIS: the page to land on once the transition finishes.
+  // ─────────────────────────────────────────────────────────
+  const DESTINATION_URL = 'https://www.jstafki.com/projects/astronautik/playlists/'; // TBD — swap in the real destination
+
+  const logoWrap = document.getElementById('logo-wrap');
+  let transitioning = false;
+
+  function enter() {
+    if (transitioning) return;
+    transitioning = true;
+    document.body.classList.add('transitioning');
+
+    // Total time = glow pulse (1.15s) waits, black fade kicks in at 0.75s and
+    // takes 0.65s, so screen is fully black at ~1.4s. Navigate right after.
+    setTimeout(() => {
+      window.location.href = DESTINATION_URL;
+    }, 1400);
+  }
+
+  logoWrap.addEventListener('click', enter);
+  logoWrap.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      enter();
+    }
+  });
 })();
 </script>
 </body>
