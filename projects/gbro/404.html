@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — GBRO</title>
+<link rel="icon" type="image/png" href="https://www.jstafki.com/assets/main/monolith.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@400..900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --charcoal:#15171A;
+  --charcoal-deep:#0B0C0D;
+  --steel:#212427;
+  --steel-light:#3D4147;
+  --brushed:#9BA1A7;
+  --brushed-dim:#6E7378;
+  --chalk:#F3F4F1;
+  --signal:#FF5A1F;
+  --line:rgba(243,244,241,0.09);
+  --font-display:'Big Shoulders',sans-serif;
+  --font-body:'IBM Plex Sans',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--charcoal-deep);
+  color:var(--chalk);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;
+}
+
+/* diagonal hatch — matches the title/closing slides */
+.hatch{
+  position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+}
+.hatch::before{
+  content:"";position:absolute;inset:-50%;
+  background-image:repeating-linear-gradient(
+    115deg,
+    rgba(255,255,255,0.025) 0px,
+    rgba(255,255,255,0.025) 1px,
+    transparent 1px,
+    transparent 64px
+  );
+}
+
+.site-header{
+  position:relative;z-index:2;flex:none;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 48px;border-bottom:1px solid var(--line);
+}
+.logo{
+  font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:0.02em;
+  display:flex;align-items:center;gap:8px;color:var(--chalk);text-decoration:none;
+}
+.logo svg{width:18px;height:18px;}
+
+.body{
+  position:relative;z-index:2;
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:40px 24px;text-align:center;
+}
+.inner{max-width:520px;}
+
+.num{
+  font-family:var(--font-display);font-weight:900;
+  font-size:clamp(120px,20vw,200px);line-height:0.9;letter-spacing:-0.03em;
+  color:transparent;
+  -webkit-text-stroke:2px var(--steel-light);
+  text-stroke:2px var(--steel-light);
+  display:block;margin-bottom:6px;user-select:none;
+}
+
+.icon-wrap{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--steel);border:1px solid var(--steel-light);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 22px;
+}
+.icon-wrap svg{width:28px;height:28px;color:var(--signal);}
+
+h1{
+  font-family:var(--font-display);font-weight:800;text-transform:uppercase;
+  font-size:clamp(26px,4vw,36px);letter-spacing:-0.01em;margin-bottom:14px;
+}
+p{
+  color:var(--brushed);font-size:16px;line-height:1.65;margin-bottom:30px;
+}
+
+.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.btn-primary{
+  font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;
+  background:var(--signal);color:var(--charcoal-deep);
+  padding:13px 24px;border:none;border-radius:3px;cursor:pointer;
+  text-decoration:none;display:inline-block;
+  transition:background .2s ease;
+}
+.btn-primary:hover{background:#ff7440;}
+.btn-ghost{
+  font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;
+  background:transparent;color:var(--brushed);
+  padding:13px 24px;border:1px solid var(--steel-light);border-radius:3px;cursor:pointer;
+  text-decoration:none;display:inline-block;
+  transition:color .2s ease, border-color .2s ease;
+}
+.btn-ghost:hover{color:var(--chalk);border-color:var(--brushed);}
+
+.tagline{
+  font-family:var(--font-mono);font-size:11.5px;color:var(--brushed-dim);
+  letter-spacing:0.06em;text-transform:uppercase;margin-top:36px;
+}
+
+@media(max-width:560px){
+  .site-header{padding:18px 24px;}
+  .actions{flex-direction:column;align-items:center;}
+  .btn-primary,.btn-ghost{width:220px;text-align:center;}
+  html,body{overflow:auto;}
+}
+</style>
+</head>
+<body>
+
+<div class="hatch"></div>
+
+<header class="site-header">
+  <a href="/projects/gbro/" class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="9" width="4" height="6"/><rect x="18" y="9" width="4" height="6"/><rect x="6" y="6" width="3" height="12"/><rect x="15" y="6" width="3" height="12"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+    GBRO
+  </a>
+</header>
+
+<main class="body">
+  <div class="inner">
+    <span class="num" aria-hidden="true">404</span>
+    <div class="icon-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <line x1="11" y1="8" x2="11" y2="12"/>
+        <line x1="11" y1="15" x2="11.01" y2="15"/>
+      </svg>
+    </div>
+    <h1>No spotter here.</h1>
+    <p>This page doesn't exist — or got dropped on the way to the rack. Head back and find your partner.</p>
+    <div class="actions">
+      <a href="/projects/gbro/" class="btn-primary">Back to GBRO</a>
+      <a href="/projects/gbro/roster/" class="btn-ghost">Go to roster</a>
+    </div>
+    <p class="tagline">GBRO — Find your spotter</p>
+  </div>
+</main>
+
+</body>
+</html>
