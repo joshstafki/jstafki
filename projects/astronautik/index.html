@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Astrønautik</title>
+<link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100;300;400;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="https://www.jstafki.com/assets/astro/astro.png">
+<meta name="title" content="Astrønautik">
+<meta name="description" content="Discover Astrønautik, the official Apple Music playlist collection curated by Josh Stafki. Explore cinematic scores, electronic soundscapes, orchestral masterpieces, ambient atmospheres, and carefully crafted music for focus, adventure, and inspiration.">
+
+<meta name="keywords" content="Astrønautik, Apple Music playlists, Josh Stafki, curated playlists, cinematic music, orchestral music, ambient music, electronic music, film scores, focus music, productivity playlists, epic music, soundtrack collection">
+
+<meta name="author" content="Josh Stafki">
+<meta name="creator" content="Josh Stafki">
+<meta name="publisher" content="Josh Stafki">
+
+<link rel="canonical" href="https://www.jstafki.com/projects/astronautik/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Josh Stafki">
+<meta property="og:title" content="Astrønautik | Curated Apple Music Playlists">
+<meta property="og:description" content="An evolving collection of premium Apple Music playlists curated by Josh Stafki—cinematic, orchestral, ambient, electronic, and beyond.">
+<meta property="og:url" content="https://www.jstafki.com/astronautik">
+<meta property="og:image" content="https://www.jstafki.com/assets/astro/astrocard.png">
+<meta property="og:image:alt" content="Astrønautik Apple Music Playlist Collection">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Astrønautik | Curated Apple Music Playlists">
+<meta name="twitter:description" content="Discover Josh Stafki's curated Apple Music playlist collection featuring cinematic, orchestral, ambient, and electronic music.">
+<meta name="twitter:image" content="https://www.jstafki.com/assets/astro/astrocard.png">
+
+<!-- Branding -->
+<meta name="application-name" content="Astrønautik">
+<meta name="apple-mobile-web-app-title" content="Astrønautik">
+
+<!-- Attribution -->
+<meta name="copyright" content="© Josh Stafki">
+<meta name="designer" content="Josh Stafki">
+<meta name="owner" content="Josh Stafki">
+ 
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+
+  #waveCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+
+  #grain {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #logo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    animation: fadeUp 2s cubic-bezier(0.16,1,0.3,1) forwards;
+    opacity: 0;
+    padding: 0 24px; /* prevents svg clipping on very narrow screens */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  #logo-wrap .logo-svg {
+    width: clamp(180px, 62vw, 440px); /* wider clamp range for mobile */
+    height: auto;
+    filter:
+      invert(1)
+      drop-shadow(0 0 20px rgba(170,40,230,0.6))
+      drop-shadow(0 0 56px rgba(130,10,200,0.28));
+    transition: filter 0.4s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  #logo-wrap:hover .logo-svg {
+    filter:
+      invert(1)
+      drop-shadow(0 0 28px rgba(190,60,255,0.85))
+      drop-shadow(0 0 78px rgba(150,20,230,0.42));
+    transform: scale(1.02);
+  }
+
+  .logo-subtitle {
+    font-family: 'Kumbh Sans', sans-serif;
+    font-weight: 100;
+    font-size: clamp(0.42rem, 1.8vw, 0.72rem);
+    letter-spacing: 0.62em;
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 48px;
+    animation: fadeDown 1.4s 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .nav-logo {
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.67rem;
+    font-weight: 300;
+    letter-spacing: 0.44em;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.64rem;
+    font-weight: 300;
+    letter-spacing: 0.38em;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s;
+    /* Larger tap target without changing visual footprint */
+    padding: 8px 0;
+    touch-action: manipulation;
+  }
+  .nav-links a:hover { color: hsl(275, 100%, 70%); }
+
+  footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 48px;
+    animation: fadeUp2 1.4s 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeUp2 {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .footer-tag {
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 300;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .social-links { display: flex; gap: 28px; list-style: none; }
+  .social-links a {
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 300;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s;
+    padding: 8px 0;
+    touch-action: manipulation;
+  }
+  .social-links a:hover { color: hsl(275, 100%, 70%); }
+
+  /* ─── Logo click transition ─────────────────────────────── */
+  #transition-glow {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%,
+      rgba(200,80,255,0.95) 0%,
+      rgba(150,20,230,0.55) 22%,
+      rgba(80,5,140,0.18) 45%,
+      rgba(0,0,0,0) 68%);
+    opacity: 0;
+    transform: scale(0.25);
+    will-change: opacity, transform;
+  }
+
+  #transition-black {
+    position: fixed;
+    inset: 0;
+    z-index: 51;
+    pointer-events: none;
+    background: #000;
+    opacity: 0;
+    will-change: opacity;
+  }
+
+  body.transitioning #transition-glow {
+    animation: glowPulse 1.15s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+
+  body.transitioning #transition-black {
+    animation: blackFade 0.65s ease-in forwards;
+    animation-delay: 0.75s;
+  }
+
+  body.transitioning #logo-wrap .logo-svg {
+    animation: logoFlash 1.15s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+
+  body.transitioning nav,
+  body.transitioning footer {
+    animation: chromeFade 0.5s ease-out forwards;
+  }
+
+  @keyframes glowPulse {
+    0%   { opacity: 0;    transform: scale(0.25); }
+    35%  { opacity: 1;    transform: scale(1.05); }
+    100% { opacity: 0.9;  transform: scale(2.6); }
+  }
+
+  @keyframes blackFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes logoFlash {
+    0%   { filter: invert(1) drop-shadow(0 0 20px rgba(180,40,230,0.6)) drop-shadow(0 0 56px rgba(140,10,200,0.28)); transform: scale(1); }
+    40%  { filter: invert(1) brightness(2.2) drop-shadow(0 0 60px rgba(210,120,255,1)) drop-shadow(0 0 140px rgba(180,60,255,0.8)); transform: scale(1.08); }
+    100% { filter: invert(1) brightness(3) drop-shadow(0 0 90px rgba(225,180,255,1)) drop-shadow(0 0 200px rgba(190,90,255,0.9)); transform: scale(1.14); }
+  }
+
+  @keyframes chromeFade {
+    to { opacity: 0; }
+  }
+
+  /* ─── Mobile ────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    nav {
+      padding: 18px 22px;
+    }
+    .nav-logo {
+      font-size: 0.62rem;
+      letter-spacing: 0.26em;
+    }
+    .nav-links {
+      gap: 18px;
+    }
+    .nav-links a {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+    }
+    footer {
+      padding: 16px 22px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .social-links {
+      gap: 20px;
+    }
+    .social-links a {
+      font-size: 0.56rem;
+      letter-spacing: 0.26em;
+    }
+    .footer-tag {
+      font-size: 0.54rem;
+      letter-spacing: 0.26em;
+    }
+    #logo-wrap {
+      gap: 16px;
+    }
+    .logo-subtitle {
+      letter-spacing: 0.28em;
+      font-size: clamp(0.38rem, 3.2vw, 0.58rem);
+    }
+  }
+
+  /* ─── Very small screens (≤380px) ──────────────────────── */
+  @media (max-width: 380px) {
+    nav {
+      padding: 14px 16px;
+    }
+    .nav-logo {
+      letter-spacing: 0.2em;
+      font-size: 0.58rem;
+    }
+    .nav-links {
+      gap: 12px;
+    }
+    .nav-links a {
+      font-size: 0.56rem;
+      letter-spacing: 0.14em;
+    }
+    footer {
+      padding: 14px 16px;
+    }
+    .logo-subtitle {
+      letter-spacing: 0.2em;
+    }
+  }
+
+  /* ─── Landscape mobile (short viewport) ─────────────────── */
+  @media (max-height: 500px) and (orientation: landscape) {
+    #logo-wrap .logo-svg {
+      width: clamp(120px, 28vh, 260px);
+    }
+    #logo-wrap {
+      gap: 10px;
+    }
+    .logo-subtitle {
+      font-size: 0.4rem;
+      letter-spacing: 0.3em;
+    }
+    nav { padding: 12px 28px; }
+    footer { padding: 12px 28px; }
+  }
+
+  /* ─── Respect reduced motion ─────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    #logo-wrap, nav, footer {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    body.transitioning #transition-glow,
+    body.transitioning #transition-black,
+    body.transitioning #logo-wrap .logo-svg,
+    body.transitioning nav,
+    body.transitioning footer {
+      animation-duration: 0.3s;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="waveCanvas"></canvas>
+<div id="grain"></div>
+<div id="transition-glow"></div>
+<div id="transition-black"></div>
+
+<nav>
+  <a class="nav-logo" href="#">Astrønautik</a>
+  <ul class="nav-links">
+    <li><a href="https://music.apple.com/profile/astronautik">Apple Music</a></li>
+   <li><a href="https://www.jstafki.com/projects/astro/playlists/">Playlists</a></li>
+   <li><a href="https://www.jstafki.com/contact/">Contact</a></li>
+  </ul>
+</nav>
+
+<div id="stage">
+  <div id="logo-wrap" role="button" tabindex="0" aria-label="Enter Astrønautik">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" preserveAspectRatio="xMidYMid meet">
+      <g transform="translate(0,1080) scale(0.1,-0.1)" fill="#ffffff" stroke="none">
+        <path d="M5070 7634 c-320 -37 -553 -102 -805 -223 -230 -111 -406 -234 -589 -411 -200 -194 -338 -382 -457 -625 -112 -227 -176 -433 -216 -690 -21 -136 -24 -477 -5 -610 18 -127 74 -352 116 -470 38 -105 188 -416 210 -434 14 -12 175 11 370 54 296 64 976 277 976 306 0 5 10 9 23 9 32 1 98 33 124 61 21 23 453 996 453 1020 0 25 -74 150 -115 192 -76 80 -158 105 -265 82 -18 -4 -30 -3 -30 4 0 14 22 25 99 50 189 62 330 25 469 -124 88 -93 146 -203 272 -514 63 -155 118 -281 123 -281 23 0 447 234 677 373 340 206 668 441 864 619 l49 44 -29 85 c-38 110 -164 360 -239 473 -111 169 -299 374 -465 509 -305 246 -696 419 -1095 482 -95 15 -439 28 -515 19z"/>
+        <path d="M8525 7083 c-327 -21 -703 -88 -1137 -203 -223 -59 -288 -79 -288 -89 0 -4 12 -22 28 -40 l27 -33 80 20 c78 20 276 60 403 82 100 18 349 40 447 40 260 0 438 -59 502 -167 91 -155 -31 -402 -354 -713 -433 -418 -1130 -881 -2018 -1340 -99 -51 -182 -94 -184 -96 -5 -5 83 -143 116 -183 l29 -33 124 62 c889 445 1688 947 2260 1419 148 122 449 423 525 526 127 170 185 303 185 421 0 77 -15 118 -66 174 -75 83 -211 131 -425 150 -111 10 -149 10 -254 3z"/>
+        <path d="M7665 6724 c-176 -17 -450 -58 -463 -69 -2 -1 9 -23 24 -48 l28 -45 145 -4 c178 -6 264 -29 322 -87 89 -88 68 -205 -69 -387 -250 -330 -848 -759 -1647 -1179 -60 -31 -111 -59 -113 -60 -4 -4 70 -175 79 -180 15 -10 462 227 766 406 811 477 1393 973 1514 1288 26 68 29 163 7 206 -35 65 -111 114 -220 140 -62 15 -296 27 -373 19z"/>
+        <path d="M5315 5435 c-10 -22 -53 -125 -97 -230 -44 -104 -82 -196 -85 -202 -4 -10 37 -13 186 -13 105 0 191 3 191 8 0 4 -41 113 -90 242 l-89 235 -16 -40z"/>
+        <path d="M5041 4778 c-28 -66 -50 -123 -48 -125 5 -4 334 137 467 200 l95 45 -231 1 -231 1 -52 -122z"/>
+        <path d="M2825 4773 c-946 -649 -1434 -1223 -1286 -1510 81 -158 287 -221 691 -210 758 21 2009 391 3339 988 198 89 377 174 388 183 1 1 -40 45 -92 98 l-94 97 -163 -75 c-929 -430 -1878 -742 -2598 -855 -171 -26 -474 -37 -591 -19 -169 24 -273 83 -317 178 -21 47 -24 63 -18 115 17 163 179 390 458 644 137 125 399 336 455 367 5 3 -20 96 -25 96 -4 -1 -70 -44 -147 -97z"/>
+        <path d="M7250 4738 c-252 -148 -566 -321 -780 -428 -88 -44 -159 -84 -156 -89 11 -18 129 -42 192 -40 74 3 87 -4 47 -24 -92 -48 -262 -63 -366 -33 l-53 16 -220 -104 c-495 -233 -1000 -442 -1503 -620 -101 -36 -186 -68 -188 -70 -8 -8 260 -117 368 -150 372 -112 792 -127 1164 -42 592 136 1107 503 1427 1018 72 117 169 322 216 458 40 118 67 218 60 225 -2 2 -95 -51 -208 -117z"/>
+        <path d="M5578 4694 c-117 -63 -566 -250 -858 -357 -937 -344 -1649 -445 -1848 -263 -100 90 -51 263 129 460 l52 57 -17 55 -17 54 -62 -47 c-118 -91 -400 -382 -461 -476 -64 -96 -105 -200 -106 -263 0 -55 41 -133 88 -166 337 -236 1541 29 2947 649 159 71 264 120 274 129 6 5 -81 184 -89 184 -3 -1 -17 -8 -32 -16z"/>
+      </g>
+    </svg>
+    <div class="logo-subtitle">Electronic · Dance · Architecture</div>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-tag">Curated by Josh Stafki</span>
+  <ul class="social-links">
+    <li><a href="https://music.apple.com/profile/astronautik">Apple Music</a></li>
+    <li><a href="https://www.jstafki.com/contact/">Contact</a></li>
+  </ul>
+</footer>
+
+<script>
+(function () {
+  const canvas = document.getElementById('waveCanvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, cx, cy;
+
+  // Detect mobile once — used for performance scaling
+  let isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+  const WAVES = [
+    { hue: 272, sat: 100, lit: 60, baseAmp: 55,  freq: 1.2,  speed: 0.012, phase: 0,     pulseSpd: 0.70, pulsePhase: 0.0, lineW: 1.8, opacity: 0.70 },
+    { hue: 280, sat: 95,  lit: 65, baseAmp: 82,  freq: 1.85, speed: 0.009, phase: 1.1,   pulseSpd: 0.50, pulsePhase: 1.2, lineW: 1.2, opacity: 0.55 },
+    { hue: 265, sat: 100, lit: 55, baseAmp: 108, freq: 0.88, speed: 0.007, phase: 2.2,   pulseSpd: 0.90, pulsePhase: 2.4, lineW: 1.0, opacity: 0.45 },
+    { hue: 276, sat: 90,  lit: 70, baseAmp: 68,  freq: 2.3,  speed: 0.014, phase: 0.6,   pulseSpd: 0.60, pulsePhase: 0.8, lineW: 0.8, opacity: 0.50 },
+    { hue: 288, sat: 100, lit: 62, baseAmp: 92,  freq: 1.5,  speed: 0.010, phase: 3.0,   pulseSpd: 1.10, pulsePhase: 3.6, lineW: 1.4, opacity: 0.60 },
+    { hue: 260, sat: 95,  lit: 50, baseAmp: 124, freq: 0.68, speed: 0.006, phase: 1.8,   pulseSpd: 0.40, pulsePhase: 1.0, lineW: 0.9, opacity: 0.38 },
+  ];
+
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+    // Cap DPR on mobile to keep the pixel count (and cost) sane on
+    // high-density phone screens while staying crisp on desktop/retina.
+    const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 2 : 2.5);
+
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    cx = W / 2;
+    cy = H / 2;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function hsla(h, s, l, a) { return `hsla(${h},${s}%,${l}%,${a})`; }
+
+  function drawWave(w, t, mirror) {
+    const pulse = 0.68 + 0.32 * Math.sin(t * w.pulseSpd + w.pulsePhase);
+    // On short landscape screens, damp amplitude so waves don't crowd the logo
+    const heightFactor = Math.min(1, H / 600);
+    const amp   = w.baseAmp * pulse * heightFactor;
+    const sign  = mirror ? -1 : 1;
+
+    // Fewer path points on mobile — visually identical, measurably cheaper
+    const steps = isMobile ? 160 : 320;
+
+    ctx.beginPath();
+    for (let i = 0; i <= steps; i++) {
+      const x    = (i / steps) * W;
+      const norm = (i / steps) * Math.PI * 2;
+      const y    = cy + sign * (
+          Math.sin(norm * w.freq       + t * w.speed * 50 + w.phase)       * amp * 0.65
+        + Math.sin(norm * w.freq * 2.2 + t * w.speed * 72 + w.phase * 1.4) * amp * 0.22
+        + Math.sin(norm * w.freq * 0.5 + t * w.speed * 30 + w.phase * 0.6) * amp * 0.28
+      );
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+
+    // shadowBlur is by far the most expensive canvas op we use — it's the
+    // main cause of dropped frames. Only the outer pass pays for it; the
+    // mid/core passes fake glow cheaply with stacked width + opacity instead.
+    const blurScale = isMobile ? 0.45 : 0.85;
+
+    // outer glow (the only pass with a real blur)
+    ctx.strokeStyle = hsla(w.hue, w.sat, w.lit, w.opacity * 0.18);
+    ctx.lineWidth   = w.lineW * 9;
+    ctx.shadowColor = hsla(w.hue, w.sat, w.lit, 0.9);
+    ctx.shadowBlur  = 34 * blurScale;
+    ctx.stroke();
+    ctx.shadowBlur  = 0;
+    ctx.shadowColor = 'transparent';
+
+    // mid glow — no shadow, just a soft wide low-alpha stroke
+    ctx.strokeStyle = hsla(w.hue, w.sat, w.lit, w.opacity * 0.38);
+    ctx.lineWidth   = w.lineW * 3.2;
+    ctx.stroke();
+
+    // core — crisp bright line
+    ctx.strokeStyle = hsla(w.hue, w.sat, w.lit + 12, w.opacity);
+    ctx.lineWidth   = w.lineW;
+    ctx.stroke();
+  }
+
+  function drawHalo(t) {
+    const pulse = 0.84 + 0.16 * Math.sin(t * 0.55);
+    const r     = Math.min(W, H) * 0.21 * pulse;
+    const grad  = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grad.addColorStop(0,   'rgba(160,30,230,0.15)');
+    grad.addColorStop(0.5, 'rgba(100,10,150,0.05)');
+    grad.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Throttle to ~30fps on mobile to ease battery drain
+  let lastFrame = 0;
+  const FRAME_MS_MOBILE = 1000 / 30;
+
+  function render(ts) {
+    if (isMobile && ts - lastFrame < FRAME_MS_MOBILE) {
+      requestAnimationFrame(render);
+      return;
+    }
+    lastFrame = ts;
+
+    const t = ts * 0.001;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fillRect(0, 0, W, H);
+
+    drawHalo(t);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    WAVES.forEach(w => {
+      drawWave(w, t, false);
+      drawWave(w, t, true);
+    });
+    ctx.restore();
+
+    requestAnimationFrame(render);
+  }
+
+  // render() re-schedules itself every frame via requestAnimationFrame, so
+  // normally it only needs to be kicked off once. The browser naturally
+  // pauses/resumes that chain as the tab is hidden/shown. The one case that
+  // isn't reliable is a bfcache restore (hitting the browser Back button),
+  // where the chain can come back stalled — so we explicitly repaint and
+  // restart it there.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) requestAnimationFrame(render);
+  });
+
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      resize();
+      requestAnimationFrame(render);
+    }
+  });
+
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+  requestAnimationFrame(render);
+})();
+</script>
+
+<script>
+(function () {
+  // ─────────────────────────────────────────────────────────
+  // EDIT THIS: the page to land on once the transition finishes.
+  // ─────────────────────────────────────────────────────────
+  const DESTINATION_URL = 'https://www.jstafki.com/projects/astro/playlists/'; // TBD — swap in the real destination
+
+  const logoWrap = document.getElementById('logo-wrap');
+  let transitioning = false;
+
+  function enter() {
+    if (transitioning) return;
+    transitioning = true;
+    document.body.classList.add('transitioning');
+
+    // Total time = glow pulse (1.15s) waits, black fade kicks in at 0.75s and
+    // takes 0.65s, so screen is fully black at ~1.4s. Navigate right after.
+    setTimeout(() => {
+      window.location.href = DESTINATION_URL;
+    }, 1400);
+  }
+
+  logoWrap.addEventListener('click', enter);
+  logoWrap.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      enter();
+    }
+  });
+
+  // If the user hits the browser Back button, the browser can restore this
+  // page from bfcache with the "transitioning" class (and its black overlay)
+  // still applied from before they navigated away — which is what makes it
+  // look like a blank screen. Clear it and unlock the logo again.
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      transitioning = false;
+      document.body.classList.remove('transitioning');
+    }
+  });
+})();
+</script>
+</body>
+</html>
