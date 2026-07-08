@@ -24,11 +24,11 @@
     .pm-ash { color: #9C9691; }
     .pm-gold-text { color: #E8B84B; }
     
-    .pm-btn-gold { background-color: #E8B84B; color: #100C0E; transition: background-color 0.15s ease; }
+    .pm-btn-gold { background-color: #E8B84B; color: #100C0E; transition: background-color 0.15s ease; border: none; cursor: pointer; }
     .pm-btn-gold:hover { background-color: #F2C766; }
     .pm-btn-gold:disabled { background-color: rgba(241,231,208,0.08); color: #6b6663; cursor: not-allowed; }
     
-    .pm-btn-ghost { background-color: transparent; color: #F1E7D0; border: 1px solid rgba(241,231,208,0.18); transition: background-color 0.15s ease; }
+    .pm-btn-ghost { background-color: transparent; color: #F1E7D0; border: 1px solid rgba(241,231,208,0.18); transition: background-color 0.15s ease; cursor: pointer; }
     .pm-btn-ghost:hover { background-color: rgba(241,231,208,0.07); }
     
     .pm-field { background-color: rgba(241,231,208,0.05); border: 1px solid rgba(241,231,208,0.15); color: #F1E7D0; }
@@ -38,7 +38,7 @@
     .pm-panel-bg { background-color: #1B1518; }
     .pm-poster-frame { border: 1px solid rgba(232,184,75,0.15); aspect-ratio: 2 / 3; }
     
-    .pm-icon-btn { background-color: rgba(16,12,14,0.75); border: 1px solid rgba(241,231,208,0.15); transition: background-color 0.15s ease; }
+    .pm-icon-btn { background-color: rgba(16,12,14,0.75); border: 1px solid rgba(241,231,208,0.15); transition: background-color 0.15s ease; cursor: pointer; }
     .pm-icon-btn:hover { background-color: rgba(16,12,14,0.95); }
     
     .pm-dial-outer { border-radius: 9999px; border-style: dashed; border-color: #E8B84B; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -66,19 +66,30 @@
 
   <div id="app"></div>
 
-  <script>
-    // --- Environment Setup ---
-    const STORAGE_KEY = 'premiere:movies';
+  <script type="module">
+    // 1. Firebase SDK Imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Mock for window.storage to allow local testing if not in your host app
-    if (!window.storage) {
-      window.storage = {
-        get: async (key, bypass) => ({ value: localStorage.getItem(key) }),
-        set: async (key, value, bypass) => { localStorage.setItem(key, value); return true; }
-      };
-    }
+    // 2. PASTE YOUR CONFIG HERE
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
     // --- State Variables ---
+    let currentUser = null;
     let movies = [];
     let ready = false;
     let saveIssue = false;
@@ -86,6 +97,70 @@
     let editingId = null;
     let imgErrors = {};
     let confirmDeleteId = null;
+
+    // --- Auth Observers & Actions ---
+    onAuthStateChanged(auth, async (user) => {
+      ready = false; 
+      render(); // Show loading state
+
+      if (user) {
+        currentUser = user;
+        try {
+          // Fetch user's specific movie list from Firestore
+          const docRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(docRef);
+          
+          if (docSnap.exists() && docSnap.data().movies) {
+            movies = docSnap.data().movies;
+          } else {
+            movies = [];
+          }
+        } catch (error) {
+          console.error("Error fetching movies:", error);
+          saveIssue = true;
+        }
+      } else {
+        currentUser = null;
+        movies = [];
+      }
+      
+      ready = true;
+      render();
+    });
+
+    window.loginWithGoogle = async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error("Login failed:", error.message);
+      }
+    };
+
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error("Logout failed:", error.message);
+      }
+    };
+
+    // --- Core Functions ---
+    async function persist(list) {
+      movies = list;
+      render(); // Optimistic UI update
+
+      if (currentUser) {
+        try {
+          // Save directly to Firestore under the user's ID
+          await setDoc(doc(db, "users", currentUser.uid), { movies: list }, { merge: true });
+          saveIssue = false;
+        } catch (e) {
+          console.error("Save failed:", e);
+          saveIssue = true;
+          render(); // Re-render to show error banner
+        }
+      }
+    }
 
     // --- Helper Functions ---
     function daysUntil(dateStr) {
@@ -117,30 +192,7 @@
       return `Released ${y} year${y > 1 ? 's' : ''} ago`;
     }
 
-    // --- Actions ---
-    async function init() {
-      try {
-        const res = await window.storage.get(STORAGE_KEY, false);
-        if (res && res.value) movies = JSON.parse(res.value);
-      } catch (e) {
-        // nothing saved yet
-      } finally {
-        ready = true;
-        render();
-      }
-    }
-
-    async function persist(list) {
-      movies = list;
-      try {
-        const res = await window.storage.set(STORAGE_KEY, JSON.stringify(list), false);
-        saveIssue = !res;
-      } catch (e) {
-        saveIssue = true;
-      }
-      render();
-    }
-
+    // --- UI Actions ---
     window.openAdd = () => {
       editingId = null;
       showForm = true;
@@ -174,11 +226,11 @@
       if (!imgErrors[id]) {
         imgErrors[id] = true;
         el.style.display = 'none';
-        render(); // Force redraw to show fallback icon
+        render(); 
       }
     };
 
-    // --- Form Handling & Validation ---
+    // --- Form Handling ---
     window.checkFormValidity = () => {
       const title = document.getElementById('form-title').value.trim();
       const date = document.getElementById('form-release').value;
@@ -346,114 +398,141 @@
 
       html += `<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">`;
 
-      // Header
+      // Header Area (with Auth Controls)
       html += `
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div class="flex items-center gap-2">
             <i data-lucide="film" class="w-6 h-6" style="color: #E8B84B"></i>
             <h1 class="pm-display pm-wordmark" style="color: #F1E7D0">Premiere</h1>
           </div>
-          <button onclick="openAdd()" class="pm-btn-gold pm-body flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold">
-            <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add Movie
-          </button>
+          
+          <div class="flex items-center gap-4">
+            ${currentUser 
+              ? `
+                <div class="flex items-center gap-3">
+                  ${currentUser.photoURL ? `<img src="${currentUser.photoURL}" alt="Avatar" class="w-8 h-8 rounded-full border border-gray-700">` : ''}
+                  <button onclick="logout()" class="pm-body pm-ash text-sm hover:text-white transition-colors">Sign Out</button>
+                </div>
+                <button onclick="openAdd()" class="pm-btn-gold pm-body flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold">
+                  <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add Movie
+                </button>
+              `
+              : `
+                <button onclick="loginWithGoogle()" class="pm-btn-ghost pm-body flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium">
+                  <i data-lucide="log-in" class="w-4 h-4"></i> Sign in with Google
+                </button>
+              `
+            }
+          </div>
         </div>
       `;
 
-      // Save Issue Warning
-      if (saveIssue) {
-        html += `
-          <div class="pm-body text-xs mb-6 rounded-lg px-3 py-2" style="color: #F1E7D0; background-color: rgba(156,46,61,0.25); border: 1px solid rgba(156,46,61,0.5)">
-            Changes aren't saving right now — keep this tab open so you don't lose anything.
-          </div>
-        `;
-      }
-
-      // Empty / Loading States
+      // Main Content State Logic
       if (!ready) {
-        html += `<div class="pm-body pm-ash text-center py-24">Loading your watchlist…</div>`;
-      } else if (movies.length === 0) {
+        html += `<div class="pm-body pm-ash text-center py-24">Loading your cinematic universe…</div>`;
+      } 
+      else if (!currentUser) {
+        // Logged Out State
         html += `
-          <div class="text-center py-20 rounded-3xl" style="border: 1px dashed rgba(232,184,75,0.3)">
-            <i data-lucide="sparkles" class="w-8 h-8 mx-auto mb-4" style="color: rgba(232,184,75,0.6)"></i>
-            <p class="pm-display text-2xl" style="color: #F1E7D0">No movies yet</p>
-            <p class="pm-body pm-ash mt-2 mb-6">Add the next release you can't stop thinking about.</p>
-            <button onclick="openAdd()" class="pm-btn-gold pm-body inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold">
-              <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add a movie
+          <div class="text-center py-24 rounded-3xl" style="border: 1px dashed rgba(232,184,75,0.2); background: rgba(16,12,14,0.4)">
+            <i data-lucide="ticket" class="w-12 h-12 mx-auto mb-5" style="color: rgba(232,184,75,0.5)"></i>
+            <h2 class="pm-display text-3xl mb-3" style="color: #F1E7D0">Your Personal Watchlist</h2>
+            <p class="pm-body pm-ash max-w-md mx-auto mb-8">Sign in to sync your upcoming movie hype across all your devices and never miss a release date AD.</p>
+            <button onclick="loginWithGoogle()" class="pm-btn-gold pm-body inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg">
+              Sign in with Google
             </button>
           </div>
         `;
-      } else {
-        // Hero Section
-        if (hero) {
+      } 
+      else {
+        // Logged In States
+        if (saveIssue) {
           html += `
-            <div class="relative rounded-2xl overflow-hidden">
-              <div class="absolute inset-0">
-                ${hero.posterUrl && !imgErrors[hero.id] 
-                  ? `<img src="${hero.posterUrl}" alt="" class="w-full h-full object-cover blur-2xl scale-110 opacity-40" />`
-                  : `<div class="w-full h-full pm-panel-bg"></div>`
-                }
-                <div class="absolute inset-0" style="background: linear-gradient(to top, #100C0E 15%, rgba(16,12,14,0.88) 55%, rgba(16,12,14,0.55) 100%)"></div>
-              </div>
-              <div class="relative flex flex-col sm:flex-row items-center gap-6 p-6 sm:p-9">
-                <div class="flex flex-col sm:flex-row items-center gap-5 shrink-0">
-                  <div style="width: clamp(92px, 22vw, 128px)">
-                    ${PosterTpl(hero.posterUrl, hero.title, imgErrors[hero.id], hero.id)}
-                  </div>
-                  ${CountdownDialTpl(heroDays, 'lg')}
-                </div>
-                <div class="pm-hero-divider text-center sm:text-left w-full sm:flex-1">
-                  <p class="pm-body pm-gold-text text-xs uppercase tracking-widest font-semibold mb-2">Up Next</p>
-                  <h2 class="pm-display pm-hero-title" style="color: #F1E7D0">${hero.title}</h2>
-                  <p class="pm-body pm-ash text-sm mt-1.5">${formatDate(hero.releaseDate)}</p>
-                  ${hero.notes ? `<p class="pm-body text-sm mt-3 mx-auto sm:mx-0" style="color: rgba(241,231,208,0.7); max-width: 440px">${hero.notes}</p>` : ''}
-                  <div class="flex items-center gap-4 justify-center sm:justify-start mt-4">
-                    <button onclick="openEdit('${hero.id}')" class="pm-body pm-ash flex items-center gap-1 text-xs">
-                      <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
-                    </button>
-                    <button onclick="requestDelete('${hero.id}')" class="pm-body flex items-center gap-1 text-xs" style="color: ${isHeroConfirming ? '#E8828F' : '#9C9691'}; font-weight: ${isHeroConfirming ? 600 : 400}">
-                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> ${isHeroConfirming ? 'Tap again to remove' : 'Remove'}
-                    </button>
-                  </div>
-                </div>
-              </div>
+            <div class="pm-body text-xs mb-6 rounded-lg px-3 py-2" style="color: #F1E7D0; background-color: rgba(156,46,61,0.25); border: 1px solid rgba(156,46,61,0.5)">
+              Changes aren't syncing to the cloud right now. Check your connection or Firestore security rules.
             </div>
           `;
         }
 
-        // Upcoming Grid
-        if (restUpcoming.length > 0) {
+        if (movies.length === 0) {
           html += `
-            <hr class="pm-perf" />
-            <p class="pm-body pm-gold-text text-xs uppercase tracking-widest font-semibold mb-4">Coming Soon</p>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6">
-              ${restUpcoming.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), false)).join('')}
+            <div class="text-center py-20 rounded-3xl" style="border: 1px dashed rgba(232,184,75,0.3)">
+              <i data-lucide="sparkles" class="w-8 h-8 mx-auto mb-4" style="color: rgba(232,184,75,0.6)"></i>
+              <p class="pm-display text-2xl" style="color: #F1E7D0">No movies yet</p>
+              <p class="pm-body pm-ash mt-2 mb-6">Add the next release you can't stop thinking about.</p>
+              <button onclick="openAdd()" class="pm-btn-gold pm-body inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold">
+                <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add a movie
+              </button>
             </div>
           `;
-        }
+        } else {
+          // Hero Section
+          if (hero) {
+            html += `
+              <div class="relative rounded-2xl overflow-hidden">
+                <div class="absolute inset-0">
+                  ${hero.posterUrl && !imgErrors[hero.id] 
+                    ? `<img src="${hero.posterUrl}" alt="" class="w-full h-full object-cover blur-2xl scale-110 opacity-40" />`
+                    : `<div class="w-full h-full pm-panel-bg"></div>`
+                  }
+                  <div class="absolute inset-0" style="background: linear-gradient(to top, #100C0E 15%, rgba(16,12,14,0.88) 55%, rgba(16,12,14,0.55) 100%)"></div>
+                </div>
+                <div class="relative flex flex-col sm:flex-row items-center gap-6 p-6 sm:p-9">
+                  <div class="flex flex-col sm:flex-row items-center gap-5 shrink-0">
+                    <div style="width: clamp(92px, 22vw, 128px)">
+                      ${PosterTpl(hero.posterUrl, hero.title, imgErrors[hero.id], hero.id)}
+                    </div>
+                    ${CountdownDialTpl(heroDays, 'lg')}
+                  </div>
+                  <div class="pm-hero-divider text-center sm:text-left w-full sm:flex-1">
+                    <p class="pm-body pm-gold-text text-xs uppercase tracking-widest font-semibold mb-2">Up Next</p>
+                    <h2 class="pm-display pm-hero-title" style="color: #F1E7D0">${hero.title}</h2>
+                    <p class="pm-body pm-ash text-sm mt-1.5">${formatDate(hero.releaseDate)}</p>
+                    ${hero.notes ? `<p class="pm-body text-sm mt-3 mx-auto sm:mx-0" style="color: rgba(241,231,208,0.7); max-width: 440px">${hero.notes}</p>` : ''}
+                    <div class="flex items-center gap-4 justify-center sm:justify-start mt-4">
+                      <button onclick="openEdit('${hero.id}')" class="pm-body pm-ash flex items-center gap-1 text-xs">
+                        <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
+                      </button>
+                      <button onclick="requestDelete('${hero.id}')" class="pm-body flex items-center gap-1 text-xs" style="color: ${isHeroConfirming ? '#E8828F' : '#9C9691'}; font-weight: ${isHeroConfirming ? 600 : 400}">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> ${isHeroConfirming ? 'Tap again to remove' : 'Remove'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
 
-        // Released Grid
-        if (released.length > 0) {
-          html += `
-            ${hero ? '<hr class="pm-perf" />' : ''}
-            <p class="pm-body text-xs uppercase tracking-widest font-semibold mb-4" style="color: #716C67">Now Showing</p>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6 opacity-60">
-              ${released.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), true)).join('')}
-            </div>
-          `;
+          // Upcoming Grid
+          if (restUpcoming.length > 0) {
+            html += `
+              <hr class="pm-perf" />
+              <p class="pm-body pm-gold-text text-xs uppercase tracking-widest font-semibold mb-4">Coming Soon</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6">
+                ${restUpcoming.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), false)).join('')}
+              </div>
+            `;
+          }
+
+          // Released Grid
+          if (released.length > 0) {
+            html += `
+              ${hero ? '<hr class="pm-perf" />' : ''}
+              <p class="pm-body text-xs uppercase tracking-widest font-semibold mb-4" style="color: #716C67">Now Showing</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6 opacity-60">
+                ${released.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), true)).join('')}
+              </div>
+            `;
+          }
         }
       }
 
-      html += `</div>`; // Close max-w-5xl
-      html += FormModalTpl(); // Inject Modal logic
+      html += `</div>`; 
+      html += FormModalTpl(); 
 
       appContainer.innerHTML = html;
-      
-      // Re-initialize Lucide Icons on the newly injected DOM elements
       lucide.createIcons();
     }
-
-    // --- Boot up ---
-    init();
 
   </script>
 </body>
