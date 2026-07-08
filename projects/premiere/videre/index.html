@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premiere - Movie Countdown Tracker</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Big+Shoulders+Stencil:wght@700;800&family=Work+Sans:wght@400;500;600;700&display=swap');
+    
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse 120% 60% at 50% 0%, #1B1518 0%, #100C0E 65%);
+      color: #F1E7D0;
+      min-height: 100vh;
+    }
+    
+    .pm-display { font-family: 'Abril Fatface', serif; }
+    .pm-stencil { font-family: 'Big Shoulders Stencil', sans-serif; }
+    .pm-body { font-family: 'Work Sans', sans-serif; }
+    .pm-ash { color: #9C9691; }
+    .pm-gold-text { color: #E8B84B; }
+    
+    .pm-btn-gold { background-color: #E8B84B; color: #100C0E; transition: background-color 0.15s ease; border: none; cursor: pointer; }
+    .pm-btn-gold:hover { background-color: #F2C766; }
+    .pm-btn-gold:disabled { background-color: rgba(241,231,208,0.08); color: #6b6663; cursor: not-allowed; }
+    
+    .pm-btn-ghost { background-color: transparent; color: #F1E7D0; border: 1px solid rgba(241,231,208,0.18); transition: background-color 0.15s ease; cursor: pointer; }
+    .pm-btn-ghost:hover { background-color: rgba(241,231,208,0.07); }
+    
+    .pm-field { background-color: rgba(241,231,208,0.05); border: 1px solid rgba(241,231,208,0.15); color: #F1E7D0; }
+    .pm-field:focus { outline: 2px solid rgba(232,184,75,0.45); outline-offset: 1px; border-color: #E8B84B; }
+    .pm-field::placeholder { color: #716C67; }
+    
+    .pm-panel-bg { background-color: #1B1518; }
+    .pm-poster-frame { border: 1px solid rgba(232,184,75,0.15); aspect-ratio: 2 / 3; }
+    
+    .pm-icon-btn { background-color: rgba(16,12,14,0.75); border: 1px solid rgba(241,231,208,0.15); transition: background-color 0.15s ease; cursor: pointer; }
+    .pm-icon-btn:hover { background-color: rgba(16,12,14,0.95); }
+    
+    .pm-dial-outer { border-radius: 9999px; border-style: dashed; border-color: #E8B84B; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pm-dial-inner { border-radius: 9999px; background-color: #100C0E; border: 1px solid rgba(232,184,75,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .pm-dial-lg { width: clamp(108px, 24vw, 148px); height: clamp(108px, 24vw, 148px); border-width: 4px; }
+    .pm-dial-sm { width: 46px; height: 46px; border-width: 3px; }
+    .pm-dial-num-lg { font-size: clamp(26px, 6vw, 38px); }
+    
+    .pm-hero-divider { border-top: 2px dashed rgba(232,184,75,0.35); padding-top: 1.25rem; }
+    @media (min-width: 640px) {
+      .pm-hero-divider { border-top: none; border-left: 2px dashed rgba(232,184,75,0.35); padding-top: 0; padding-left: 2.5rem; }
+    }
+    
+    .pm-perf { border: none; border-top: 2px dashed rgba(232,184,75,0.22); margin: 2.5rem 0 1.25rem; }
+    .pm-modal-backdrop { background-color: rgba(16,12,14,0.85); backdrop-filter: blur(4px); }
+    .pm-wordmark { font-size: clamp(24px, 5vw, 32px); }
+    .pm-hero-title { font-size: clamp(22px, 4.5vw, 34px); line-height: 1.15; }
+    
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body class="pm-body">
+
+  <div id="app"></div>
+
+  <script type="module">
+    // 1. Firebase SDK Imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // 2. PASTE YOUR CONFIG HERE
+    const firebaseConfig = {
+    apiKey: "AIzaSyBHa2f-ThkmbzYNVKjz4XHtM87mSI2dkLI",
+    authDomain: "premiere-47ace.firebaseapp.com",
+    projectId: "premiere-47ace",
+    storageBucket: "premiere-47ace.firebasestorage.app",
+    messagingSenderId: "644651181200",
+    appId: "1:644651181200:web:2ad450077763fa1483e415",
+    measurementId: "G-TFF1TE9T3R"
+  };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // --- State Variables ---
+    let currentUser = null;
+    let movies = [];
+    let ready = false;
+    let saveIssue = false;
+    let showForm = false;
+    let editingId = null;
+    let imgErrors = {};
+    let confirmDeleteId = null;
+
+    // --- Auth Observers & Actions ---
+    onAuthStateChanged(auth, async (user) => {
+      ready = false; 
+      render(); // Show loading state
+
+      if (user) {
+        currentUser = user;
+        try {
+          // Fetch user's specific movie list from Firestore
+          const docRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(docRef);
+          
+          if (docSnap.exists() && docSnap.data().movies) {
+            movies = docSnap.data().movies;
+          } else {
+            movies = [];
+          }
+        } catch (error) {
+          console.error("Error fetching movies:", error);
+          saveIssue = true;
+        }
+      } else {
+        currentUser = null;
+        movies = [];
+      }
+      
+      ready = true;
+      render();
+    });
+
+    window.loginWithGoogle = async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error("Login failed:", error.message);
+      }
+    };
+
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error("Logout failed:", error.message);
+      }
+    };
+
+    // --- Core Functions ---
+    async function persist(list) {
+      movies = list;
+      render(); // Optimistic UI update
+
+      if (currentUser) {
+        try {
+          // Save directly to Firestore under the user's ID
+          await setDoc(doc(db, "users", currentUser.uid), { movies: list }, { merge: true });
+          saveIssue = false;
+        } catch (e) {
+          console.error("Save failed:", e);
+          saveIssue = true;
+          render(); // Re-render to show error banner
+        }
+      }
+    }
+
+    // --- Helper Functions ---
+    function daysUntil(dateStr) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const release = new Date(`${dateStr}T00:00:00`);
+      return Math.round((release - today) / 86400000);
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(`${dateStr}T00:00:00`);
+      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' AD';
+    }
+
+    function formatAgo(days) {
+      const n = Math.abs(days);
+      if (n === 0) return 'Released today';
+      if (n === 1) return 'Released yesterday';
+      if (n < 7) return `Released ${n} days ago`;
+      if (n < 30) {
+        const w = Math.round(n / 7);
+        return `Released ${w} week${w > 1 ? 's' : ''} ago`;
+      }
+      if (n < 365) {
+        const m = Math.round(n / 30);
+        return `Released ${m} month${m > 1 ? 's' : ''} ago`;
+      }
+      const y = Math.round(n / 365);
+      return `Released ${y} year${y > 1 ? 's' : ''} ago`;
+    }
+
+    // --- UI Actions ---
+    window.openAdd = () => {
+      editingId = null;
+      showForm = true;
+      render();
+    };
+
+    window.openEdit = (id) => {
+      editingId = id;
+      confirmDeleteId = null;
+      showForm = true;
+      render();
+    };
+
+    window.closeForm = () => {
+      showForm = false;
+      editingId = null;
+      render();
+    };
+
+    window.requestDelete = (id) => {
+      if (confirmDeleteId === id) {
+        persist(movies.filter((m) => m.id !== id));
+        confirmDeleteId = null;
+      } else {
+        confirmDeleteId = id;
+        render();
+      }
+    };
+
+    window.handleImgError = (id, el) => {
+      if (!imgErrors[id]) {
+        imgErrors[id] = true;
+        el.style.display = 'none';
+        render(); 
+      }
+    };
+
+    // --- Form Handling ---
+    window.checkFormValidity = () => {
+      const title = document.getElementById('form-title').value.trim();
+      const date = document.getElementById('form-release').value;
+      document.getElementById('form-submit-btn').disabled = !(title && date);
+    };
+
+    window.updatePreview = (val) => {
+      const container = document.getElementById('poster-preview-container');
+      const img = document.getElementById('poster-preview-img');
+      if (val) {
+        container.style.display = 'block';
+        img.src = val;
+        img.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+      }
+    };
+
+    window.submitOnEnter = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        window.submitForm();
+      }
+    };
+
+    window.submitForm = () => {
+      const title = document.getElementById('form-title').value.trim();
+      const releaseDate = document.getElementById('form-release').value;
+      const posterUrl = document.getElementById('form-poster').value.trim();
+      const notes = document.getElementById('form-notes').value.trim();
+
+      if (!title || !releaseDate) return;
+
+      const cleaned = { title, releaseDate, posterUrl, notes };
+
+      if (editingId) {
+        persist(movies.map((m) => (m.id === editingId ? { ...m, ...cleaned } : m)));
+      } else {
+        persist([...movies, { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, ...cleaned }]);
+      }
+      closeForm();
+    };
+
+    // --- Component Templates ---
+    const PosterTpl = (url, alt, errored, id) => {
+      if (!url || errored) {
+        return `
+          <div class="pm-poster-frame rounded-lg w-full flex items-center justify-center">
+            <i data-lucide="film" class="w-1/4 h-1/4" style="color: rgba(232,184,75,0.3)" stroke-width="1.5"></i>
+          </div>
+        `;
+      }
+      return `<img src="${url}" alt="${alt}" onerror="handleImgError('${id}', this)" class="pm-poster-frame rounded-lg w-full object-cover" />`;
+    };
+
+    const CountdownDialTpl = (days, size) => {
+      const isLg = size === 'lg';
+      let label;
+      if (days <= 0) label = isLg ? 'TODAY' : 'NOW';
+      else if (days === 1) label = isLg ? 'TOMORROW' : '1D';
+      else label = isLg ? String(days) : `${days}D`;
+      const showUnit = isLg && days > 1;
+
+      return `
+        <div class="pm-dial-outer ${isLg ? 'pm-dial-lg' : 'pm-dial-sm'}">
+          <div class="pm-dial-inner" style="width: 78%; height: 78%">
+            <span class="pm-stencil pm-gold-text leading-none font-extrabold ${isLg ? 'pm-dial-num-lg' : 'text-xs'}">
+              ${label}
+            </span>
+            ${showUnit ? `<span class="pm-body tracking-widest mt-1" style="color: #C9A227; font-size: 10px;">DAYS TO GO</span>` : ''}
+          </div>
+        </div>
+      `;
+    };
+
+    const MovieCardTpl = (movie, days, released) => {
+      const isConfirming = confirmDeleteId === movie.id;
+      return `
+        <div>
+          <div class="relative">
+            ${PosterTpl(movie.posterUrl, movie.title, imgErrors[movie.id], movie.id)}
+            ${!released ? `<div class="absolute -top-2 -right-2">${CountdownDialTpl(days, 'sm')}</div>` : ''}
+            
+            <div class="absolute top-1.5 left-1.5 flex gap-1">
+              <button onclick="openEdit('${movie.id}')" aria-label="Edit movie" class="pm-icon-btn rounded-full w-6 h-6 flex items-center justify-center">
+                <i data-lucide="pencil" class="w-3 h-3" style="color: #F1E7D0"></i>
+              </button>
+              <button onclick="requestDelete('${movie.id}')" aria-label="Remove movie" class="pm-icon-btn rounded-full h-6 px-1.5 flex items-center justify-center" style="background-color: ${isConfirming ? '#9C2E3D' : ''}">
+                <i data-lucide="trash-2" class="w-3 h-3" style="color: #F1E7D0"></i>
+                ${isConfirming ? `<span class="pm-body ml-1 text-xs" style="color: #F1E7D0">Sure?</span>` : ''}
+              </button>
+            </div>
+          </div>
+          <p class="pm-body mt-2 text-sm font-semibold truncate" style="color: #F1E7D0">${movie.title}</p>
+          <p class="pm-body pm-ash text-xs">${released ? formatAgo(days) : formatDate(movie.releaseDate)}</p>
+        </div>
+      `;
+    };
+
+    const FormModalTpl = () => {
+      if (!showForm) return '';
+      const movie = editingId ? movies.find(m => m.id === editingId) : { title: '', releaseDate: '', posterUrl: '', notes: '' };
+      
+      return `
+        <div class="pm-modal-backdrop fixed inset-0 flex items-center justify-center p-4 z-50" onclick="closeForm()">
+          <div class="pm-panel-bg w-full max-w-md rounded-2xl p-6 overflow-y-auto" style="max-height: 88vh; border: 1px solid rgba(241,231,208,0.1)" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="pm-display text-2xl" style="color: #F1E7D0">${editingId ? 'Edit Movie' : 'Add Movie'}</h3>
+              <button onclick="closeForm()" aria-label="Close">
+                <i data-lucide="x" class="w-5 h-5 pm-ash"></i>
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Title</label>
+                <input id="form-title" type="text" value="${movie.title}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" placeholder="e.g. Dune: Part Three" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Release Date</label>
+                <input id="form-release" type="date" value="${movie.releaseDate}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" style="color-scheme: dark" />
+              </div>
+              <div>
+                <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Poster Image URL</label>
+                <input id="form-poster" type="text" value="${movie.posterUrl}" oninput="updatePreview(this.value)" onkeydown="submitOnEnter(event)" placeholder="https://…" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" />
+                
+                <div id="poster-preview-container" class="pm-poster-frame rounded-lg overflow-hidden mt-2" style="width: 72px; display: ${movie.posterUrl ? 'block' : 'none'}">
+                  <img id="poster-preview-img" src="${movie.posterUrl}" alt="Preview" class="w-full h-full object-cover" onerror="this.style.display='none'" />
+                </div>
+              </div>
+              <div>
+                <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Notes</label>
+                <textarea id="form-notes" placeholder="Genre, who you're seeing it with, why you're hyped…" rows="2" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm resize-none">${movie.notes || ''}</textarea>
+              </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+              <button onclick="closeForm()" class="pm-btn-ghost pm-body flex-1 rounded-full py-2.5 text-sm font-medium">Cancel</button>
+              <button id="form-submit-btn" onclick="submitForm()" ${!movie.title || !movie.releaseDate ? 'disabled' : ''} class="pm-btn-gold pm-body flex-1 rounded-full py-2.5 text-sm font-semibold">
+                ${editingId ? 'Save Changes' : 'Add Movie'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    // --- Main Render Loop ---
+    function render() {
+      const appContainer = document.getElementById('app');
+      let html = '';
+
+      const upcoming = movies
+        .filter((m) => daysUntil(m.releaseDate) >= 0)
+        .sort((a, b) => daysUntil(a.releaseDate) - daysUntil(b.releaseDate));
+      
+      const released = movies
+        .filter((m) => daysUntil(m.releaseDate) < 0)
+        .sort((a, b) => daysUntil(b.releaseDate) - daysUntil(a.releaseDate));
+      
+      const hero = upcoming[0];
+      const restUpcoming = upcoming.slice(1);
+      const heroDays = hero ? daysUntil(hero.releaseDate) : 0;
+      const isHeroConfirming = hero && confirmDeleteId === hero.id;
+
+      html += `<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">`;
+
+      // Header Area (with Auth Controls)
+      html += `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="film" class="w-6 h-6" style="color: #E8B84B"></i>
+            <h1 class="pm-display pm-wordmark" style="color: #F1E7D0">Premiere</h1>
+          </div>
+          
+          <div class="flex items-center gap-4">
+            ${currentUser 
+              ? `
+                <div class="flex items-center gap-3">
+                  ${currentUser.photoURL ? `<img src="${currentUser.photoURL}" alt="Avatar" class="w-8 h-8 rounded-full border border-gray-700">` : ''}
+                  <button onclick="logout()" class="pm-body pm-ash text-sm hover:text-white transition-colors">Sign Out</button>
+                </div>
+                <button onclick="openAdd()" class="pm-btn-gold pm-body flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold">
+                  <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add Movie
+                </button>
+              `
+              : `
+                <button onclick="loginWithGoogle()" class="pm-btn-ghost pm-body flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium">
+                  <i data-lucide="log-in" class="w-4 h-4"></i> Sign in with Google
+                </button>
+              `
+            }
+          </div>
+        </div>
+      `;
+
+      // Main Content State Logic
+      if (!ready) {
+        html += `<div class="pm-body pm-ash text-center py-24">Loading your cinematic universe…</div>`;
+      } 
+      else if (!currentUser) {
+        // Logged Out State
+        html += `
+          <div class="text-center py-24 rounded-3xl" style="border: 1px dashed rgba(232,184,75,0.2); background: rgba(16,12,14,0.4)">
+            <i data-lucide="ticket" class="w-12 h-12 mx-auto mb-5" style="color: rgba(232,184,75,0.5)"></i>
+            <h2 class="pm-display text-3xl mb-3" style="color: #F1E7D0">Your Personal Watchlist</h2>
+            <p class="pm-body pm-ash max-w-md mx-auto mb-8">Sign in to sync your upcoming movie hype across all your devices and never miss a release date AD.</p>
+            <button onclick="loginWithGoogle()" class="pm-btn-gold pm-body inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg">
+              Sign in with Google
+            </button>
+          </div>
+        `;
+      } 
+      else {
+        // Logged In States
+        if (saveIssue) {
+          html += `
+            <div class="pm-body text-xs mb-6 rounded-lg px-3 py-2" style="color: #F1E7D0; background-color: rgba(156,46,61,0.25); border: 1px solid rgba(156,46,61,0.5)">
+              Changes aren't syncing to the cloud right now. Check your connection or Firestore security rules.
+            </div>
+          `;
+        }
+
+        if (movies.length === 0) {
+          html += `
+            <div class="text-center py-20 rounded-3xl" style="border: 1px dashed rgba(232,184,75,0.3)">
+              <i data-lucide="sparkles" class="w-8 h-8 mx-auto mb-4" style="color: rgba(232,184,75,0.6)"></i>
+              <p class="pm-display text-2xl" style="color: #F1E7D0">No movies yet</p>
+              <p class="pm-body pm-ash mt-2 mb-6">Add the next release you can't stop thinking about.</p>
+              <button onclick="openAdd()" class="pm-btn-gold pm-body inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold">
+                <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add a movie
+              </button>
+            </div>
+          `;
+        } else {
+          // Hero Section
+          if (hero) {
+            html += `
+              <div class="relative rounded-2xl overflow-hidden">
+                <div class="absolute inset-0">
+                  ${hero.posterUrl && !imgErrors[hero.id] 
+                    ? `<img src="${hero.posterUrl}" alt="" class="w-full h-full object-cover blur-2xl scale-110 opacity-40" />`
+                    : `<div class="w-full h-full pm-panel-bg"></div>`
+                  }
+                  <div class="absolute inset-0" style="background: linear-gradient(to top, #100C0E 15%, rgba(16,12,14,0.88) 55%, rgba(16,12,14,0.55) 100%)"></div>
+                </div>
+                <div class="relative flex flex-col sm:flex-row items-center gap-6 p-6 sm:p-9">
+                  <div class="flex flex-col sm:flex-row items-center gap-5 shrink-0">
+                    <div style="width: clamp(92px, 22vw, 128px)">
+                      ${PosterTpl(hero.posterUrl, hero.title, imgErrors[hero.id], hero.id)}
+                    </div>
+                    ${CountdownDialTpl(heroDays, 'lg')}
+                  </div>
+                  <div class="pm-hero-divider text-center sm:text-left w-full sm:flex-1">
+                    <p class="pm-body pm-gold-text text-xs uppercase tracking-widest font-semibold mb-2">Up Next</p>
+                    <h2 class="pm-display pm-hero-title" style="color: #F1E7D0">${hero.title}</h2>
+                    <p class="pm-body pm-ash text-sm mt-1.5">${formatDate(hero.releaseDate)}</p>
+                    ${hero.notes ? `<p class="pm-body text-sm mt-3 mx-auto sm:mx-0" style="color: rgba(241,231,208,0.7); max-width: 440px">${hero.notes}</p>` : ''}
+                    <div class="flex items-center gap-4 justify-center sm:justify-start mt-4">
+                      <button onclick="openEdit('${hero.id}')" class="pm-body pm-ash flex items-center gap-1 text-xs">
+                        <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
+                      </button>
+                      <button onclick="requestDelete('${hero.id}')" class="pm-body flex items-center gap-1 text-xs" style="color: ${isHeroConfirming ? '#E8828F' : '#9C9691'}; font-weight: ${isHeroConfirming ? 600 : 400}">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> ${isHeroConfirming ? 'Tap again to remove' : 'Remove'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
+          // Upcoming Grid
+          if (restUpcoming.length > 0) {
+            html += `
+              <hr class="pm-perf" />
+              <p class="pm-body pm-gold-text text-xs uppercase tracking-widest font-semibold mb-4">Coming Soon</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6">
+                ${restUpcoming.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), false)).join('')}
+              </div>
+            `;
+          }
+
+          // Released Grid
+          if (released.length > 0) {
+            html += `
+              ${hero ? '<hr class="pm-perf" />' : ''}
+              <p class="pm-body text-xs uppercase tracking-widest font-semibold mb-4" style="color: #716C67">Now Showing</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6 opacity-60">
+                ${released.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), true)).join('')}
+              </div>
+            `;
+          }
+        }
+      }
+
+      html += `</div>`; 
+      html += FormModalTpl(); 
+
+      appContainer.innerHTML = html;
+      lucide.createIcons();
+    }
+
+  </script>
+</body>
+</html>
