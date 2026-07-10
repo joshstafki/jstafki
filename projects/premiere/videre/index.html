@@ -4,59 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Premiere - Movie Countdown Tracker</title>
-  
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
+  <script src="https://unpkg.com/lucide@1.24.0"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Big+Shoulders+Stencil:wght@700;800&family=Work+Sans:wght@400;500;600;700&display=swap');
-    
+
     body {
       margin: 0;
       background: radial-gradient(ellipse 120% 60% at 50% 0%, #1B1518 0%, #100C0E 65%);
       color: #F1E7D0;
       min-height: 100vh;
     }
-    
+
     .pm-display { font-family: 'Abril Fatface', serif; }
     .pm-stencil { font-family: 'Big Shoulders Stencil', sans-serif; }
     .pm-body { font-family: 'Work Sans', sans-serif; }
     .pm-ash { color: #9C9691; }
     .pm-gold-text { color: #E8B84B; }
-    
+
     .pm-btn-gold { background-color: #E8B84B; color: #100C0E; transition: background-color 0.15s ease; border: none; cursor: pointer; }
     .pm-btn-gold:hover { background-color: #F2C766; }
     .pm-btn-gold:disabled { background-color: rgba(241,231,208,0.08); color: #6b6663; cursor: not-allowed; }
-    
+
     .pm-btn-ghost { background-color: transparent; color: #F1E7D0; border: 1px solid rgba(241,231,208,0.18); transition: background-color 0.15s ease; cursor: pointer; }
     .pm-btn-ghost:hover { background-color: rgba(241,231,208,0.07); }
-    
+
     .pm-field { background-color: rgba(241,231,208,0.05); border: 1px solid rgba(241,231,208,0.15); color: #F1E7D0; }
     .pm-field:focus { outline: 2px solid rgba(232,184,75,0.45); outline-offset: 1px; border-color: #E8B84B; }
     .pm-field::placeholder { color: #716C67; }
-    
+
     .pm-panel-bg { background-color: #1B1518; }
     .pm-poster-frame { border: 1px solid rgba(232,184,75,0.15); aspect-ratio: 2 / 3; }
-    
+
     .pm-icon-btn { background-color: rgba(16,12,14,0.75); border: 1px solid rgba(241,231,208,0.15); transition: background-color 0.15s ease; cursor: pointer; }
     .pm-icon-btn:hover { background-color: rgba(16,12,14,0.95); }
-    
+
     .pm-dial-outer { border-radius: 9999px; border-style: dashed; border-color: #E8B84B; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .pm-dial-inner { border-radius: 9999px; background-color: #100C0E; border: 1px solid rgba(232,184,75,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .pm-dial-lg { width: clamp(108px, 24vw, 148px); height: clamp(108px, 24vw, 148px); border-width: 4px; }
     .pm-dial-sm { width: 46px; height: 46px; border-width: 3px; }
     .pm-dial-num-lg { font-size: clamp(26px, 6vw, 38px); }
-    
+
     .pm-hero-divider { border-top: 2px dashed rgba(232,184,75,0.35); padding-top: 1.25rem; }
     @media (min-width: 640px) {
       .pm-hero-divider { border-top: none; border-left: 2px dashed rgba(232,184,75,0.35); padding-top: 0; padding-left: 2.5rem; }
     }
-    
+
     .pm-perf { border: none; border-top: 2px dashed rgba(232,184,75,0.22); margin: 2.5rem 0 1.25rem; }
     .pm-modal-backdrop { background-color: rgba(16,12,14,0.85); backdrop-filter: blur(4px); }
     .pm-wordmark { font-size: clamp(24px, 5vw, 32px); }
     .pm-hero-title { font-size: clamp(22px, 4.5vw, 34px); line-height: 1.15; }
-    
+
+    .pm-focus-visible:focus-visible { outline: 2px solid #E8B84B; outline-offset: 2px; }
+
     @media (prefers-reduced-motion: reduce) {
       * { transition-duration: 0.01ms !important; }
     }
@@ -70,7 +72,7 @@
     // 1. Firebase SDK Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // 2. PASTE YOUR CONFIG HERE
     const firebaseConfig = {
@@ -94,46 +96,93 @@
     let movies = [];
     let ready = false;
     let saveIssue = false;
+    let authError = false;
     let showForm = false;
     let editingId = null;
     let imgErrors = {};
     let confirmDeleteId = null;
+    let unsubscribeMovies = null;
+    let legacyMovies = null; // movies found in the old single-document format, awaiting import
+    let legacyChecked = false;
 
     // --- Auth Observers & Actions ---
-    onAuthStateChanged(auth, async (user) => {
-      ready = false; 
-      render(); // Show loading state
+    onAuthStateChanged(auth, (user) => {
+      // Tear down any listener from a previous session before starting a new one
+      if (unsubscribeMovies) {
+        unsubscribeMovies();
+        unsubscribeMovies = null;
+      }
+      authError = false; // clear any stale sign-in error on every auth transition
 
       if (user) {
         currentUser = user;
-        try {
-          // Fetch user's specific movie list from Firestore
-          const docRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(docRef);
-          
-          if (docSnap.exists() && docSnap.data().movies) {
-            movies = docSnap.data().movies;
-          } else {
-            movies = [];
+        ready = false;
+        legacyChecked = false;
+        legacyMovies = null;
+        render();
+
+        // Real-time listener on this user's movies subcollection.
+        // Each movie is its own document, so adds/edits/deletes from any
+        // device are independent writes instead of one shared array.
+        const moviesRef = collection(db, "users", user.uid, "movies");
+        unsubscribeMovies = onSnapshot(
+          moviesRef,
+          async (snapshot) => {
+            movies = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+            saveIssue = false;
+            ready = true;
+
+            // One-time check for movies saved under the old single-document
+            // format (from before this version). Only runs once per sign-in,
+            // and only offers an import if the new subcollection is empty —
+            // it will never overwrite or duplicate movies you already have here.
+            if (!legacyChecked) {
+              legacyChecked = true;
+              if (movies.length === 0) {
+                try {
+                  const legacySnap = await getDoc(doc(db, "users", user.uid));
+                  const legacyData = legacySnap.exists() ? legacySnap.data().movies : null;
+                  if (Array.isArray(legacyData) && legacyData.length > 0) {
+                    legacyMovies = legacyData;
+                  }
+                } catch (e) {
+                  console.error("Legacy data check failed:", e);
+                }
+              }
+            }
+            render();
+          },
+          (error) => {
+            console.error("Movies listener failed:", error);
+            saveIssue = true;
+            ready = true;
+            render();
           }
-        } catch (error) {
-          console.error("Error fetching movies:", error);
-          saveIssue = true;
-        }
+        );
       } else {
         currentUser = null;
         movies = [];
+        // Close out any open form — there's nothing to edit if you're signed out,
+        // and leaving this open risks the modal referencing a movie that no
+        // longer exists in `movies`.
+        showForm = false;
+        editingId = null;
+        confirmDeleteId = null;
+        legacyMovies = null;
+        legacyChecked = false;
+        ready = true;
+        render();
       }
-      
-      ready = true;
-      render();
     });
 
     window.loginWithGoogle = async () => {
+      authError = false;
       try {
         await signInWithPopup(auth, provider);
       } catch (error) {
         console.error("Login failed:", error.message);
+        authError = true;
+        render();
       }
     };
 
@@ -145,21 +194,37 @@
       }
     };
 
-    // --- Core Functions ---
-    async function persist(list) {
-      movies = list;
-      render(); // Optimistic UI update
+    // --- Firestore Writes (each movie is its own document) ---
+    async function addMovie(data) {
+      if (!currentUser) return;
+      try {
+        await addDoc(collection(db, "users", currentUser.uid, "movies"), data);
+      } catch (e) {
+        console.error("Add failed:", e);
+        saveIssue = true;
+        render();
+      }
+    }
 
-      if (currentUser) {
-        try {
-          // Save directly to Firestore under the user's ID
-          await setDoc(doc(db, "users", currentUser.uid), { movies: list }, { merge: true });
-          saveIssue = false;
-        } catch (e) {
-          console.error("Save failed:", e);
-          saveIssue = true;
-          render(); // Re-render to show error banner
-        }
+    async function updateMovie(id, data) {
+      if (!currentUser) return;
+      try {
+        await updateDoc(doc(db, "users", currentUser.uid, "movies", id), data);
+      } catch (e) {
+        console.error("Update failed:", e);
+        saveIssue = true;
+        render();
+      }
+    }
+
+    async function removeMovie(id) {
+      if (!currentUser) return;
+      try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "movies", id));
+      } catch (e) {
+        console.error("Delete failed:", e);
+        saveIssue = true;
+        render();
       }
     }
 
@@ -173,7 +238,7 @@
 
     function formatDate(dateStr) {
       const d = new Date(`${dateStr}T00:00:00`);
-      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + ' AD';
+      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     }
 
     function formatAgo(days) {
@@ -193,11 +258,73 @@
       return `Released ${y} year${y > 1 ? 's' : ''} ago`;
     }
 
+    // Escapes user-supplied text before it's dropped into an HTML template
+    // string. Every field that came from the Add/Edit form (title, notes,
+    // posterUrl) must go through this before being interpolated anywhere.
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[ch]));
+    }
+
+    function ymd(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}${m}${d}`;
+    }
+
+    // Builds a Google Calendar "quick add" link for a movie's release date.
+    // This opens a pre-filled event in a new tab; the user still clicks
+    // Save on Google's side, so no extra OAuth scopes are needed.
+    function calendarUrl(movie) {
+      const start = new Date(`${movie.releaseDate}T00:00:00`);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 1); // all-day events use an exclusive end date
+
+      const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: `${movie.title} — Release Day`,
+        dates: `${ymd(start)}/${ymd(end)}`,
+        details: movie.notes ? movie.notes : `Marking the release of ${movie.title}.`,
+      });
+
+      return `https://calendar.google.com/calendar/render?${params.toString()}`;
+    }
+
+    window.importLegacyMovies = async () => {
+      if (!currentUser || !legacyMovies) return;
+      const toImport = legacyMovies;
+      legacyMovies = null; // hide the banner right away
+      render();
+      try {
+        for (const m of toImport) {
+          const { id, ...data } = m; // drop the old client-generated id; Firestore assigns a fresh one
+          await addDoc(collection(db, "users", currentUser.uid, "movies"), data);
+        }
+      } catch (e) {
+        console.error("Import failed:", e);
+        saveIssue = true;
+        render();
+      }
+    };
+
+    window.dismissLegacyImport = () => {
+      legacyMovies = null;
+      render();
+    };
+
     // --- UI Actions ---
     window.openAdd = () => {
       editingId = null;
+      confirmDeleteId = null;
       showForm = true;
       render();
+      document.getElementById('form-title')?.focus();
     };
 
     window.openEdit = (id) => {
@@ -205,18 +332,21 @@
       confirmDeleteId = null;
       showForm = true;
       render();
+      document.getElementById('form-title')?.focus();
     };
 
     window.closeForm = () => {
       showForm = false;
       editingId = null;
+      confirmDeleteId = null;
       render();
     };
 
     window.requestDelete = (id) => {
       if (confirmDeleteId === id) {
-        persist(movies.filter((m) => m.id !== id));
+        removeMovie(id);
         confirmDeleteId = null;
+        render();
       } else {
         confirmDeleteId = id;
         render();
@@ -227,9 +357,35 @@
       if (!imgErrors[id]) {
         imgErrors[id] = true;
         el.style.display = 'none';
-        render(); 
+        render();
       }
     };
+
+    // Escape closes the modal; Tab/Shift+Tab is trapped inside it.
+    document.addEventListener('keydown', (e) => {
+      if (!showForm) return;
+      if (e.key === 'Escape') {
+        closeForm();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const panel = document.getElementById('pm-modal-panel');
+        if (!panel) return;
+        const focusable = Array.from(panel.querySelectorAll('input, textarea, button, a[href]')).filter(
+          (el) => !el.disabled
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
 
     // --- Form Handling ---
     window.checkFormValidity = () => {
@@ -268,9 +424,9 @@
       const cleaned = { title, releaseDate, posterUrl, notes };
 
       if (editingId) {
-        persist(movies.map((m) => (m.id === editingId ? { ...m, ...cleaned } : m)));
+        updateMovie(editingId, cleaned);
       } else {
-        persist([...movies, { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, ...cleaned }]);
+        addMovie(cleaned);
       }
       closeForm();
     };
@@ -284,7 +440,7 @@
           </div>
         `;
       }
-      return `<img src="${url}" alt="${alt}" onerror="handleImgError('${id}', this)" class="pm-poster-frame rounded-lg w-full object-cover" />`;
+      return `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" onerror="handleImgError('${id}', this)" class="pm-poster-frame rounded-lg w-full object-cover" />`;
     };
 
     const CountdownDialTpl = (days, size) => {
@@ -314,18 +470,23 @@
           <div class="relative">
             ${PosterTpl(movie.posterUrl, movie.title, imgErrors[movie.id], movie.id)}
             ${!released ? `<div class="absolute -top-2 -right-2">${CountdownDialTpl(days, 'sm')}</div>` : ''}
-            
+
             <div class="absolute top-1.5 left-1.5 flex gap-1">
-              <button onclick="openEdit('${movie.id}')" aria-label="Edit movie" class="pm-icon-btn rounded-full w-6 h-6 flex items-center justify-center">
+              <button onclick="openEdit('${movie.id}')" aria-label="Edit movie" class="pm-icon-btn pm-focus-visible rounded-full w-6 h-6 flex items-center justify-center">
                 <i data-lucide="pencil" class="w-3 h-3" style="color: #F1E7D0"></i>
               </button>
-              <button onclick="requestDelete('${movie.id}')" aria-label="Remove movie" class="pm-icon-btn rounded-full h-6 px-1.5 flex items-center justify-center" style="background-color: ${isConfirming ? '#9C2E3D' : ''}">
+              ${!released ? `
+              <a href="${escapeHtml(calendarUrl(movie))}" target="_blank" rel="noopener noreferrer" aria-label="Add to Google Calendar" class="pm-icon-btn pm-focus-visible rounded-full w-6 h-6 flex items-center justify-center">
+                <i data-lucide="calendar-plus" class="w-3 h-3" style="color: #F1E7D0"></i>
+              </a>
+              ` : ''}
+              <button onclick="requestDelete('${movie.id}')" aria-label="Remove movie" class="pm-icon-btn pm-focus-visible rounded-full h-6 px-1.5 flex items-center justify-center" style="background-color: ${isConfirming ? '#9C2E3D' : ''}">
                 <i data-lucide="trash-2" class="w-3 h-3" style="color: #F1E7D0"></i>
                 ${isConfirming ? `<span class="pm-body ml-1 text-xs" style="color: #F1E7D0">Sure?</span>` : ''}
               </button>
             </div>
           </div>
-          <p class="pm-body mt-2 text-sm font-semibold truncate" style="color: #F1E7D0">${movie.title}</p>
+          <p class="pm-body mt-2 text-sm font-semibold truncate" style="color: #F1E7D0">${escapeHtml(movie.title)}</p>
           <p class="pm-body pm-ash text-xs">${released ? formatAgo(days) : formatDate(movie.releaseDate)}</p>
         </div>
       `;
@@ -333,14 +494,16 @@
 
     const FormModalTpl = () => {
       if (!showForm) return '';
-      const movie = editingId ? movies.find(m => m.id === editingId) : { title: '', releaseDate: '', posterUrl: '', notes: '' };
-      
+      const movie = editingId
+        ? (movies.find((m) => m.id === editingId) || { title: '', releaseDate: '', posterUrl: '', notes: '' })
+        : { title: '', releaseDate: '', posterUrl: '', notes: '' };
+
       return `
         <div class="pm-modal-backdrop fixed inset-0 flex items-center justify-center p-4 z-50" onclick="closeForm()">
-          <div class="pm-panel-bg w-full max-w-md rounded-2xl p-6 overflow-y-auto" style="max-height: 88vh; border: 1px solid rgba(241,231,208,0.1)" onclick="event.stopPropagation()">
+          <div id="pm-modal-panel" role="dialog" aria-modal="true" aria-labelledby="pm-modal-title" class="pm-panel-bg w-full max-w-md rounded-2xl p-6 overflow-y-auto" style="max-height: 88vh; border: 1px solid rgba(241,231,208,0.1)" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between mb-5">
-              <h3 class="pm-display text-2xl" style="color: #F1E7D0">${editingId ? 'Edit Movie' : 'Add Movie'}</h3>
-              <button onclick="closeForm()" aria-label="Close">
+              <h3 id="pm-modal-title" class="pm-display text-2xl" style="color: #F1E7D0">${editingId ? 'Edit Movie' : 'Add Movie'}</h3>
+              <button onclick="closeForm()" aria-label="Close" class="pm-focus-visible">
                 <i data-lucide="x" class="w-5 h-5 pm-ash"></i>
               </button>
             </div>
@@ -348,23 +511,23 @@
             <div class="space-y-4">
               <div>
                 <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Title</label>
-                <input id="form-title" type="text" value="${movie.title}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" placeholder="e.g. Dune: Part Three" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" />
+                <input id="form-title" type="text" value="${escapeHtml(movie.title)}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" placeholder="e.g. Dune: Part Three" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>
                 <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Release Date</label>
-                <input id="form-release" type="date" value="${movie.releaseDate}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" style="color-scheme: dark" />
+                <input id="form-release" type="date" value="${escapeHtml(movie.releaseDate)}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" style="color-scheme: dark" />
               </div>
               <div>
                 <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Poster Image URL</label>
-                <input id="form-poster" type="text" value="${movie.posterUrl}" oninput="updatePreview(this.value)" onkeydown="submitOnEnter(event)" placeholder="https://…" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" />
-                
+                <input id="form-poster" type="text" value="${escapeHtml(movie.posterUrl)}" oninput="updatePreview(this.value)" onkeydown="submitOnEnter(event)" placeholder="https://…" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" />
+
                 <div id="poster-preview-container" class="pm-poster-frame rounded-lg overflow-hidden mt-2" style="width: 72px; display: ${movie.posterUrl ? 'block' : 'none'}">
-                  <img id="poster-preview-img" src="${movie.posterUrl}" alt="Preview" class="w-full h-full object-cover" onerror="this.style.display='none'" />
+                  <img id="poster-preview-img" src="${escapeHtml(movie.posterUrl)}" alt="Preview" class="w-full h-full object-cover" onerror="this.style.display='none'" />
                 </div>
               </div>
               <div>
                 <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Notes</label>
-                <textarea id="form-notes" placeholder="Genre, who you're seeing it with, why you're hyped…" rows="2" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm resize-none">${movie.notes || ''}</textarea>
+                <textarea id="form-notes" placeholder="Genre, who you're seeing it with, why you're hyped…" rows="2" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm resize-none">${escapeHtml(movie.notes || '')}</textarea>
               </div>
             </div>
 
@@ -387,11 +550,11 @@
       const upcoming = movies
         .filter((m) => daysUntil(m.releaseDate) >= 0)
         .sort((a, b) => daysUntil(a.releaseDate) - daysUntil(b.releaseDate));
-      
+
       const released = movies
         .filter((m) => daysUntil(m.releaseDate) < 0)
         .sort((a, b) => daysUntil(b.releaseDate) - daysUntil(a.releaseDate));
-      
+
       const hero = upcoming[0];
       const restUpcoming = upcoming.slice(1);
       const heroDays = hero ? daysUntil(hero.releaseDate) : 0;
@@ -406,20 +569,20 @@
             <i data-lucide="film" class="w-6 h-6" style="color: #E8B84B"></i>
             <h1 class="pm-display pm-wordmark" style="color: #F1E7D0">Premiere</h1>
           </div>
-          
+
           <div class="flex items-center gap-4">
-            ${currentUser 
+            ${currentUser
               ? `
                 <div class="flex items-center gap-3">
-                  ${currentUser.photoURL ? `<img src="${currentUser.photoURL}" alt="Avatar" class="w-8 h-8 rounded-full border border-gray-700">` : ''}
-                  <button onclick="logout()" class="pm-body pm-ash text-sm hover:text-white transition-colors">Sign Out</button>
+                  ${currentUser.photoURL ? `<img src="${escapeHtml(currentUser.photoURL)}" alt="Avatar" class="w-8 h-8 rounded-full border border-gray-700">` : ''}
+                  <button onclick="logout()" class="pm-body pm-ash text-sm hover:text-white transition-colors pm-focus-visible">Sign Out</button>
                 </div>
-                <button onclick="openAdd()" class="pm-btn-gold pm-body flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold">
+                <button onclick="openAdd()" class="pm-btn-gold pm-body flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold pm-focus-visible">
                   <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add Movie
                 </button>
               `
               : `
-                <button onclick="loginWithGoogle()" class="pm-btn-ghost pm-body flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium">
+                <button onclick="loginWithGoogle()" class="pm-btn-ghost pm-body flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium pm-focus-visible">
                   <i data-lucide="log-in" class="w-4 h-4"></i> Sign in with Google
                 </button>
               `
@@ -431,22 +594,39 @@
       // Main Content State Logic
       if (!ready) {
         html += `<div class="pm-body pm-ash text-center py-24">Loading your cinematic universe…</div>`;
-      } 
+      }
       else if (!currentUser) {
         // Logged Out State
         html += `
           <div class="text-center py-24 rounded-3xl" style="border: 1px dashed rgba(232,184,75,0.2); background: rgba(16,12,14,0.4)">
             <i data-lucide="ticket" class="w-12 h-12 mx-auto mb-5" style="color: rgba(232,184,75,0.5)"></i>
             <h2 class="pm-display text-3xl mb-3" style="color: #F1E7D0">Your Personal Watchlist</h2>
-            <p class="pm-body pm-ash max-w-md mx-auto mb-8">Sign in to sync your upcoming movie hype across all your devices and never miss a release date AD.</p>
-            <button onclick="loginWithGoogle()" class="pm-btn-gold pm-body inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg">
+            <p class="pm-body pm-ash max-w-md mx-auto mb-8">Sign in to sync your upcoming movie hype across all your devices and never miss a release date.</p>
+            ${authError ? `
+              <p class="pm-body text-xs mb-5 max-w-sm mx-auto rounded-lg px-3 py-2" style="color: #F1E7D0; background-color: rgba(156,46,61,0.25); border: 1px solid rgba(156,46,61,0.5)">
+                Sign-in didn't go through. Check that popups are allowed for this site and try again.
+              </p>
+            ` : ''}
+            <button onclick="loginWithGoogle()" class="pm-btn-gold pm-body inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg pm-focus-visible">
               Sign in with Google
             </button>
           </div>
         `;
-      } 
+      }
       else {
         // Logged In States
+        if (legacyMovies && legacyMovies.length > 0) {
+          html += `
+            <div class="pm-body text-xs mb-6 rounded-lg px-3 py-3 flex items-center justify-between gap-3 flex-wrap" style="color: #F1E7D0; background-color: rgba(232,184,75,0.12); border: 1px solid rgba(232,184,75,0.35)">
+              <span>Found ${legacyMovies.length} movie${legacyMovies.length > 1 ? 's' : ''} from before this update — want to bring ${legacyMovies.length > 1 ? 'them' : 'it'} over?</span>
+              <div class="flex gap-2">
+                <button onclick="importLegacyMovies()" class="pm-btn-gold pm-body rounded-full px-3 py-1.5 text-xs font-semibold pm-focus-visible">Import</button>
+                <button onclick="dismissLegacyImport()" class="pm-btn-ghost pm-body rounded-full px-3 py-1.5 text-xs pm-focus-visible">Not now</button>
+              </div>
+            </div>
+          `;
+        }
+
         if (saveIssue) {
           html += `
             <div class="pm-body text-xs mb-6 rounded-lg px-3 py-2" style="color: #F1E7D0; background-color: rgba(156,46,61,0.25); border: 1px solid rgba(156,46,61,0.5)">
@@ -461,7 +641,7 @@
               <i data-lucide="sparkles" class="w-8 h-8 mx-auto mb-4" style="color: rgba(232,184,75,0.6)"></i>
               <p class="pm-display text-2xl" style="color: #F1E7D0">No movies yet</p>
               <p class="pm-body pm-ash mt-2 mb-6">Add the next release you can't stop thinking about.</p>
-              <button onclick="openAdd()" class="pm-btn-gold pm-body inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold">
+              <button onclick="openAdd()" class="pm-btn-gold pm-body inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold pm-focus-visible">
                 <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add a movie
               </button>
             </div>
@@ -472,8 +652,8 @@
             html += `
               <div class="relative rounded-2xl overflow-hidden">
                 <div class="absolute inset-0">
-                  ${hero.posterUrl && !imgErrors[hero.id] 
-                    ? `<img src="${hero.posterUrl}" alt="" class="w-full h-full object-cover blur-2xl scale-110 opacity-40" />`
+                  ${hero.posterUrl && !imgErrors[hero.id]
+                    ? `<img src="${escapeHtml(hero.posterUrl)}" alt="" class="w-full h-full object-cover blur-2xl scale-110 opacity-40" />`
                     : `<div class="w-full h-full pm-panel-bg"></div>`
                   }
                   <div class="absolute inset-0" style="background: linear-gradient(to top, #100C0E 15%, rgba(16,12,14,0.88) 55%, rgba(16,12,14,0.55) 100%)"></div>
@@ -487,14 +667,17 @@
                   </div>
                   <div class="pm-hero-divider text-center sm:text-left w-full sm:flex-1">
                     <p class="pm-body pm-gold-text text-xs uppercase tracking-widest font-semibold mb-2">Up Next</p>
-                    <h2 class="pm-display pm-hero-title" style="color: #F1E7D0">${hero.title}</h2>
+                    <h2 class="pm-display pm-hero-title" style="color: #F1E7D0">${escapeHtml(hero.title)}</h2>
                     <p class="pm-body pm-ash text-sm mt-1.5">${formatDate(hero.releaseDate)}</p>
-                    ${hero.notes ? `<p class="pm-body text-sm mt-3 mx-auto sm:mx-0" style="color: rgba(241,231,208,0.7); max-width: 440px">${hero.notes}</p>` : ''}
-                    <div class="flex items-center gap-4 justify-center sm:justify-start mt-4">
-                      <button onclick="openEdit('${hero.id}')" class="pm-body pm-ash flex items-center gap-1 text-xs">
+                    ${hero.notes ? `<p class="pm-body text-sm mt-3 mx-auto sm:mx-0" style="color: rgba(241,231,208,0.7); max-width: 440px">${escapeHtml(hero.notes)}</p>` : ''}
+                    <div class="flex items-center gap-4 justify-center sm:justify-start mt-4 flex-wrap">
+                      <button onclick="openEdit('${hero.id}')" class="pm-body pm-ash flex items-center gap-1 text-xs pm-focus-visible">
                         <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
                       </button>
-                      <button onclick="requestDelete('${hero.id}')" class="pm-body flex items-center gap-1 text-xs" style="color: ${isHeroConfirming ? '#E8828F' : '#9C9691'}; font-weight: ${isHeroConfirming ? 600 : 400}">
+                      <a href="${escapeHtml(calendarUrl(hero))}" target="_blank" rel="noopener noreferrer" class="pm-body pm-gold-text flex items-center gap-1 text-xs font-semibold pm-focus-visible">
+                        <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> Add to Calendar
+                      </a>
+                      <button onclick="requestDelete('${hero.id}')" class="pm-body flex items-center gap-1 text-xs pm-focus-visible" style="color: ${isHeroConfirming ? '#E8828F' : '#9C9691'}; font-weight: ${isHeroConfirming ? 600 : 400}">
                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> ${isHeroConfirming ? 'Tap again to remove' : 'Remove'}
                       </button>
                     </div>
@@ -528,8 +711,8 @@
         }
       }
 
-      html += `</div>`; 
-      html += FormModalTpl(); 
+      html += `</div>`;
+      html += FormModalTpl();
 
       appContainer.innerHTML = html;
       lucide.createIcons();
