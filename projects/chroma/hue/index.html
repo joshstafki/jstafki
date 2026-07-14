@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Chroma — mix color, live</title>
+<meta name="description" content="Drag color together and watch it mix in real time. An interactive color-mixing playground.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Hanken+Grotesk:wght@400;500;600&family=Martian+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0b;
+    --panel:rgba(255,255,255,0.045);
+    --panel-strong:rgba(255,255,255,0.075);
+    --border:rgba(255,255,255,0.09);
+    --border-soft:rgba(255,255,255,0.05);
+    --text:#f3f2ee;
+    --text-dim:#98978f;
+    --text-faint:#5c5b56;
+    --mono:'Martian Mono', ui-monospace, monospace;
+    --display:'Fraunces', serif;
+    --body:'Hanken Grotesk', sans-serif;
+    --live-accent:#a7a8aa;
+    --live-glow:rgba(167,168,170,0.35);
+    --radius:16px;
+    --radius-sm:10px;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--body); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:var(--display); font-weight:600; margin:0; letter-spacing:-0.01em; }
+  a{ color:var(--text); }
+  button{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.01em; color:var(--text);
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:var(--radius-sm); padding:9px 16px; cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  button:hover{ background:var(--panel-strong); border-color:var(--border-soft); }
+  button:active{ transform:scale(0.97); }
+  button:focus-visible, input:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--live-accent); outline-offset:2px;
+  }
+  .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  .wrap{ max-width:860px; margin:0 auto; padding:0 24px; }
+
+  /* header */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:rgba(10,10,11,0.72); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .header-row{ display:flex; align-items:center; justify-content:space-between; padding:16px 24px; max-width:860px; margin:0 auto; }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-size:19px; font-weight:700; letter-spacing:-0.02em; }
+  .brand-dot{ width:11px; height:11px; border-radius:50%; background:var(--live-accent); box-shadow:0 0 14px var(--live-glow); transition:background .4s ease, box-shadow .4s ease; }
+  #auth-area{ display:flex; align-items:center; gap:10px; }
+  .g-btn{ display:flex; align-items:center; gap:9px; padding:8px 14px 8px 10px; }
+  .g-mark{ width:16px; height:16px; flex-shrink:0; }
+  .user-chip{ display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:5px 12px 5px 5px; font-size:12px; }
+  .user-avatar{ width:22px; height:22px; border-radius:50%; background:var(--panel-strong); }
+  .signout-x{ background:none; border:none; padding:2px; color:var(--text-faint); cursor:pointer; font-size:14px; line-height:1; }
+  .signout-x:hover{ color:var(--text); }
+
+  /* hero */
+  .hero{ padding:52px 0 8px; }
+  .eyebrow{ font-family:var(--mono); font-size:11.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
+  .hero h1{ font-size:clamp(30px,5vw,42px); line-height:1.12; max-width:11ch; }
+  .hero p{ color:var(--text-dim); font-size:15px; max-width:46ch; margin-top:14px; }
+
+  /* stage */
+  .stage-section{ padding:32px 0 0; }
+  .mode-toggle{ display:inline-flex; background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:4px; margin-bottom:18px; }
+  .mode-btn{ background:none; border:none; border-radius:999px; padding:8px 16px; font-size:12.5px; color:var(--text-dim); }
+  .mode-btn.active{ background:var(--panel-strong); color:var(--text); }
+  .mode-btn:hover{ background:var(--panel-strong); }
+
+  #stage{
+    position:relative; height:400px; overflow:hidden;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.035), transparent 60%),
+      var(--panel);
+    border:1px solid var(--border); border-radius:var(--radius);
+    transition:background .5s ease, border-color .5s ease;
+  }
+  #stage::after{
+    content:''; position:absolute; inset:0; pointer-events:none; border-radius:var(--radius);
+    box-shadow:inset 0 0 60px rgba(0,0,0,0.35);
+    transition:box-shadow .5s ease;
+  }
+  /* Paint mode mixes with a multiply blend, which needs a light base to
+     read correctly — against black it just goes straight to near-black.
+     Screen blend (light mode) needs the opposite, so the two modes get
+     their own canvas rather than sharing one background. */
+  #stage[data-mode="paint"]{
+    background:
+      radial-gradient(circle at 30% 20%, rgba(0,0,0,0.025), transparent 60%),
+      #f1ece0;
+    border-color:rgba(10,10,11,0.14);
+  }
+  #stage[data-mode="paint"]::after{
+    box-shadow:inset 0 0 50px rgba(80,65,45,0.12);
+  }
+  .blob{
+    position:absolute; border-radius:50%; cursor:grab; touch-action:none;
+    outline:0px solid var(--live-accent); outline-offset:0px;
+  }
+  .blob:active{ cursor:grabbing; }
+  .blob.popping{ animation:popIn .32s cubic-bezier(.34,1.56,.64,1); }
+  .blob.dissolving{ animation:dissolve .18s ease-out forwards; pointer-events:none; }
+  .blob.saved-flash{ animation:savedFlash .5s ease-out; }
+  @keyframes popIn{ 0%{ transform:scale(.55); } 55%{ transform:scale(1.14); } 100%{ transform:scale(1); } }
+  @keyframes dissolve{ to{ transform:scale(.4); opacity:0; } }
+  @keyframes savedFlash{ 0%{ outline-width:0px; outline-offset:0px; opacity:1;} 60%{ outline-width:8px; outline-offset:6px; opacity:1;} 100%{ outline-width:14px; outline-offset:10px; opacity:0;} }
+  @media (prefers-reduced-motion:reduce){
+    .blob.popping, .blob.dissolving, .blob.saved-flash{ animation:none !important; }
+  }
+
+  .stage-hint{ font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-top:10px; text-align:center; }
+
+  /* spawn row */
+  .spawn-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:18px; }
+  .preset-swatch{ width:30px; height:30px; border-radius:50%; border:1px solid var(--border); cursor:pointer; padding:0; }
+  .preset-swatch:hover{ transform:scale(1.08); }
+  .color-input-wrap{ display:flex; align-items:center; gap:8px; margin-left:4px; }
+  input[type="color"]{
+    width:34px; height:34px; border:1px solid var(--border); border-radius:50%;
+    padding:0; background:none; cursor:pointer; overflow:hidden;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper{ padding:0; border-radius:50%; }
+  input[type="color"]::-webkit-color-swatch{ border:none; border-radius:50%; }
+  .spawn-row .spacer{ flex:1; }
+
+  /* readout */
+  .readout{
+    display:flex; align-items:center; gap:14px; margin-top:22px;
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px;
+  }
+  #readout-swatch{ width:44px; height:44px; border-radius:12px; border:1px solid var(--border); flex-shrink:0; transition:background .12s linear; }
+  .readout-text{ flex:1; min-width:0; }
+  #readout-name{ font-family:var(--display); font-style:italic; font-size:17px; font-weight:500; }
+  #readout-hex{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-top:3px; }
+
+  /* palette tray */
+  .tray-section{ padding:44px 0 0; }
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; }
+  .section-head h2{ font-size:17px; }
+  .section-note{ font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+  #palette-tray{ display:flex; flex-wrap:wrap; gap:10px; min-height:64px; }
+  .tray-empty{ font-size:13px; color:var(--text-faint); padding:20px 4px; }
+  .swatch-card{
+    width:94px; background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  .swatch-color{ height:52px; width:100%; }
+  .swatch-actions{ display:flex; }
+  .swatch-actions button{
+    flex:1; background:none; border:none; border-radius:0; padding:7px 0; font-size:11.5px;
+    letter-spacing:0; white-space:nowrap; color:var(--text-dim);
+  }
+  .swatch-actions button:first-child{ border-right:1px solid var(--border-soft); }
+  .swatch-actions button:hover{ background:var(--panel-strong); color:var(--text); }
+  .swatch-actions button:disabled{ opacity:0.3; cursor:default; }
+  .swatch-actions button:disabled:hover{ background:none; color:var(--text-dim); }
+
+  .export-row{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .export-row button{ font-size:12px; }
+
+  /* community */
+  .community-section{ padding:44px 0 60px; }
+  #community-strip{ display:flex; gap:8px; overflow-x:auto; padding:4px 2px 10px; scrollbar-width:thin; }
+  .community-item{ flex-shrink:0; width:52px; text-align:center; }
+  .community-swatch{ width:52px; height:52px; border-radius:12px; border:1px solid var(--border); }
+  .community-time{ font-family:var(--mono); font-size:10px; color:var(--text-faint); margin-top:5px; }
+  .community-empty{ font-size:13px; color:var(--text-faint); padding:14px 4px; }
+  .community-signin-note{ font-size:12px; color:var(--text-faint); margin-top:10px; }
+
+  footer{ border-top:1px solid var(--border-soft); padding:26px 0 40px; }
+  footer p{ font-size:11.5px; color:var(--text-faint); margin:0; }
+
+  /* toast */
+  #toast{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(12px);
+    background:#f3f2ee; color:#0a0a0b; font-family:var(--mono); font-size:12.5px;
+    padding:10px 18px; border-radius:999px; opacity:0; pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease; z-index:100; white-space:nowrap;
+  }
+  #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:600px){
+    #stage{ height:320px; }
+    .hero h1{ max-width:14ch; }
+    .header-row{ padding:14px 18px; }
+    .wrap{ padding:0 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="brand"><span class="brand-dot" id="brand-dot" aria-hidden="true"></span>Chroma</div>
+    <div id="auth-area"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">An interactive color-mixing playground</div>
+    <h1>Color you can pull apart and put back together.</h1>
+    <p>Drag two blobs into each other and hold — they'll mix into something new. Switch between how light mixes and how paint mixes to see why they don't agree.</p>
+  </section>
+
+  <section class="stage-section">
+    <div class="mode-toggle" role="group" aria-label="Mixing mode">
+      <button class="mode-btn active" id="mode-light-btn" aria-pressed="true">Light</button>
+      <button class="mode-btn" id="mode-paint-btn" aria-pressed="false">Paint</button>
+    </div>
+
+    <h2 class="sr-only">Interactive color mixing canvas. Drag colored circles into each other and hold to blend them. Colors drift gently on their own.</h2>
+    <div id="stage" aria-label="Color mixing canvas"></div>
+    <p class="stage-hint">Click a blob to save its color · double-click to remove it · drag one into another and hold to mix</p>
+
+    <div class="spawn-row" id="preset-row">
+      <div class="color-input-wrap">
+        <input type="color" id="custom-color-input" value="#e62020" aria-label="Pick a custom color to add">
+      </div>
+      <div class="spacer"></div>
+      <button id="clear-btn">Clear canvas</button>
+    </div>
+
+    <div class="readout">
+      <div id="readout-swatch"></div>
+      <div class="readout-text">
+        <div id="readout-name">Nothing mixing yet</div>
+        <div id="readout-hex">Drag two blobs together</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tray-section">
+    <div class="section-head">
+      <h2>Your palette</h2>
+      <span class="section-note" id="tray-note">saved on this device</span>
+    </div>
+    <div id="palette-tray"><p class="tray-empty">Colors you save will collect here.</p></div>
+    <div class="export-row">
+      <button id="copy-css-btn">Copy as CSS variables</button>
+      <button id="download-png-btn">Download swatch card</button>
+      <button id="share-btn">Copy share link</button>
+    </div>
+  </section>
+
+  <section class="community-section">
+    <div class="section-head">
+      <h2>Mixed around the world</h2>
+      <span class="section-note">live</span>
+    </div>
+    <div id="community-strip"><p class="community-empty">Loading…</p></div>
+    <p class="community-signin-note" id="community-note"></p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Chroma — part of the J-Suite.</p>
+  </div>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ============================================================
+     CONFIG — replace with your own Firebase project settings.
+     Firebase console → Project settings → General → Your apps → SDK setup.
+     Enable Google as a sign-in provider under Authentication → Sign-in method.
+     Enable Firestore under Build → Firestore Database.
+     Security rules to paste in are provided separately.
+     ============================================================ */
+  const firebaseConfig = {
+  apiKey: "AIzaSyA6C1ZsP8V3weC0QVkLezf0JB_bAxrGtvs",
+  authDomain: "chroma-db0e5.firebaseapp.com",
+  projectId: "chroma-db0e5",
+  storageBucket: "chroma-db0e5.firebasestorage.app",
+  messagingSenderId: "459646838108",
+  appId: "1:459646838108:web:038801102934787a684d99",
+  measurementId: "G-LYZQFV9KBZ"
+};
+
+  var REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var MAX_BLOBS = 8;
+  var MERGE_HOLD_MS = 650;
+  var BASE_RADIUS = 50;
+  var MAX_RADIUS = 85;
+
+  /* ============================================================
+     COLOR MATH
+     ============================================================ */
+  function hexToRgb(hex){
+    hex = hex.replace('#','');
+    if(hex.length===3){ hex = hex.split('').map(function(c){return c+c;}).join(''); }
+    var n = parseInt(hex,16);
+    return [(n>>16)&255, (n>>8)&255, n&255];
+  }
+  function isValidHex(hex){ return /^#?[0-9a-fA-F]{6}$/.test(hex); }
+  function rgbToHex(rgb){
+    return '#' + rgb.map(function(c){
+      var v = Math.max(0, Math.min(255, Math.round(c)));
+      var h = v.toString(16);
+      return h.length===1 ? '0'+h : h;
+    }).join('');
+  }
+  function screenBlend(a,b){
+    return [0,1,2].map(function(i){ return 255 - ((255-a[i])*(255-b[i]))/255; });
+  }
+  function rgbToHsl(r,g,b){
+    r/=255; g/=255; b/=255;
+    var max=Math.max(r,g,b), min=Math.min(r,g,b), h=0, s=0, l=(max+min)/2;
+    if(max!==min){
+      var d = max-min;
+      s = l>0.5 ? d/(2-max-min) : d/(max+min);
+      if(max===r) h=(g-b)/d+(g<b?6:0);
+      else if(max===g) h=(b-r)/d+2;
+      else h=(r-g)/d+4;
+      h/=6;
+    }
+    return [h*360, s, l];
+  }
+  function hslToRgb(h,s,l){
+    h = ((h%360)+360)%360/360;
+    if(s===0){ var v=l*255; return [v,v,v]; }
+    var hue2rgb = function(p,q,t){
+      if(t<0) t+=1;
+      if(t>1) t-=1;
+      if(t<1/6) return p+(q-p)*6*t;
+      if(t<1/2) return q;
+      if(t<2/3) return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+    var q = l<0.5 ? l*(1+s) : l+s-l*s;
+    var p = 2*l-q;
+    return [hue2rgb(p,q,h+1/3)*255, hue2rgb(p,q,h)*255, hue2rgb(p,q,h-1/3)*255];
+  }
+  /* Approximate RYB (paint) hue wheel, remapped from standard RGB hue.
+     Yellow and green get pushed to where they sit as primary/secondary
+     on an artist's wheel instead of where they sit on a light wheel —
+     this is what makes red+yellow read as orange instead of a muddy red. */
+  var RYB_MAP = [[0,0],[60,120],[120,180],[180,210],[240,240],[300,300],[360,360]];
+  function piecewiseLerp(map,x){
+    x = ((x%360)+360)%360;
+    for(var i=0;i<map.length-1;i++){
+      var x0=map[i][0], y0=map[i][1], x1=map[i+1][0], y1=map[i+1][1];
+      if(x>=x0 && x<=x1){
+        var t = x1===x0 ? 0 : (x-x0)/(x1-x0);
+        return y0 + t*(y1-y0);
+      }
+    }
+    return x;
+  }
+  function toRybHue(h){ return piecewiseLerp(RYB_MAP,h); }
+  function fromRybHue(h){ return piecewiseLerp(RYB_MAP.map(function(p){return [p[1],p[0]];}), h); }
+  function circularMeanHue(hA,hB,wA,wB){
+    var a=hA*Math.PI/180, b=hB*Math.PI/180;
+    var x=Math.cos(a)*wA+Math.cos(b)*wB, y=Math.sin(a)*wA+Math.sin(b)*wB;
+    var h=Math.atan2(y,x)*180/Math.PI;
+    return h<0 ? h+360 : h;
+  }
+  function rybBlendPreview(rgbA,rgbB,wA,wB){
+    wA = wA===undefined?1:wA; wB = wB===undefined?1:wB;
+    var hslA = rgbToHsl(rgbA[0],rgbA[1],rgbA[2]);
+    var hslB = rgbToHsl(rgbB[0],rgbB[1],rgbB[2]);
+    var mixedRybHue = circularMeanHue(toRybHue(hslA[0]), toRybHue(hslB[0]), wA, wB);
+    var mixedHue = fromRybHue(mixedRybHue);
+    var totalW = wA+wB;
+    var mixedS = (hslA[1]*wA + hslB[1]*wB)/totalW;
+    var mixedL = (hslA[2]*wA + hslB[2]*wB)/totalW;
+    return hslToRgb(mixedHue, mixedS, mixedL);
+  }
+  function rybBlendCommit(rgbA,rgbB,wA,wB){
+    var rgb = rybBlendPreview(rgbA,rgbB,wA,wB);
+    var hsl = rgbToHsl(rgb[0],rgb[1],rgb[2]);
+    return hslToRgb(hsl[0], hsl[1]*0.93, hsl[2]*0.95);
+  }
+  function blendPreview(a,b,wA,wB){ return mode==='light' ? screenBlend(a,b) : rybBlendPreview(a,b,wA,wB); }
+  function blendCommit(a,b,wA,wB){ return mode==='light' ? screenBlend(a,b) : rybBlendCommit(a,b,wA,wB); }
+
+  /* ============================================================
+     NAMED COLORS — nearest match for the readout
+     ============================================================ */
+  var NAMED_COLORS = [
+    ["Ember","#d43b2e"],["Cardinal","#c41e3a"],["Vermilion","#e34234"],["Garnet","#7d1f30"],
+    ["Rust","#a5462a"],["Brick Dust","#b1452f"],["Crimson Tide","#9e1b32"],["Poppy","#e0432b"],
+    ["Marigold","#f0932b"],["Tangerine","#f4820a"],["Amber Glow","#e8912d"],["Persimmon","#ec6a3d"],
+    ["Copper","#b5651d"],["Apricot","#f7b676"],["Terracotta","#c1653d"],["Paprika","#b6482a"],
+    ["Honeycomb","#f2b705"],["Mustard","#d4a017"],["Daffodil","#f6e05e"],["Sunflower","#f9c80e"],
+    ["Champagne","#f0dfa1"],["Goldenrod","#d9a441"],["Butterscotch","#e0a940"],
+    ["Chartreuse","#b4d444"],["Absinthe","#9caf3c"],["Pear","#c8d64b"],["Olive","#7a7d3a"],
+    ["Fern","#4c7a3d"],["Moss","#5f7a4b"],["Emerald","#2e8b57"],["Seafoam","#6fbf9c"],
+    ["Pine","#2f4f3a"],["Basil","#4a6741"],["Jade","#3fa46a"],["Wintergreen","#3e8e6e"],
+    ["Teal","#1f8a8a"],["Lagoon","#22a6a6"],["Sea Glass","#7fc7c1"],["Peacock","#1a6b6b"],
+    ["Aqua Mist","#8fd3d0"],
+    ["Cobalt","#1f4fa3"],["Sky","#4a90d9"],["Slate Blue","#4a5b8c"],["Navy","#002f6c"],
+    ["Denim","#3b5b8c"],["Periwinkle","#8fa3e0"],["Cerulean","#2a6db5"],["Glacier","#a9c6d9"],
+    ["Midnight","#141b3a"],
+    ["Twilight Violet","#6b4fa0"],["Amethyst","#7e57a8"],["Iris","#6a4c93"],["Lavender","#b9a4d4"],
+    ["Plum","#6a2e5a"],["Wisteria","#9a7bb0"],["Grape","#5c3a6e"],
+    ["Magenta","#b8306a"],["Rose Quartz","#d98ba0"],["Fuchsia","#c2358a"],["Blush","#e8a3b5"],
+    ["Orchid","#a95c9e"],["Raspberry","#9c2b52"],
+    ["Umber","#6b4a37"],["Sienna","#8a5a3c"],["Espresso","#3b2a24"],["Sand","#cbb896"],
+    ["Clay","#a3714f"],["Driftwood","#8c8270"],["Cocoa","#4d3629"],["Camel","#c19a6b"],
+    ["Charcoal","#3a3a38"],["Fog","#9a9a97"],["Slate","#5c6066"],["Bone","#e8e3d8"],
+    ["Pewter","#8e8e8c"],["Ash","#767672"],["Cream","#f3ecd9"],["Snow","#f7f6f2"],
+    ["Ink","#1c1b1a"],["Graphite","#464542"],["Silver Birch","#c9c8c2"],
+    ["Coral","#f2634a"],["Salmon","#e8836b"],["Blood Orange","#d94822"],
+    ["Mint","#7fd9b6"],["Celadon","#9cbb9c"],["Eucalyptus","#87a893"],
+    ["Indigo","#3d3a8a"],["Ultramarine","#1c39bb"],["Steel","#5b7290"]
+  ];
+  function nearestColorName(rgb){
+    var best=null, bestDist=Infinity;
+    for(var i=0;i<NAMED_COLORS.length;i++){
+      var c = hexToRgb(NAMED_COLORS[i][1]);
+      var d = Math.sqrt(Math.pow(rgb[0]-c[0],2)+Math.pow(rgb[1]-c[1],2)+Math.pow(rgb[2]-c[2],2));
+      if(d<bestDist){ bestDist=d; best=NAMED_COLORS[i][0]; }
+    }
+    return bestDist<58 ? best : "An uncharted hue";
+  }
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  var stage = document.getElementById('stage');
+  var blobs = [];
+  var nextBlobId = 1;
+  var mode = 'light';
+  var overlapTimers = {};
+  var dragState = null;
+  var palette = [];
+  var currentUser = null;
+  var auth = null, db = null, provider = null, firebaseReady = false;
+
+  var PRESETS = [
+    ["Red","#e62020"], ["Orange","#f07814"], ["Yellow","#f8cc14"], ["Green","#3c9646"],
+    ["Blue","#145aba"], ["Violet","#78378c"], ["White","#ffffff"], ["Ink","#191614"]
+  ];
+
+  /* ============================================================
+     TOAST
+     ============================================================ */
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
+  }
+
+  /* ============================================================
+     LIVE ACCENT
+     ============================================================ */
+  function setLiveAccent(hex){
+    var rgb = hexToRgb(hex);
+    document.documentElement.style.setProperty('--live-accent', hex);
+    document.documentElement.style.setProperty('--live-glow', 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0.35)');
+  }
+
+  /* ============================================================
+     BLOB LIFECYCLE
+     ============================================================ */
+  function randomStagePos(r){
+    var rect = stage.getBoundingClientRect();
+    var w = rect.width || 680, h = rect.height || 400;
+    return {
+      x: r + Math.random()*(w - r*2),
+      y: r + Math.random()*(h - r*2)
+    };
+  }
+
+  function spawnBlob(hex, x, y, radius){
+    if(blobs.length >= MAX_BLOBS){
+      showToast('Canvas is full — merge or remove a blob first');
+      return null;
+    }
+    var r = radius || BASE_RADIUS;
+    var pos = (x===undefined) ? randomStagePos(r) : {x:x,y:y};
+    var el = document.createElement('div');
+    el.className = 'blob';
+    el.style.width = (r*2)+'px';
+    el.style.height = (r*2)+'px';
+    el.style.background = hex;
+    el.style.left = (pos.x - r)+'px';
+    el.style.top = (pos.y - r)+'px';
+    el.style.mixBlendMode = mode === 'light' ? 'screen' : 'multiply';
+    stage.appendChild(el);
+    var blob = {
+      id: nextBlobId++,
+      el: el,
+      x: pos.x, y: pos.y, r: r,
+      vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+      color: hexToRgb(hex),
+      lastMoveX: pos.x, lastMoveY: pos.y, lastMoveT: performance.now()
+    };
+    blobs.push(blob);
+    attachBlobEvents(blob);
+    return blob;
+  }
+
+  function removeBlob(id, silent){
+    var idx = blobs.findIndex(function(b){ return b.id===id; });
+    if(idx===-1) return;
+    var b = blobs[idx];
+    blobs.splice(idx,1);
+    if(dragState && dragState.id===id) dragState = null;
+    Object.keys(overlapTimers).forEach(function(k){
+      if(k.indexOf('-'+id) !== -1 || k.indexOf(id+'-') === 0) delete overlapTimers[k];
+    });
+    if(!silent && !REDUCE_MOTION){
+      b.el.classList.add('dissolving');
+      setTimeout(function(){ if(b.el.parentNode) b.el.parentNode.removeChild(b.el); }, 200);
+    } else {
+      if(b.el.parentNode) b.el.parentNode.removeChild(b.el);
+    }
+  }
+
+  function clearCanvas(){
+    blobs.slice().forEach(function(b){ removeBlob(b.id); });
+    overlapTimers = {};
+    updateReadout(null);
+    showToast('Canvas cleared');
+  }
+
+  function mergeBlobs(idA, idB){
+    var a = blobs.find(function(b){ return b.id===idA; });
+    var b = blobs.find(function(b){ return b.id===idB; });
+    if(!a || !b) return;
+    var areaA = a.r*a.r, areaB = b.r*b.r;
+    var newR = Math.min(MAX_RADIUS, Math.sqrt(areaA+areaB));
+    var newColor = blendCommit(a.color, b.color, areaA, areaB);
+    var newX = (a.x*areaA + b.x*areaB)/(areaA+areaB);
+    var newY = (a.y*areaA + b.y*areaB)/(areaA+areaB);
+    var hex = rgbToHex(newColor);
+    removeBlob(idA, true);
+    removeBlob(idB, true);
+    var merged = spawnBlob(hex, newX, newY, newR);
+    if(merged && !REDUCE_MOTION){ merged.el.classList.add('popping'); }
+    updateReadout(newColor);
+    setLiveAccent(hex);
+  }
+
+  /* ============================================================
+     DRAG / CLICK
+     ============================================================ */
+  function attachBlobEvents(blob){
+    var el = blob.el;
+    var pointerId = null, downX=0, downY=0, downT=0, offX=0, offY=0;
+
+    el.addEventListener('pointerdown', function(e){
+      pointerId = e.pointerId;
+      el.setPointerCapture(pointerId);
+      dragState = { id: blob.id };
+      downX = e.clientX; downY = e.clientY; downT = performance.now();
+      var rect = el.getBoundingClientRect();
+      offX = e.clientX - rect.left;
+      offY = e.clientY - rect.top;
+      blob.vx = 0; blob.vy = 0;
+      blob.lastMoveX = blob.x; blob.lastMoveY = blob.y; blob.lastMoveT = performance.now();
+    });
+
+    el.addEventListener('pointermove', function(e){
+      if(!dragState || dragState.id !== blob.id) return;
+      var stageRect = stage.getBoundingClientRect();
+      var nx = e.clientX - stageRect.left - offX + blob.r;
+      var ny = e.clientY - stageRect.top - offY + blob.r;
+      nx = Math.max(blob.r*0.4, Math.min(stageRect.width - blob.r*0.4, nx));
+      ny = Math.max(blob.r*0.4, Math.min(stageRect.height - blob.r*0.4, ny));
+      var now = performance.now();
+      var dt = Math.max(1, now - blob.lastMoveT);
+      blob.vx = (nx - blob.x) / dt * 14;
+      blob.vy = (ny - blob.y) / dt * 14;
+      blob.x = nx; blob.y = ny;
+      blob.lastMoveX = nx; blob.lastMoveY = ny; blob.lastMoveT = now;
+      renderBlobPosition(blob);
+    });
+
+    function endDrag(e){
+      if(!dragState || dragState.id !== blob.id) return;
+      var dx = e.clientX - downX, dy = e.clientY - downY;
+      var dist = Math.sqrt(dx*dx+dy*dy);
+      var dt = performance.now() - downT;
+      dragState = null;
+      if(dist < 6 && dt < 350){
+        saveToPalette(rgbToHex(blob.color));
+        if(!REDUCE_MOTION){
+          blob.el.classList.remove('saved-flash');
+          void blob.el.offsetWidth;
+          blob.el.classList.add('saved-flash');
+        }
+        blob.vx = 0; blob.vy = 0;
+      } else {
+        var speed = Math.sqrt(blob.vx*blob.vx + blob.vy*blob.vy);
+        var maxSpeed = 90;
+        if(speed > maxSpeed){ blob.vx = blob.vx/speed*maxSpeed; blob.vy = blob.vy/speed*maxSpeed; }
+      }
+    }
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+
+    el.addEventListener('dblclick', function(){
+      removeBlob(blob.id);
+    });
+  }
+
+  function renderBlobPosition(blob){
+    blob.el.style.left = (blob.x - blob.r) + 'px';
+    blob.el.style.top = (blob.y - blob.r) + 'px';
+  }
+
+  function saveToPalette(hex){
+    if(palette.indexOf(hex) !== -1){ showToast('Already in your palette'); return; }
+    palette.unshift(hex);
+    if(palette.length > 24) palette.pop();
+    renderPaletteTray();
+    persistPaletteLocal();
+    if(currentUser) savePaletteToCloud();
+    showToast('Saved '+hex.toUpperCase());
+  }
+
+  /* ============================================================
+     PHYSICS LOOP
+     ============================================================ */
+  function tick(){
+    var rect = stage.getBoundingClientRect();
+    var w = rect.width, h = rect.height;
+    blobs.forEach(function(blob){
+      if(dragState && dragState.id===blob.id) return;
+      if(!REDUCE_MOTION){
+        blob.vx += (Math.random()-0.5)*0.35;
+        blob.vy += (Math.random()-0.5)*0.35;
+        blob.vx *= 0.965; blob.vy *= 0.965;
+        blob.x += blob.vx*0.14;
+        blob.y += blob.vy*0.14;
+      }
+      var minX = blob.r*0.4, maxX = w - blob.r*0.4;
+      var minY = blob.r*0.4, maxY = h - blob.r*0.4;
+      if(blob.x < minX){ blob.x = minX; blob.vx = Math.abs(blob.vx)*0.5; }
+      if(blob.x > maxX){ blob.x = maxX; blob.vx = -Math.abs(blob.vx)*0.5; }
+      if(blob.y < minY){ blob.y = minY; blob.vy = Math.abs(blob.vy)*0.5; }
+      if(blob.y > maxY){ blob.y = maxY; blob.vy = -Math.abs(blob.vy)*0.5; }
+      renderBlobPosition(blob);
+    });
+    checkOverlaps();
+    requestAnimationFrame(tick);
+  }
+
+  function checkOverlaps(){
+    var bestPair = null, bestDist = Infinity;
+    var activeKeys = {};
+    for(var i=0;i<blobs.length;i++){
+      for(var j=i+1;j<blobs.length;j++){
+        var a = blobs[i], b = blobs[j];
+        var dx = a.x-b.x, dy = a.y-b.y;
+        var dist = Math.sqrt(dx*dx+dy*dy);
+        var overlapAmt = (a.r+b.r) - dist;
+        if(overlapAmt > 8){
+          var key = a.id+'-'+b.id;
+          activeKeys[key] = true;
+          if(!overlapTimers[key]) overlapTimers[key] = performance.now();
+          var held = performance.now() - overlapTimers[key];
+          var progress = Math.min(1, held / MERGE_HOLD_MS);
+          a.el.style.outlineWidth = (progress*5)+'px';
+          a.el.style.outlineOffset = (progress*3)+'px';
+          b.el.style.outlineWidth = (progress*5)+'px';
+          b.el.style.outlineOffset = (progress*3)+'px';
+          if(dist < bestDist){ bestDist = dist; bestPair = [a,b]; }
+          if(held >= MERGE_HOLD_MS){
+            mergeBlobs(a.id, b.id);
+            return;
+          }
+        }
+      }
+    }
+    Object.keys(overlapTimers).forEach(function(key){
+      if(!activeKeys[key]) delete overlapTimers[key];
+    });
+    blobs.forEach(function(b){
+      var stillActive = Object.keys(activeKeys).some(function(k){ return k.indexOf(b.id)!==-1; });
+      if(!stillActive){ b.el.style.outlineWidth='0px'; b.el.style.outlineOffset='0px'; }
+    });
+    if(bestPair){
+      var areaA = bestPair[0].r*bestPair[0].r, areaB = bestPair[1].r*bestPair[1].r;
+      var preview = blendPreview(bestPair[0].color, bestPair[1].color, areaA, areaB);
+      updateReadout(preview);
+      setLiveAccent(rgbToHex(preview));
+    } else if(!dragState){
+      updateReadout(null);
+    }
+  }
+
+  /* ============================================================
+     READOUT
+     ============================================================ */
+  var readoutSwatch = document.getElementById('readout-swatch');
+  var readoutName = document.getElementById('readout-name');
+  var readoutHex = document.getElementById('readout-hex');
+  function updateReadout(rgb){
+    if(!rgb){
+      readoutSwatch.style.background = 'transparent';
+      readoutName.textContent = 'Nothing mixing yet';
+      readoutHex.textContent = 'Drag two blobs together';
+      return;
+    }
+    var hex = rgbToHex(rgb);
+    readoutSwatch.style.background = hex;
+    readoutName.textContent = nearestColorName(rgb);
+    readoutHex.textContent = hex.toUpperCase()+'  ·  rgb('+Math.round(rgb[0])+', '+Math.round(rgb[1])+', '+Math.round(rgb[2])+')';
+  }
+
+  /* ============================================================
+     MODE TOGGLE
+     ============================================================ */
+  var lightBtn = document.getElementById('mode-light-btn');
+  var paintBtn = document.getElementById('mode-paint-btn');
+  function setMode(m){
+    mode = m;
+    lightBtn.classList.toggle('active', m==='light');
+    lightBtn.setAttribute('aria-pressed', m==='light');
+    paintBtn.classList.toggle('active', m==='paint');
+    paintBtn.setAttribute('aria-pressed', m==='paint');
+    stage.setAttribute('data-mode', m);
+    var blendMode = m==='light' ? 'screen' : 'multiply';
+    blobs.forEach(function(b){ b.el.style.mixBlendMode = blendMode; });
+  }
+  lightBtn.addEventListener('click', function(){ setMode('light'); });
+  paintBtn.addEventListener('click', function(){ setMode('paint'); });
+
+  /* ============================================================
+     SPAWN CONTROLS
+     ============================================================ */
+  var presetRow = document.getElementById('preset-row');
+  PRESETS.forEach(function(p){
+    var btn = document.createElement('button');
+    btn.className = 'preset-swatch';
+    btn.style.background = p[1];
+    btn.setAttribute('aria-label', 'Add '+p[0]+' blob');
+    btn.title = p[0];
+    btn.addEventListener('click', function(){ spawnBlob(p[1]); });
+    presetRow.insertBefore(btn, presetRow.firstChild);
+  });
+  document.getElementById('custom-color-input').addEventListener('change', function(e){
+    spawnBlob(e.target.value);
+  });
+  document.getElementById('clear-btn').addEventListener('click', clearCanvas);
+
+  /* ============================================================
+     PALETTE TRAY
+     ============================================================ */
+  var trayEl = document.getElementById('palette-tray');
+  function renderPaletteTray(){
+    trayEl.innerHTML = '';
+    if(palette.length===0){
+      var p = document.createElement('p');
+      p.className = 'tray-empty';
+      p.textContent = 'Colors you save will collect here.';
+      trayEl.appendChild(p);
+      return;
+    }
+    palette.forEach(function(hex){
+      if(!isValidHex(hex)) return;
+      var card = document.createElement('div');
+      card.className = 'swatch-card';
+      var color = document.createElement('div');
+      color.className = 'swatch-color';
+      color.style.background = hex;
+      var actions = document.createElement('div');
+      actions.className = 'swatch-actions';
+      var copyBtn = document.createElement('button');
+      copyBtn.textContent = 'Copy';
+      copyBtn.setAttribute('aria-label', 'Copy '+hex);
+      copyBtn.addEventListener('click', function(){ copyText(hex.toUpperCase()); showToast('Copied '+hex.toUpperCase()); });
+      var shareBtn = document.createElement('button');
+      shareBtn.textContent = 'Share';
+      shareBtn.setAttribute('aria-label', 'Share '+hex+' to community wall');
+      if(!currentUser){
+        shareBtn.disabled = true;
+        shareBtn.title = 'Sign in to share to the community wall';
+      } else {
+        shareBtn.addEventListener('click', function(){ publishToCommunity(hex); });
+      }
+      actions.appendChild(copyBtn);
+      actions.appendChild(shareBtn);
+      var rm = document.createElement('button');
+      rm.textContent = '×';
+      rm.style.fontSize = '13px';
+      rm.setAttribute('aria-label', 'Remove '+hex+' from palette');
+      rm.addEventListener('click', function(){
+        palette = palette.filter(function(h){ return h!==hex; });
+        renderPaletteTray();
+        persistPaletteLocal();
+        if(currentUser) savePaletteToCloud();
+      });
+      card.appendChild(color);
+      card.appendChild(actions);
+      card.appendChild(rm);
+      trayEl.appendChild(card);
+    });
+  }
+
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).catch(function(){});
+    }
+  }
+
+  function persistPaletteLocal(){
+    try{ localStorage.setItem('chroma_palette', JSON.stringify(palette)); }catch(e){}
+  }
+  function loadPaletteLocal(){
+    try{
+      var raw = localStorage.getItem('chroma_palette');
+      if(raw){ palette = JSON.parse(raw).filter(isValidHex); }
+    }catch(e){}
+  }
+
+  /* ============================================================
+     EXPORT
+     ============================================================ */
+  document.getElementById('copy-css-btn').addEventListener('click', function(){
+    if(palette.length===0){ showToast('Save a color first'); return; }
+    var lines = palette.map(function(hex,i){ return '  --mix-'+(i+1)+': '+hex+';'; });
+    copyText(':root {\n'+lines.join('\n')+'\n}');
+    showToast('Copied CSS variables');
+  });
+
+  function drawPaletteCanvas(){
+    var cols = Math.min(6, palette.length);
+    var rows = Math.ceil(palette.length/cols);
+    var cell = 120, pad = 18, labelH = 26;
+    var canvas = document.createElement('canvas');
+    canvas.width = cols*cell + pad*(cols+1);
+    canvas.height = rows*(cell+labelH) + pad*(rows+1);
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0a0a0b';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    palette.forEach(function(hex,i){
+      var col = i%cols, row = Math.floor(i/cols);
+      var x = pad + col*(cell+pad), y = pad + row*(cell+labelH+pad);
+      ctx.fillStyle = hex;
+      ctx.fillRect(x,y,cell,cell);
+      ctx.fillStyle = '#f3f2ee';
+      ctx.font = '13px "Martian Mono", monospace';
+      ctx.fillText(hex.toUpperCase(), x, y+cell+18);
+    });
+    return canvas;
+  }
+  document.getElementById('download-png-btn').addEventListener('click', function(){
+    if(palette.length===0){ showToast('Save a color first'); return; }
+    function download(){
+      var canvas = drawPaletteCanvas();
+      var link = document.createElement('a');
+      link.download = 'chroma-palette.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+    if(document.fonts && document.fonts.ready){ document.fonts.ready.then(download); }
+    else { download(); }
+  });
+
+  document.getElementById('share-btn').addEventListener('click', function(){
+    if(palette.length===0){ showToast('Save a color first'); return; }
+    var url = new URL(window.location.href.split('?')[0]);
+    url.searchParams.set('p', palette.map(function(h){ return h.replace('#',''); }).join(','));
+    copyText(url.toString());
+    showToast('Share link copied');
+  });
+
+  function loadFromShareUrl(){
+    var params = new URLSearchParams(window.location.search);
+    var p = params.get('p');
+    if(!p) return false;
+    var hexes = p.split(',').map(function(h){ return '#'+h; }).filter(isValidHex);
+    if(hexes.length===0) return false;
+    palette = hexes.concat(palette).slice(0,24);
+    document.getElementById('tray-note').textContent = 'opened from a shared link';
+    return true;
+  }
+
+  /* ============================================================
+     FIREBASE — AUTH + FIRESTORE
+     ============================================================ */
+  var authArea = document.getElementById('auth-area');
+  function renderAuthArea(){
+    authArea.innerHTML = '';
+    if(currentUser){
+      var chip = document.createElement('div');
+      chip.className = 'user-chip';
+      var img;
+      if(currentUser.photoURL){
+        img = document.createElement('img');
+        img.className = 'user-avatar';
+        img.src = currentUser.photoURL;
+        img.referrerPolicy = 'no-referrer';
+        img.alt = '';
+      } else {
+        img = document.createElement('div');
+        img.className = 'user-avatar';
+      }
+      var name = document.createElement('span');
+      name.textContent = (currentUser.displayName || 'Signed in').split(' ')[0];
+      var out = document.createElement('button');
+      out.className = 'signout-x';
+      out.setAttribute('aria-label','Sign out');
+      out.textContent = '×';
+      out.addEventListener('click', function(){ if(auth) auth.signOut(); });
+      chip.appendChild(img); chip.appendChild(name); chip.appendChild(out);
+      authArea.appendChild(chip);
+    } else {
+      var btn = document.createElement('button');
+      btn.className = 'g-btn';
+      btn.innerHTML = googleMarkSvg() + '<span>Sign in</span>';
+      btn.addEventListener('click', signIn);
+      if(!firebaseReady){ btn.disabled = true; btn.title = 'Connect a Firebase project to enable sign-in'; }
+      authArea.appendChild(btn);
+    }
+  }
+  function googleMarkSvg(){
+    return '<svg class="g-mark" viewBox="0 0 18 18" aria-hidden="true">'+
+      '<path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62z"/>'+
+      '<path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.85.86-3.05.86-2.34 0-4.33-1.58-5.04-3.7H.96v2.33A9 9 0 0 0 9 18z"/>'+
+      '<path fill="#FBBC05" d="M3.96 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.28-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05z"/>'+
+      '<path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95L3.96 7.28C4.67 5.16 6.66 3.58 9 3.58z"/>'+
+    '</svg>';
+  }
+
+  function signIn(){
+    if(!firebaseReady){ showToast('Sign-in is not configured yet'); return; }
+    auth.signInWithPopup(provider).catch(function(err){
+      if(err && err.code !== 'auth/popup-closed-by-user'){ showToast('Sign-in failed — try again'); }
+    });
+  }
+
+  function savePaletteToCloud(){
+    if(!firebaseReady || !currentUser) return;
+    db.collection('users').doc(currentUser.uid).set({
+      palette: palette,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(){ showToast('Could not sync — saved locally instead'); });
+  }
+
+  function loadPaletteFromCloud(){
+    if(!firebaseReady || !currentUser) return;
+    db.collection('users').doc(currentUser.uid).get().then(function(doc){
+      if(doc.exists){
+        var data = doc.data();
+        if(Array.isArray(data.palette)){
+          var cloud = data.palette.filter(isValidHex);
+          var merged = cloud.concat(palette.filter(function(h){ return cloud.indexOf(h)===-1; }));
+          palette = merged.slice(0,24);
+          renderPaletteTray();
+          persistPaletteLocal();
+        }
+      } else {
+        savePaletteToCloud();
+      }
+    }).catch(function(){});
+  }
+
+  function publishToCommunity(hex){
+    if(!firebaseReady || !currentUser) return;
+    db.collection('communityMixes').add({
+      hex: hex,
+      mode: mode,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function(){
+      showToast('Shared to the community wall');
+    }).catch(function(){ showToast('Could not share right now'); });
+  }
+
+  var communityStrip = document.getElementById('community-strip');
+  function relativeTime(date){
+    var s = Math.floor((Date.now() - date.getTime())/1000);
+    if(s<60) return 'just now';
+    if(s<3600) return Math.floor(s/60)+'m ago';
+    if(s<86400) return Math.floor(s/3600)+'h ago';
+    return Math.floor(s/86400)+'d ago';
+  }
+  function renderCommunity(docs){
+    communityStrip.innerHTML = '';
+    if(docs.length===0){
+      var p = document.createElement('p');
+      p.className = 'community-empty';
+      p.textContent = 'No mixes shared yet — be the first.';
+      communityStrip.appendChild(p);
+      return;
+    }
+    docs.forEach(function(d){
+      if(!isValidHex(d.hex)) return;
+      var item = document.createElement('div');
+      item.className = 'community-item';
+      var sw = document.createElement('div');
+      sw.className = 'community-swatch';
+      sw.style.background = d.hex;
+      var t = document.createElement('div');
+      t.className = 'community-time';
+      t.textContent = d.createdAt ? relativeTime(d.createdAt) : '';
+      item.appendChild(sw);
+      item.appendChild(t);
+      communityStrip.appendChild(item);
+    });
+  }
+  function listenCommunityWall(){
+    if(!firebaseReady) return;
+    db.collection('communityMixes').orderBy('createdAt','desc').limit(24)
+      .onSnapshot(function(snap){
+        var docs = snap.docs.map(function(d){
+          var data = d.data();
+          return { hex: data.hex, createdAt: data.createdAt ? data.createdAt.toDate() : null };
+        });
+        renderCommunity(docs);
+      }, function(){
+        communityStrip.innerHTML = '<p class="community-empty">Community wall unavailable right now.</p>';
+      });
+  }
+
+  function initFirebase(){
+    var configured = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('YOUR_') !== 0;
+    if(!configured || typeof firebase === 'undefined'){
+      document.getElementById('community-note').textContent = 'Sign in to save across devices and share to the wall.';
+      communityStrip.innerHTML = '<p class="community-empty">Connect a Firebase project to activate the community wall.</p>';
+      renderAuthArea();
+      return;
+    }
+    try{
+      firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      db = firebase.firestore();
+      provider = new firebase.auth.GoogleAuthProvider();
+      firebaseReady = true;
+      auth.onAuthStateChanged(function(user){
+        currentUser = user;
+        renderAuthArea();
+        renderPaletteTray();
+        if(user){ loadPaletteFromCloud(); document.getElementById('community-note').textContent = ''; }
+        else { document.getElementById('community-note').textContent = 'Sign in to save across devices and share to the wall.'; }
+      });
+      listenCommunityWall();
+    }catch(e){
+      document.getElementById('community-note').textContent = 'Sign in to save across devices and share to the wall.';
+      renderAuthArea();
+    }
+  }
+
+  /* ============================================================
+     INIT
+     ============================================================ */
+  function init(){
+    loadPaletteLocal();
+    var sharedLoaded = loadFromShareUrl();
+    renderPaletteTray();
+    renderAuthArea();
+    setMode('light');
+
+    var starters = [["#e62020",0.28,0.62],["#f8cc14",0.62,0.32],["#145aba",0.5,0.68]];
+    setTimeout(function(){
+      var rect = stage.getBoundingClientRect();
+      starters.forEach(function(s){
+        spawnBlob(s[0], rect.width*s[1], rect.height*s[2]);
+      });
+    }, 50);
+
+    initFirebase();
+    requestAnimationFrame(tick);
+    if(sharedLoaded){ showToast('Opened a shared palette'); }
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
