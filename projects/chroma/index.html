@@ -7,7 +7,7 @@
 <meta name="description" content="Drag color together and watch it mix in real time. An interactive color-mixing playground.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Hanken+Grotesk:wght@400;500;600&family=Martian+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0a0a0b;
@@ -18,8 +18,9 @@
     --text:#f3f2ee;
     --text-dim:#98978f;
     --text-faint:#5c5b56;
-    --mono:'IBM Plex Mono', ui-monospace, monospace;
-    --display:'Space Grotesk', sans-serif;
+    --mono:'Martian Mono', ui-monospace, monospace;
+    --display:'Fraunces', serif;
+    --body:'Hanken Grotesk', sans-serif;
     --live-accent:#a7a8aa;
     --live-glow:rgba(167,168,170,0.35);
     --radius:16px;
@@ -29,13 +30,13 @@
   html{ scroll-behavior:smooth; }
   body{
     margin:0; background:var(--bg); color:var(--text);
-    font-family:var(--mono); line-height:1.6;
+    font-family:var(--body); line-height:1.6;
     -webkit-font-smoothing:antialiased;
   }
   h1,h2,h3{ font-family:var(--display); font-weight:600; margin:0; letter-spacing:-0.01em; }
   a{ color:var(--text); }
   button{
-    font-family:var(--mono); font-size:13px; color:var(--text);
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.01em; color:var(--text);
     background:var(--panel); border:1px solid var(--border);
     border-radius:var(--radius-sm); padding:9px 16px; cursor:pointer;
     transition:background .15s ease, border-color .15s ease, transform .1s ease;
@@ -67,7 +68,7 @@
 
   /* hero */
   .hero{ padding:52px 0 8px; }
-  .eyebrow{ font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
+  .eyebrow{ font-family:var(--mono); font-size:11.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:14px; }
   .hero h1{ font-size:clamp(30px,5vw,42px); line-height:1.12; max-width:11ch; }
   .hero p{ color:var(--text-dim); font-size:15px; max-width:46ch; margin-top:14px; }
 
@@ -84,10 +85,25 @@
       radial-gradient(circle at 30% 20%, rgba(255,255,255,0.035), transparent 60%),
       var(--panel);
     border:1px solid var(--border); border-radius:var(--radius);
+    transition:background .5s ease, border-color .5s ease;
   }
   #stage::after{
     content:''; position:absolute; inset:0; pointer-events:none; border-radius:var(--radius);
     box-shadow:inset 0 0 60px rgba(0,0,0,0.35);
+    transition:box-shadow .5s ease;
+  }
+  /* Paint mode mixes with a multiply blend, which needs a light base to
+     read correctly — against black it just goes straight to near-black.
+     Screen blend (light mode) needs the opposite, so the two modes get
+     their own canvas rather than sharing one background. */
+  #stage[data-mode="paint"]{
+    background:
+      radial-gradient(circle at 30% 20%, rgba(0,0,0,0.025), transparent 60%),
+      #f1ece0;
+    border-color:rgba(10,10,11,0.14);
+  }
+  #stage[data-mode="paint"]::after{
+    box-shadow:inset 0 0 50px rgba(80,65,45,0.12);
   }
   .blob{
     position:absolute; border-radius:50%; cursor:grab; touch-action:none;
@@ -104,7 +120,7 @@
     .blob.popping, .blob.dissolving, .blob.saved-flash{ animation:none !important; }
   }
 
-  .stage-hint{ font-size:11.5px; color:var(--text-faint); margin-top:10px; text-align:center; }
+  .stage-hint{ font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-top:10px; text-align:center; }
 
   /* spawn row */
   .spawn-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:18px; }
@@ -127,14 +143,14 @@
   }
   #readout-swatch{ width:44px; height:44px; border-radius:12px; border:1px solid var(--border); flex-shrink:0; transition:background .12s linear; }
   .readout-text{ flex:1; min-width:0; }
-  #readout-name{ font-family:var(--display); font-size:15px; font-weight:600; }
-  #readout-hex{ font-size:12px; color:var(--text-dim); margin-top:2px; }
+  #readout-name{ font-family:var(--display); font-style:italic; font-size:17px; font-weight:500; }
+  #readout-hex{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-top:3px; }
 
   /* palette tray */
   .tray-section{ padding:44px 0 0; }
   .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; }
   .section-head h2{ font-size:17px; }
-  .section-note{ font-size:12px; color:var(--text-faint); }
+  .section-note{ font-family:var(--mono); font-size:11px; color:var(--text-faint); }
   #palette-tray{ display:flex; flex-wrap:wrap; gap:10px; min-height:64px; }
   .tray-empty{ font-size:13px; color:var(--text-faint); padding:20px 4px; }
   .swatch-card{
@@ -159,7 +175,7 @@
   #community-strip{ display:flex; gap:8px; overflow-x:auto; padding:4px 2px 10px; scrollbar-width:thin; }
   .community-item{ flex-shrink:0; width:52px; text-align:center; }
   .community-swatch{ width:52px; height:52px; border-radius:12px; border:1px solid var(--border); }
-  .community-time{ font-size:10px; color:var(--text-faint); margin-top:5px; }
+  .community-time{ font-family:var(--mono); font-size:10px; color:var(--text-faint); margin-top:5px; }
   .community-empty{ font-size:13px; color:var(--text-faint); padding:14px 4px; }
   .community-signin-note{ font-size:12px; color:var(--text-faint); margin-top:10px; }
 
@@ -720,6 +736,7 @@
     lightBtn.setAttribute('aria-pressed', m==='light');
     paintBtn.classList.toggle('active', m==='paint');
     paintBtn.setAttribute('aria-pressed', m==='paint');
+    stage.setAttribute('data-mode', m);
     var blendMode = m==='light' ? 'screen' : 'multiply';
     blobs.forEach(function(b){ b.el.style.mixBlendMode = blendMode; });
   }
@@ -824,8 +841,7 @@
     showToast('Copied CSS variables');
   });
 
-  document.getElementById('download-png-btn').addEventListener('click', function(){
-    if(palette.length===0){ showToast('Save a color first'); return; }
+  function drawPaletteCanvas(){
     var cols = Math.min(6, palette.length);
     var rows = Math.ceil(palette.length/cols);
     var cell = 120, pad = 18, labelH = 26;
@@ -841,13 +857,22 @@
       ctx.fillStyle = hex;
       ctx.fillRect(x,y,cell,cell);
       ctx.fillStyle = '#f3f2ee';
-      ctx.font = '13px monospace';
+      ctx.font = '13px "Martian Mono", monospace';
       ctx.fillText(hex.toUpperCase(), x, y+cell+18);
     });
-    var link = document.createElement('a');
-    link.download = 'chroma-palette.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    return canvas;
+  }
+  document.getElementById('download-png-btn').addEventListener('click', function(){
+    if(palette.length===0){ showToast('Save a color first'); return; }
+    function download(){
+      var canvas = drawPaletteCanvas();
+      var link = document.createElement('a');
+      link.download = 'chroma-palette.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+    if(document.fonts && document.fonts.ready){ document.fonts.ready.then(download); }
+    else { download(); }
   });
 
   document.getElementById('share-btn').addEventListener('click', function(){
