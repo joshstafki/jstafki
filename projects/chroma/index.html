@@ -154,13 +154,14 @@
   #palette-tray{ display:flex; flex-wrap:wrap; gap:10px; min-height:64px; }
   .tray-empty{ font-size:13px; color:var(--text-faint); padding:20px 4px; }
   .swatch-card{
-    width:76px; background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    width:94px; background:var(--panel); border:1px solid var(--border); border-radius:12px;
     overflow:hidden; display:flex; flex-direction:column;
   }
   .swatch-color{ height:52px; width:100%; }
   .swatch-actions{ display:flex; }
   .swatch-actions button{
-    flex:1; background:none; border:none; border-radius:0; padding:6px 0; font-size:13px; color:var(--text-dim);
+    flex:1; background:none; border:none; border-radius:0; padding:7px 0; font-size:11.5px;
+    letter-spacing:0; white-space:nowrap; color:var(--text-dim);
   }
   .swatch-actions button:first-child{ border-right:1px solid var(--border-soft); }
   .swatch-actions button:hover{ background:var(--panel-strong); color:var(--text); }
@@ -289,14 +290,14 @@
      Security rules to paste in are provided separately.
      ============================================================ */
   const firebaseConfig = {
-    apiKey: "AIzaSyA6C1ZsP8V3weC0QVkLezf0JB_bAxrGtvs",
-    authDomain: "chroma-db0e5.firebaseapp.com",
-    projectId: "chroma-db0e5",
-    storageBucket: "chroma-db0e5.firebasestorage.app",
-    messagingSenderId: "459646838108",
-    appId: "1:459646838108:web:038801102934787a684d99",
-    measurementId: "G-LYZQFV9KBZ"
-  };
+  apiKey: "AIzaSyA6C1ZsP8V3weC0QVkLezf0JB_bAxrGtvs",
+  authDomain: "chroma-db0e5.firebaseapp.com",
+  projectId: "chroma-db0e5",
+  storageBucket: "chroma-db0e5.firebasestorage.app",
+  messagingSenderId: "459646838108",
+  appId: "1:459646838108:web:038801102934787a684d99",
+  measurementId: "G-LYZQFV9KBZ"
+};
 
   var REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var MAX_BLOBS = 8;
