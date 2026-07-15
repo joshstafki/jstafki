@@ -91,9 +91,10 @@ h1{
 }
 .morph-box:hover{ border-color:rgba(245,245,242,0.45); }
 .morph-box:focus-visible{ outline:2px solid var(--fg); outline-offset:4px; }
+/* Width and height are set from JS below, computed from the project count
+   and the available screen width, so adding a project — or viewing on a
+   narrow phone — never requires touching this CSS. */
 .morph-box.is-open{
-  width:320px;
-  height:172px;
   border-radius:20px;
   background:var(--glass-bg);
   backdrop-filter:blur(18px);
@@ -116,8 +117,9 @@ h1{
   position:absolute; inset:0;
   padding:14px;
   display:grid;
-  grid-template-columns:repeat(3, 1fr);
+  grid-auto-flow:column;
   grid-template-rows:repeat(2, 1fr);
+  grid-auto-columns:92px;
   gap:8px;
   opacity:0; pointer-events:none;
   transition:opacity .18s ease;
@@ -310,8 +312,53 @@ const iconLayer = document.getElementById('iconLayer');
 const listLayer = document.getElementById('listLayer');
 let menuOpen = false;
 
+// Panel prefers 2 rows and grows wider as projects are added — but on a
+// narrow phone there isn't always room for that, so past a screen-width
+// threshold it falls back to adding rows instead of overflowing the edges.
+const PANEL_PADDING = 14;
+const PANEL_GAP = 8;
+const PANEL_COL_WIDTH = 92;
+const PANEL_ROW_HEIGHT = 68;
+const EDGE_MARGIN = 40; // minimum breathing room from the screen edges
+
+function computePanelSize(){
+  const count = document.querySelectorAll('.project-row').length;
+  const maxWidth = window.innerWidth - EDGE_MARGIN;
+
+  let columns = Math.max(1, Math.ceil(count / 2));
+  let rows = 2;
+  let width = (PANEL_PADDING * 2) + (columns * PANEL_COL_WIDTH) + (Math.max(0, columns - 1) * PANEL_GAP);
+
+  if (width > maxWidth){
+    columns = Math.max(1, Math.floor((maxWidth - PANEL_PADDING * 2 + PANEL_GAP) / (PANEL_COL_WIDTH + PANEL_GAP)));
+    rows = Math.max(2, Math.ceil(count / columns));
+    width = (PANEL_PADDING * 2) + (columns * PANEL_COL_WIDTH) + (Math.max(0, columns - 1) * PANEL_GAP);
+  }
+
+  const height = (PANEL_PADDING * 2) + (rows * PANEL_ROW_HEIGHT) + (Math.max(0, rows - 1) * PANEL_GAP);
+  return { width, height, columns, rows };
+}
+
+function applyPanelSize(){
+  const size = computePanelSize();
+  morphBox.style.width = size.width + 'px';
+  morphBox.style.height = size.height + 'px';
+  if (size.rows > 2){
+    listLayer.style.gridAutoFlow = 'row';
+    listLayer.style.gridTemplateColumns = `repeat(${size.columns}, ${PANEL_COL_WIDTH}px)`;
+    listLayer.style.gridTemplateRows = `repeat(${size.rows}, ${PANEL_ROW_HEIGHT}px)`;
+  } else {
+    listLayer.style.gridAutoFlow = '';
+    listLayer.style.gridTemplateColumns = '';
+    listLayer.style.gridTemplateRows = '';
+  }
+}
+
+window.addEventListener('resize', () => { if (menuOpen) applyPanelSize(); });
+
 function openMenu(){
   menuOpen = true;
+  applyPanelSize();
   morphBox.classList.add('is-open');
   morphBox.setAttribute('aria-expanded', 'true');
   iconLayer.style.opacity = '0';
@@ -331,6 +378,8 @@ function closeMenu(){
   listLayer.setAttribute('aria-hidden', 'true');
   setTimeout(() => {
     morphBox.classList.remove('is-open');
+    morphBox.style.width = '';
+    morphBox.style.height = '';
     iconLayer.style.opacity = '1';
     iconLayer.style.pointerEvents = 'auto';
   }, 100);
