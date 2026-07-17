@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MONOLITH — Josh Stafki</title>
+<link rel="icon" type="image/png" href="https://www.jstafki.com/assets/main/monolith.png">
+<meta name="description" content="Josh Stafki — FINTECH, Intrepid Flights, and Astrønautik.">
+
+<meta property="og:title" content="Josh Stafki">
+<meta property="og:description" content="FINTECH · Intrepid Flights · Astrønautik">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://joshstafki.com/">
+<meta property="og:image" content="https://joshstafki.com/og-image.jpg">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Josh Stafki">
+<meta name="twitter:description" content="FINTECH · Intrepid Flights · Astrønautik">
+<meta name="twitter:image" content="https://joshstafki.com/og-image.jpg">
+
+<!-- Icon font for the menu — swap this link (and the ti-* classes below) for Font Awesome or any other set if you'd rather not depend on Tabler. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+
+<style>
+:root{
+  --bg:#050505;
+  --fg:#f5f5f2;
+  --muted:#8d8d8d;
+  --violet:#7c3aed;
+  --teal:#14b8a6;
+  --glass-bg:rgba(245,245,242,0.06);
+  --glass-border:rgba(245,245,242,0.14);
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:Inter,system-ui,sans-serif;
+  min-height:100vh;
+  min-height:100dvh;
+  overflow:hidden;
+}
+.center{
+  height:100vh;
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:2rem;
+  will-change:transform,opacity,filter;
+}
+h1{
+  margin:0;
+  font-size:clamp(3rem,10vw,8rem);
+  letter-spacing:-0.08em;
+  font-weight:800;
+}
+.tag{
+  color:var(--muted);
+  letter-spacing:.4em;
+  margin-top:1rem;
+  text-transform:uppercase;
+  font-size:.8rem;
+}
+
+/* ───────── Menu: morphs in place, no separate flyout ───────── */
+
+.menu-wrap{
+  position:relative;
+  margin-top:4rem;
+  width:52px;
+  height:52px;
+}
+.morph-box{
+  position:absolute;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:52px;
+  height:52px;
+  border:1px solid rgba(245,245,242,0.25);
+  border-radius:14px;
+  overflow:hidden;
+  cursor:pointer;
+  background:transparent;
+  transition:width .38s cubic-bezier(.2,.7,.2,1), height .38s cubic-bezier(.2,.7,.2,1),
+             border-radius .38s ease, background .38s ease, border-color .38s ease;
+}
+.morph-box:hover{ border-color:rgba(245,245,242,0.45); }
+.morph-box:focus-visible{ outline:2px solid var(--fg); outline-offset:4px; }
+/* Width and height are set from JS below, computed from the project count
+   and the available screen width, so adding a project — or viewing on a
+   narrow phone — never requires touching this CSS. */
+.morph-box.is-open{
+  border-radius:20px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-color:var(--glass-border);
+}
+.icon-layer{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity .2s ease;
+}
+.dots{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:4px; width:18px; height:18px;
+}
+.dots span{ background:var(--fg); border-radius:2px; }
+.list-layer{
+  position:absolute; inset:0;
+  padding:14px;
+  display:grid;
+  grid-auto-flow:column;
+  grid-template-rows:repeat(2, 1fr);
+  grid-auto-columns:92px;
+  gap:8px;
+  opacity:0; pointer-events:none;
+  transition:opacity .18s ease;
+}
+.project-row{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  padding:8px 4px; border-radius:10px;
+  color:var(--fg); text-decoration:none; text-align:center;
+  font-size:.6rem; letter-spacing:.06em; font-weight:600; line-height:1.25;
+  transition:background .15s ease;
+}
+.project-row:hover, .project-row:focus-visible{ background:rgba(245,245,242,0.08); }
+.project-row:focus-visible{ outline:2px solid var(--fg); outline-offset:-2px; }
+.project-row i{ font-size:20px; color:var(--muted); }
+
+.footer{
+ position:fixed;bottom:24px;width:100%;text-align:center;
+ color:#666;font-size:.75rem;letter-spacing:.25em;
+ transition:opacity .35s ease;
+}
+
+/* ───────── Hyperspace jump ───────── */
+
+.warpfield{
+  position:fixed;
+  inset:0;
+  z-index:5;
+  pointer-events:none;
+  overflow:hidden;
+}
+.streak{
+  position:absolute;
+  top:50%;
+  left:50%;
+  height:1.5px;
+  width:75vmax;
+  background:linear-gradient(to right, transparent, var(--streak-color,#fff));
+  transform-origin:0 50%;
+  transform:rotate(var(--angle,0deg)) scaleX(0);
+  opacity:0;
+  border-radius:2px;
+}
+body.warping .streak{
+  animation:streak-fly var(--dur,650ms) var(--delay,0ms) cubic-bezier(.2,.6,.2,1) forwards;
+}
+@keyframes streak-fly{
+  0%{   transform:rotate(var(--angle,0deg)) scaleX(0); opacity:0; }
+  12%{  opacity:1; }
+  100%{ transform:rotate(var(--angle,0deg)) scaleX(1); opacity:0; }
+}
+
+body.warping .center{
+  animation:pull-in 820ms cubic-bezier(.5,0,1,1) forwards;
+}
+@keyframes pull-in{
+  0%{   transform:scale(1);    filter:blur(0);   opacity:1; }
+  55%{  transform:scale(2.6);  filter:blur(3px);  opacity:1; }
+  100%{ transform:scale(16);   filter:blur(18px); opacity:0; }
+}
+
+body.warping .footer{
+  opacity:0;
+}
+
+.blackout{
+  position:fixed;
+  inset:0;
+  background:#000;
+  opacity:0;
+  z-index:10;
+  pointer-events:none;
+  transition:opacity .35s ease;
+}
+body.warping .blackout{
+  opacity:1;
+  transition-delay:.5s;
+}
+
+@media (prefers-reduced-motion:reduce){
+  body.warping .center{
+    animation:none;
+    opacity:0;
+    transition:opacity .35s ease;
+  }
+  .streak{ display:none; }
+  body.warping .blackout{
+    transition-delay:0s;
+  }
+  .morph-box, .icon-layer, .list-layer, .project-row{
+    transition:none !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="warpfield" id="warpfield" aria-hidden="true"></div>
+<div class="blackout" aria-hidden="true"></div>
+
+<section class="center">
+<h1>JOSH STAFKI</h1>
+<div class="tag">PHILOSOPHY • ARCHITECTURE • SYNTAX</div>
+
+<div class="menu-wrap">
+  <div class="morph-box" id="morphBox" role="button" tabindex="0"
+       aria-haspopup="true" aria-expanded="false" aria-controls="listLayer" aria-label="Open project menu">
+    <div class="icon-layer" id="iconLayer">
+      <div class="dots"><span></span><span></span><span></span><span></span></div>
+    </div>
+    <nav class="list-layer" id="listLayer" aria-hidden="true" aria-label="Projects">
+      <a href="/projects/fintech" class="project-row"><i class="ti ti-chart-bar" aria-hidden="true"></i><span>FINTECH</span></a>
+      <a href="/projects/intrepidflights" class="project-row"><i class="ti ti-drone" aria-hidden="true"></i><span>INTREPID FLIGHTS</span></a>
+      <a href="/projects/astronautik" class="project-row"><i class="ti ti-music" aria-hidden="true"></i><span>ASTRØNAUTIK</span></a>
+      <a href="/projects/gbro" class="project-row"><i class="ti ti-barbell" aria-hidden="true"></i><span>GBRO</span></a>
+      <a href="/projects/premiere" class="project-row"><i class="ti ti-movie" aria-hidden="true"></i><span>PREMIERE</span></a>
+      <a href="/projects/chroma" class="project-row"><i class="ti ti-palette" aria-hidden="true"></i><span>CHROMA</span></a>
+    </nav>
+  </div>
+</div>
+</section>
+
+<div class="footer">THE MONOLITH</div>
+
+<script>
+const body = document.body;
+const warpfield = document.getElementById('warpfield');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let warping = false;
+
+function buildStreaks(count = 50){
+  const frag = document.createDocumentFragment();
+  for(let i = 0; i < count; i++){
+    const s = document.createElement('span');
+    s.className = 'streak';
+    const angle = Math.random() * 360;
+    const delay = Math.random() * 150;
+    const dur = 550 + Math.random() * 250;
+    const color = '#ffffff';
+    s.style.setProperty('--angle', angle + 'deg');
+    s.style.setProperty('--delay', delay + 'ms');
+    s.style.setProperty('--dur', dur + 'ms');
+    s.style.setProperty('--streak-color', color);
+    frag.appendChild(s);
+  }
+  warpfield.appendChild(frag);
+}
+
+function jumpTo(href){
+  if (warping) return;
+  warping = true;
+
+  if (!reduceMotion){
+    buildStreaks();
+  }
+
+  body.classList.add('warping');
+
+  const wait = reduceMotion ? 380 : 900;
+  setTimeout(() => {
+    window.location.href = href;
+  }, wait);
+}
+
+// Project links inside the menu trigger the same warp jump as before.
+document.querySelectorAll('.project-row').forEach(el => {
+  el.addEventListener('click', (e) => {
+    e.preventDefault();
+    jumpTo(el.getAttribute('href'));
+  });
+});
+
+// When the browser restores this page from back/forward cache,
+// it can come back frozen mid-warp (faded out, screen black).
+// Reset everything so it looks like a fresh load.
+function resetWarp(){
+  warping = false;
+  body.classList.remove('warping');
+  warpfield.innerHTML = '';
+}
+
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) resetWarp();
+});
+
+// ───────── Menu: morphs in place ─────────
+
+const morphBox = document.getElementById('morphBox');
+const iconLayer = document.getElementById('iconLayer');
+const listLayer = document.getElementById('listLayer');
+let menuOpen = false;
+
+// Panel prefers 2 rows and grows wider as projects are added — but on a
+// narrow phone there isn't always room for that, so past a screen-width
+// threshold it falls back to adding rows instead of overflowing the edges.
+const PANEL_PADDING = 14;
+const PANEL_GAP = 8;
+const PANEL_COL_WIDTH = 92;
+const PANEL_ROW_HEIGHT = 68;
+const EDGE_MARGIN = 40; // minimum breathing room from the screen edges
+
+function computePanelSize(){
+  const count = document.querySelectorAll('.project-row').length;
+  const maxWidth = window.innerWidth - EDGE_MARGIN;
+
+  let columns = Math.max(1, Math.ceil(count / 2));
+  let rows = 2;
+  let width = (PANEL_PADDING * 2) + (columns * PANEL_COL_WIDTH) + (Math.max(0, columns - 1) * PANEL_GAP);
+
+  if (width > maxWidth){
+    columns = Math.max(1, Math.floor((maxWidth - PANEL_PADDING * 2 + PANEL_GAP) / (PANEL_COL_WIDTH + PANEL_GAP)));
+    rows = Math.max(2, Math.ceil(count / columns));
+    width = (PANEL_PADDING * 2) + (columns * PANEL_COL_WIDTH) + (Math.max(0, columns - 1) * PANEL_GAP);
+  }
+
+  const height = (PANEL_PADDING * 2) + (rows * PANEL_ROW_HEIGHT) + (Math.max(0, rows - 1) * PANEL_GAP);
+  return { width, height, columns, rows };
+}
+
+function applyPanelSize(){
+  const size = computePanelSize();
+  morphBox.style.width = size.width + 'px';
+  morphBox.style.height = size.height + 'px';
+  if (size.rows > 2){
+    listLayer.style.gridAutoFlow = 'row';
+    listLayer.style.gridTemplateColumns = `repeat(${size.columns}, ${PANEL_COL_WIDTH}px)`;
+    listLayer.style.gridTemplateRows = `repeat(${size.rows}, ${PANEL_ROW_HEIGHT}px)`;
+  } else {
+    listLayer.style.gridAutoFlow = '';
+    listLayer.style.gridTemplateColumns = '';
+    listLayer.style.gridTemplateRows = '';
+  }
+}
+
+window.addEventListener('resize', () => { if (menuOpen) applyPanelSize(); });
+
+function openMenu(){
+  menuOpen = true;
+  applyPanelSize();
+  morphBox.classList.add('is-open');
+  morphBox.setAttribute('aria-expanded', 'true');
+  iconLayer.style.opacity = '0';
+  iconLayer.style.pointerEvents = 'none';
+  listLayer.setAttribute('aria-hidden', 'false');
+  setTimeout(() => {
+    listLayer.style.opacity = '1';
+    listLayer.style.pointerEvents = 'auto';
+  }, 160);
+}
+
+function closeMenu(){
+  menuOpen = false;
+  morphBox.setAttribute('aria-expanded', 'false');
+  listLayer.style.opacity = '0';
+  listLayer.style.pointerEvents = 'none';
+  listLayer.setAttribute('aria-hidden', 'true');
+  setTimeout(() => {
+    morphBox.classList.remove('is-open');
+    morphBox.style.width = '';
+    morphBox.style.height = '';
+    iconLayer.style.opacity = '1';
+    iconLayer.style.pointerEvents = 'auto';
+  }, 100);
+}
+
+morphBox.addEventListener('click', (e) => {
+  if (e.target.closest('.project-row')) return;
+  menuOpen ? closeMenu() : openMenu();
+});
+
+morphBox.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    menuOpen ? closeMenu() : openMenu();
+  } else if (e.key === 'Escape' && menuOpen){
+    closeMenu();
+    morphBox.focus();
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (menuOpen && !morphBox.contains(e.target)) closeMenu();
+});
+</script>
+</body>
+</html>
