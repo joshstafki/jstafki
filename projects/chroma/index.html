@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chroma — mix colour, live</title>
-<meta name="description" content="Light mixes toward white. Pigment mixes toward mud. Chroma shows you why.">
 <meta name="theme-color" content="#07070a">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.jstafki.com/projects/chroma">
+
+<title>Chroma — Mix colour, live</title>
+<meta name="description" content="Light mixes toward white. Pigment mixes toward mud. Chroma shows you why. An interactive color-mixing playground.">
+<link rel="canonical" href="https://jstafki.com/projects/chroma">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Chroma">
-<meta property="og:title" content="Chroma — mix colour, live">
+<meta property="og:title" content="Chroma — Mix colour, live">
 <meta property="og:description" content="Light mixes toward white. Pigment mixes toward mud. Chroma shows you why.">
-<meta property="og:url" content="https://www.jstafki.com/projects/chroma">
+<meta property="og:url" content="https://jstafki.com/projects/chroma">
 <meta property="og:image" content="https://www.jstafki.com/assets/chroma/xcard.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -22,13 +23,14 @@
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Chroma — mix colour, live">
+<meta name="twitter:title" content="Chroma — Mix colour, live">
 <meta name="twitter:description" content="Light mixes toward white. Pigment mixes toward mud. Chroma shows you why.">
 <meta name="twitter:image" content="https://www.jstafki.com/assets/chroma/xcard.png">
 
 <!-- Icons -->
 <link rel="icon" type="image/png" href="/favicon.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">  
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Hanken+Grotesk:wght@400;500;600&family=Martian+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -50,11 +52,21 @@
     font-family:var(--body);
   }
 
-  /* ---------- the wheel: one bold, fully-saturated signature ---------- */
-  .wheel{
-    position:fixed; z-index:0; left:50%; top:50%;
+  /* ---------- the wheel: bounces within the viewport, spins independently ----------
+     Position and rotation are deliberately split across two nested elements.
+     Mixing a standalone `rotate` with a `transform:translate(-50%,-50%)` on the
+     SAME element is what caused the old drift: per the CSS transform spec, the
+     standalone rotate is applied before the transform property, so a translate
+     expressed as a percentage ends up rotating right along with the element,
+     tracing a slow circle instead of holding still. Splitting position (outer,
+     JS-driven, plain pixels) from spin (inner, CSS-only) removes that entirely. */
+  .wheel-orbit{
+    position:fixed; z-index:0; left:0; top:0;
     width:min(105vmin,1200px); height:min(105vmin,1200px);
-    transform:translate(-50%,-50%);
+    will-change:transform;
+  }
+  .wheel{
+    width:100%; height:100%;
     border-radius:50%;
     background:conic-gradient(from 0deg,
       hsl(0,86%,55%), hsl(30,88%,56%), hsl(55,85%,50%), hsl(90,80%,46%),
@@ -128,36 +140,96 @@
 </head>
 <body>
 
-<div class="wheel" aria-hidden="true"></div>
+<div class="wheel-orbit" aria-hidden="true"><div class="wheel"></div></div>
 
 <main class="hero">
   <div class="glass-panel">
     <p class="eyebrow">An interactive color study</p>
     <h1 class="wordmark">Chroma</h1>
     <p class="tagline">Light mixes toward white. Pigment mixes toward mud. Chroma shows you why.</p>
-    <a class="cta" href="https://www.jstafki.com/projects/chroma/hue/">Start mixing <span class="arrow" aria-hidden="true">→</span></a>
+    <a class="cta" href="https://www.jstafki.com/projects/chroma/hue">Start mixing <span class="arrow" aria-hidden="true">→</span></a>
   </div>
 </main>
 
-<p class="corner-mark">Part of the J-Suite</p>
+<p class="corner-mark">Part of Monolith</p>
 
 <script>
 (function(){
   'use strict';
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var root = document.documentElement;
-  var ticking = false;
-  window.addEventListener('mousemove', function(e){
-    if(ticking) return;
-    ticking = true;
-    requestAnimationFrame(function(){
-      var dx = (e.clientX / window.innerWidth - 0.5) * 2;
-      var dy = (e.clientY / window.innerHeight - 0.5) * 2;
-      root.style.setProperty('--px', (dx * -8) + 'px');
-      root.style.setProperty('--py', (dy * -6) + 'px');
-      ticking = false;
+
+  // ---- cursor parallax on the text panel (unchanged) ----
+  if(!reduce){
+    var ticking = false;
+    window.addEventListener('mousemove', function(e){
+      if(ticking) return;
+      ticking = true;
+      requestAnimationFrame(function(){
+        var dx = (e.clientX / window.innerWidth - 0.5) * 2;
+        var dy = (e.clientY / window.innerHeight - 0.5) * 2;
+        root.style.setProperty('--px', (dx * -8) + 'px');
+        root.style.setProperty('--py', (dy * -6) + 'px');
+        ticking = false;
+      });
     });
-  });
+  }
+
+  // ---- wheel bounce: contained within the viewport, same spin speed as before ----
+  var orbit = document.querySelector('.wheel-orbit');
+  if(!orbit) return;
+
+  var pos, vel;
+
+  function bounds(){
+    var r = orbit.getBoundingClientRect();
+    var w = r.width, h = r.height;
+    var minVisible = 0.4; // at least 40% of the wheel stays on-screen at all times
+    var mx = w * minVisible, my = h * minVisible;
+    return {
+      minX: -(w - mx), maxX: window.innerWidth - mx,
+      minY: -(h - my), maxY: window.innerHeight - my
+    };
+  }
+
+  function place(){
+    var b = bounds();
+    if(!pos){
+      pos = { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 };
+      var angle = Math.random() * Math.PI * 2;
+      var speed = 22; // px/sec — slow, ambient drift
+      vel = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
+    } else {
+      pos.x = Math.min(Math.max(pos.x, b.minX), b.maxX);
+      pos.y = Math.min(Math.max(pos.y, b.minY), b.maxY);
+    }
+    orbit.style.transform = 'translate(' + pos.x + 'px,' + pos.y + 'px)';
+  }
+
+  place();
+  window.addEventListener('resize', place);
+
+  if(reduce) return;
+
+  var last = null;
+  function frame(ts){
+    if(last === null) last = ts;
+    var dt = Math.min(0.05, (ts - last) / 1000);
+    last = ts;
+    var b = bounds();
+
+    pos.x += vel.x * dt;
+    pos.y += vel.y * dt;
+
+    if(pos.x <= b.minX){ pos.x = b.minX; vel.x = Math.abs(vel.x); }
+    if(pos.x >= b.maxX){ pos.x = b.maxX; vel.x = -Math.abs(vel.x); }
+    if(pos.y <= b.minY){ pos.y = b.minY; vel.y = Math.abs(vel.y); }
+    if(pos.y >= b.maxY){ pos.y = b.maxY; vel.y = -Math.abs(vel.y); }
+
+    orbit.style.transform = 'translate(' + pos.x + 'px,' + pos.y + 'px)';
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 })();
 </script>
 </body>
