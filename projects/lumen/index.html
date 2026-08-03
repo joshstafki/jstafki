@@ -19,6 +19,8 @@
   --faint:#6d6250;
   --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
   --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --rack-shift:0vh;
+  --rack-scale:1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -28,14 +30,19 @@ body{
   user-select:none;-webkit-user-select:none;
 }
 
-/* ---------- stage & scenes ---------- */
+/* ---------- stage & the single church ---------- */
 #stage{position:fixed;inset:0;background:var(--bg)}
-.scene{position:absolute;inset:0;opacity:0;transition:opacity .55s ease;pointer-events:none}
-.scene.on{opacity:1}
-.scene svg{width:100%;height:100%;display:block}
-.cands{position:absolute;inset:0}
+#scene{position:absolute;inset:0}
+.photo{position:absolute;inset:0;background:#0a0806}
+.photo img{width:100%;height:100%;object-fit:cover;object-position:center bottom;display:block}
+.photo.imgfail img{display:none}
+.photo.imgfail::after{content:"The church image couldn’t be loaded — check the link.";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 40px;color:var(--faint);font:italic 16px var(--serif)}
+.photo-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,5,4,.5) 0%,rgba(6,5,4,.08) 22%,rgba(6,5,4,0) 44%,rgba(6,5,4,.3) 64%,rgba(6,5,4,.88) 100%)}
+.photo-vig{position:absolute;inset:0;background:radial-gradient(122% 94% at 50% 40%,transparent 50%,rgba(4,3,2,.66) 100%)}
+.attrib{position:absolute;left:12px;bottom:calc(2.6% + 84px);z-index:2;font-size:9px;letter-spacing:.05em;color:rgba(200,186,160,.5);max-width:44%;pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 
-/* ---------- votive rack ---------- */
+/* the votive rack — a unit the calibrator can move & scale */
+.cands{position:absolute;inset:0;transform:translateY(var(--rack-shift)) scale(var(--rack-scale));transform-origin:50% 100%}
 .shelf{
   position:absolute;height:9px;border-radius:4px;
   background:linear-gradient(180deg,#382b22,#170f0b 55%,#090604);
@@ -70,6 +77,11 @@ body{
   background:linear-gradient(180deg,#ffdf9e 0%,#f6e8ca 24%,#e9d8b0 100%);
   box-shadow:0 -2px 7px rgba(255,172,72,.6);
   transition:height 1s linear;
+}
+/* a candle shared with everyone wears a faint golden rim */
+.candle.global .glass{
+  box-shadow:inset 0 1px 4px rgba(255,152,102,.4), inset 0 -6px 10px rgba(0,0,0,.55), 0 5px 12px rgba(0,0,0,.55),
+             0 0 0 1.4px rgba(232,200,126,.55), 0 0 11px rgba(232,200,126,.4);
 }
 .flm{
   position:absolute;left:50%;bottom:calc(3px + var(--wax,90)*.36px);
@@ -123,27 +135,19 @@ header{
 }
 .wm{font-family:var(--serif);font-weight:600;font-size:15px;letter-spacing:.42em;color:var(--gold-bright)}
 .wm .wm-cross{color:var(--gold);margin-left:-.3em}
-.count{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);padding-top:4px;text-align:right}
+.hbtns{display:flex;gap:14px;align-items:center;pointer-events:auto}
+.count{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);padding-top:4px}
+.who{font-size:9px;letter-spacing:.08em;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-top:4px}
+.hbtn{background:none;border:0;color:var(--muted);font:600 9.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:4px 0;transition:.2s}
+.hbtn:hover{color:var(--gold-bright)}
+.gear{color:var(--muted);cursor:pointer;transition:.25s;background:none;border:0;padding:0;line-height:0}
+.gear:hover{color:var(--gold-bright);transform:rotate(35deg)}
 
-#title{
+#label{
   position:fixed;top:calc(46px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
   z-index:6;text-align:center;pointer-events:none;width:min(560px,86vw);
 }
-#title .n{font-family:var(--serif);font-style:italic;font-weight:500;font-size:20px;color:var(--ink);text-shadow:0 2px 14px rgba(0,0,0,.8)}
-#title .d{margin-top:4px;font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
-.dots{display:flex;gap:8px;justify-content:center;margin-top:10px;pointer-events:auto}
-.dot{width:5px;height:5px;border-radius:50%;background:rgba(200,167,105,.26);border:0;cursor:pointer;padding:0;transition:.25s}
-.dot.on{background:var(--gold-bright);box-shadow:0 0 9px rgba(232,200,126,.85)}
-
-.nav{
-  position:fixed;top:50%;transform:translateY(-50%);z-index:6;
-  width:40px;height:40px;border-radius:50%;
-  border:1px solid rgba(200,167,105,.32);background:rgba(10,8,6,.32);
-  color:var(--gold);font-size:22px;line-height:36px;text-align:center;
-  cursor:pointer;backdrop-filter:blur(2px);transition:.22s;font-family:var(--serif);
-}
-.nav:hover{border-color:var(--gold);color:var(--gold-bright)}
-#prev{left:14px}#next{right:14px}
+#label .n{font-family:var(--serif);font-style:italic;font-weight:500;font-size:19px;color:var(--ink);text-shadow:0 2px 14px rgba(0,0,0,.8)}
 
 #hint{
   position:fixed;left:50%;transform:translateX(-50%);
@@ -164,12 +168,12 @@ header{
 }
 #lightBtn:hover{border-color:var(--gold-bright);box-shadow:0 10px 34px rgba(0,0,0,.65),0 0 26px rgba(232,200,126,.2)}
 
-/* ---------- modal ---------- */
-#veil{
+/* ---------- modal (shared shell) ---------- */
+#veil,#settings{
   position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;
   background:rgba(4,3,2,.68);backdrop-filter:blur(3px);padding:20px;
 }
-#veil.on{display:flex}
+#veil.on,#settings.on{display:flex}
 .panel{
   width:min(440px,100%);border-radius:6px;padding:30px 30px 24px;
   background:linear-gradient(180deg,#181108,#0e0a06);
@@ -188,6 +192,10 @@ header{
 }
 #intent:focus{border-color:rgba(232,200,126,.6)}
 #intent::placeholder{color:#5d5344;font-style:italic}
+.share{display:flex;align-items:flex-start;gap:9px;margin-top:14px;cursor:pointer}
+.share input{accent-color:#a97f2c;width:15px;height:15px;margin-top:2px;flex:none}
+.share .st{font-size:12.5px;font-family:var(--serif);color:#b6a685;line-height:1.4}
+.share .st b{color:var(--gold-bright);font-weight:500;font-style:italic}
 .note{margin-top:13px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#7d7059;text-align:center;line-height:1.9}
 .actions{display:flex;gap:10px;margin-top:18px}
 .actions button{
@@ -199,23 +207,40 @@ header{
 .solid{background:linear-gradient(180deg,#3c2c12,#251a0b);border:1px solid rgba(232,200,126,.6);color:#f0dfae}
 .solid:hover{border-color:var(--gold-bright);box-shadow:0 0 20px rgba(232,200,126,.18)}
 
+/* ---------- calibrator ---------- */
+.sw{width:min(420px,100%)}
+.sw h2{text-align:left}.sw .sub{text-align:left;margin-bottom:6px}
+.cal-row{margin:20px 0 0}
+.cal-row label{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.cal-row label span{color:var(--gold-bright)}
+.cal-row input[type=range]{width:100%;accent-color:#a97f2c;height:3px}
+.calhint{font-size:10.5px;line-height:1.75;color:var(--faint);margin-top:20px}
+
 /* ---------- candle popover ---------- */
 #pop{
   position:fixed;z-index:15;width:min(300px,86vw);display:none;text-align:center;
   background:linear-gradient(180deg,#181108,#0e0a06);
   border:1px solid rgba(200,167,105,.4);border-radius:6px;
-  padding:16px 20px 14px;box-shadow:0 24px 60px rgba(0,0,0,.7);
+  padding:16px 20px 15px;box-shadow:0 24px 60px rgba(0,0,0,.7);
 }
 #pop.on{display:block}
 #pop .cross{color:var(--gold);font-size:13px}
-#pop .txt{font-family:var(--serif);font-style:italic;font-size:17.5px;line-height:1.5;color:var(--ink);margin:7px 0 10px;max-height:150px;overflow:auto}
+#pop .txt{font-family:var(--serif);font-style:italic;font-size:17.5px;line-height:1.5;color:var(--ink);margin:7px 0 9px;max-height:150px;overflow:auto}
 #pop .meta{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);line-height:1.9}
+#pop .status{font-size:9px;letter-spacing:.2em;text-transform:uppercase;margin-top:7px}
+#pop .status.priv{color:var(--muted)}
+#pop .status.glob{color:var(--gold-bright)}
+#pop .act{
+  margin-top:12px;width:100%;padding:9px 0;border-radius:3px;cursor:pointer;
+  font:600 9.5px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;transition:.2s;
+  background:linear-gradient(180deg,#3c2c12,#251a0b);border:1px solid rgba(232,200,126,.55);color:#f0dfae;
+}
+#pop .act:hover{border-color:var(--gold-bright);box-shadow:0 0 18px rgba(232,200,126,.16)}
+#pop .act.plain{background:none;border-color:rgba(180,160,130,.25);color:#9c8f77}
+#pop .act.plain:hover{border-color:rgba(180,160,130,.5);color:#bdb096;box-shadow:none}
 
 /* ---------- toast & flying flame ---------- */
-#toast{
-  position:fixed;left:50%;top:37%;transform:translate(-50%,-50%);z-index:30;
-  text-align:center;opacity:0;pointer-events:none;transition:opacity .7s ease;
-}
+#toast{position:fixed;left:50%;top:37%;transform:translate(-50%,-50%);z-index:30;text-align:center;opacity:0;pointer-events:none;transition:opacity .7s ease}
 #toast.on{opacity:1}
 #toast .l1{font-family:var(--serif);font-style:italic;font-size:36px;color:#f0dfae;text-shadow:0 0 34px rgba(232,200,126,.4)}
 #toast .l2{margin-top:5px;font-family:var(--serif);font-style:italic;font-size:17px;color:#b6a685}
@@ -229,55 +254,11 @@ header{
 /* ---------- responsive & motion ---------- */
 @media (max-width:560px){
   .candle{transform:translateX(-50%) scale(calc(var(--s,1)*.74))}
-  .count{display:none}
-  #title .n{font-size:17px}
-  .nav{width:34px;height:34px;line-height:30px;font-size:19px}
-  #prev{left:8px}#next{right:8px}
+  #label .n{font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){
   .flm .f,.glo{animation:none}
-  .scene{transition:none}
 }
-
-/* ---------- photo scene ---------- */
-.photo{position:absolute;inset:0;background:#0a0806}
-.photo img{width:100%;height:100%;object-fit:cover;display:block}
-.photo.imgfail img{display:none}
-.photo.imgfail::after{content:"This image couldn’t be loaded — check the link, or the site may block hotlinking.";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 40px;color:var(--faint);font:italic 16px var(--serif)}
-.photo-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,5,4,.6) 0%,rgba(6,5,4,.1) 24%,rgba(6,5,4,0) 46%,rgba(6,5,4,.34) 66%,rgba(6,5,4,.88) 100%)}
-.photo-vig{position:absolute;inset:0;background:radial-gradient(122% 92% at 50% 42%,transparent 52%,rgba(4,3,2,.68) 100%)}
-.attrib{position:absolute;left:12px;bottom:calc(2.6% + 82px);z-index:2;font-size:9px;letter-spacing:.05em;color:rgba(200,186,160,.5);max-width:44%;pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.9)}
-
-/* ---------- header buttons ---------- */
-.hbtns{display:flex;gap:14px;align-items:center;pointer-events:auto}
-.hbtn{background:none;border:0;color:var(--muted);font:600 9.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:4px 0;transition:.2s}
-.hbtn:hover{color:var(--gold-bright)}
-.who{font-size:9px;letter-spacing:.08em;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gear{color:var(--muted);cursor:pointer;transition:.25s;background:none;border:0;padding:0;line-height:0}
-.gear:hover{color:var(--gold-bright);transform:rotate(35deg)}
-
-/* ---------- settings panel ---------- */
-#settings{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(4,3,2,.68);backdrop-filter:blur(3px);padding:20px}
-#settings.on{display:flex}
-.pw{width:min(500px,100%);max-height:88vh;overflow:auto}
-.pw h2{text-align:left}.pw .sub{text-align:left;margin-bottom:14px}
-.churchrow{display:flex;align-items:center;gap:13px;padding:9px 0;border-bottom:1px solid rgba(200,167,105,.13)}
-.churchrow .th{width:54px;height:37px;border-radius:3px;object-fit:cover;background:#1a130c;flex:none}
-.churchrow .thi{width:54px;height:37px;border-radius:3px;background:linear-gradient(180deg,#241a10,#0e0a06);flex:none;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:13px}
-.churchrow .cn{flex:1;min-width:0}
-.churchrow .cn b{font-family:var(--serif);font-weight:500;font-size:16.5px;color:var(--ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.churchrow .cn span{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.churchrow .rm{background:none;border:0;color:var(--faint);font-size:19px;cursor:pointer;flex:none;padding:0 4px;line-height:1}
-.churchrow .rm:hover{color:#c0564a}
-.addform h3{font-family:var(--serif);font-weight:500;font-size:21px;color:#f0e2c4;margin-top:22px}
-.addform label{display:block;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:13px 0 5px}
-.addform input[type=text]{width:100%;background:#0a0705;border:1px solid rgba(200,167,105,.24);border-radius:4px;color:var(--ink);font:400 14px var(--sans);padding:9px 11px;outline:none;user-select:text;-webkit-user-select:text}
-.addform input[type=text]:focus{border-color:rgba(232,200,126,.55)}
-.addform input::placeholder{color:#5d5344}
-.chk{display:flex;align-items:center;gap:8px;margin-top:13px;font-size:12.5px;font-family:var(--serif);color:#b6a685;cursor:pointer}
-.chk input{accent-color:#a97f2c;width:15px;height:15px}
-.hintline{font-size:10.5px;line-height:1.75;color:var(--faint);margin-top:12px}
-.hintline b{color:var(--muted);font-weight:500;font-family:var(--sans)}
 </style>
 </head>
 <body>
@@ -288,27 +269,17 @@ header{
     <div class="count" id="count"></div>
     <span class="who" id="who"></span>
     <button class="hbtn" id="authBtn" style="display:none"></button>
-    <button class="gear" id="gearBtn" aria-label="Churches" title="Churches">
+    <button class="gear" id="gearBtn" aria-label="Settings" title="Settings">
       <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v3.2M12 18.2v3.2M2.6 12h3.2M18.2 12h3.2M5.05 5.05l2.26 2.26M16.69 16.69l2.26 2.26M18.95 5.05l-2.26 2.26M7.31 16.69l-2.26 2.26"/></svg>
     </button>
   </div>
 </header>
 
-<div id="title">
-  <div class="n" id="chName"></div>
-  <div class="d" id="chDesc"></div>
-  <div class="dots" id="dots"></div>
-</div>
+<div id="label"><div class="n" id="labelText"></div></div>
 
-<div id="stage">
-  <div class="scene" id="sceneA"></div>
-  <div class="scene" id="sceneB"></div>
-</div>
+<div id="stage"><div id="scene"></div></div>
 
-<button class="nav" id="prev" aria-label="Previous church">‹</button>
-<button class="nav" id="next" aria-label="Next church">›</button>
-
-<div id="hint">No candles are burning tonight.</div>
+<div id="hint"></div>
 <button id="lightBtn">Light a Candle</button>
 
 <div id="veil" role="dialog" aria-modal="true" aria-labelledby="veilH">
@@ -316,6 +287,7 @@ header{
     <h2 id="veilH">An Intention</h2>
     <p class="sub">For whom, or for what, shall this candle burn?</p>
     <textarea id="intent" maxlength="400" placeholder="For…" aria-label="Your intention"></textarea>
+    <label class="share" id="shareRow"><input type="checkbox" id="shareChk"><span class="st">Let everyone see this candle. <b>Otherwise it stays private to you.</b></span></label>
     <div class="note" id="note"></div>
     <div class="actions">
       <button class="ghost" id="cancelBtn">Never mind</button>
@@ -327,24 +299,21 @@ header{
 <div id="pop"></div>
 
 <div id="settings" role="dialog" aria-modal="true" aria-labelledby="setH">
-  <div class="panel pw">
-    <h2 id="setH">Churches</h2>
-    <p class="sub">The chapels a candle may find</p>
-    <div id="churchList"></div>
-    <div class="addform">
-      <h3>Add a church</h3>
-      <label>Image link</label>
-      <input type="text" id="cImg" placeholder="https://…/church-interior.jpg" autocomplete="off" spellcheck="false">
-      <label>Name — optional</label>
-      <input type="text" id="cName" placeholder="e.g. St Mary’s" autocomplete="off">
-      <label>A word on its style — optional</label>
-      <input type="text" id="cDesc" placeholder="e.g. Gothic" autocomplete="off">
-      <label class="chk"><input type="checkbox" id="cMon"> The Blessed Sacrament is exposed</label>
-      <p class="hintline" id="addHint"></p>
-      <div class="actions">
-        <button class="ghost" id="setClose">Done</button>
-        <button class="solid" id="cAdd">Add church</button>
-      </div>
+  <div class="panel sw">
+    <h2 id="setH">Place the candles</h2>
+    <p class="sub">Seat the votive rack on the floor of your church</p>
+    <div class="cal-row">
+      <label>Height <span id="calBVal"></span></label>
+      <input type="range" id="calB" min="-14" max="14" step="0.5" value="0">
+    </div>
+    <div class="cal-row">
+      <label>Size <span id="calSVal"></span></label>
+      <input type="range" id="calS" min="0.6" max="1.5" step="0.02" value="1">
+    </div>
+    <p class="calhint" id="calHint"></p>
+    <div class="actions">
+      <button class="ghost" id="calReset">Reset</button>
+      <button class="solid" id="setClose">Done</button>
     </div>
   </div>
 </div>
@@ -358,664 +327,25 @@ header{
 
 <script>
 /* ================= LVMEN — a digital votive =================
-   Single-file, no build step. Storage: window.storage (Claude
-   artifacts) -> localStorage (self-hosted) -> memory fallback.
+   One church. Candles are private to whoever lit them, unless
+   made global — then they burn for everyone. Single file, no build.
    ============================================================ */
 
-/* ---------- scene helpers ---------- */
-const $ = s => document.querySelector(s);
-const R = (a,b) => a + Math.random()*(b-a);
-
-function rays(cx, cy, n, r0, r1, fill){
-  let s = '';
-  for(let i=0;i<n;i++){
-    const long = i%2===0, RR = long ? r1 : r1*0.68;
-    const a = i/n*Math.PI*2 - Math.PI/2, w = Math.PI/n*0.42;
-    s += `<polygon points="${(cx+Math.cos(a-w)*r0).toFixed(1)},${(cy+Math.sin(a-w)*r0).toFixed(1)} ${(cx+Math.cos(a)*RR).toFixed(1)},${(cy+Math.sin(a)*RR).toFixed(1)} ${(cx+Math.cos(a+w)*r0).toFixed(1)},${(cy+Math.sin(a+w)*r0).toFixed(1)}" fill="${fill}"/>`;
-  }
-  return s;
-}
-
-/* tiny altar flame (glow halo + body + core) */
-function fl(x, y, rx, ry, p){
-  return `<ellipse cx="${x}" cy="${y}" rx="${rx*3}" ry="${ry*2.4}" fill="url(#${p}_fglow)"/>
-  <ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#ffd98d"/>
-  <ellipse cx="${x}" cy="${y+ry*0.22}" rx="${rx*0.45}" ry="${ry*0.5}" fill="#fff6dc"/>`;
-}
-
-/* gold candlestick with white candle + flame */
-function stick(x, y, h, p, s=1){
-  return `<rect x="${x-1.4*s}" y="${y-h}" width="${2.8*s}" height="${h}" fill="url(#${p}_gold)"/>
-  <rect x="${x-4.5*s}" y="${y-2.5*s}" width="${9*s}" height="${2.5*s}" rx="1" fill="url(#${p}_gold)"/>
-  <rect x="${x-3.2*s}" y="${y-h-1.6*s}" width="${6.4*s}" height="${1.8*s}" fill="url(#${p}_gold)"/>
-  <rect x="${x-0.9*s}" y="${y-h-8*s}" width="${1.8*s}" height="${6.6*s}" fill="#f5ecd8"/>
-  ${fl(x, y-h-10*s, 2.1*s, 3.4*s, p)}`;
-}
-
-/* converging floor joints toward vanishing point */
-function floorLines(hy, by, cx, step, color){
-  let s = '';
-  for(let x=step/2; x<1200; x+=step){
-    s += `<line x1="${x}" y1="${by}" x2="${(cx+(x-cx)*0.18).toFixed(1)}" y2="${hy}" stroke="${color}" stroke-width="2"/>`;
-  }
-  return s;
-}
-function courses(hy, by, halfH, halfB, cx, ys, color){
-  return ys.map(y=>{
-    const t=(y-hy)/(by-hy), h=halfH+(halfB-halfH)*t;
-    return `<line x1="${(cx-h).toFixed(1)}" y1="${y}" x2="${(cx+h).toFixed(1)}" y2="${y}" stroke="${color}" stroke-width="1.6"/>`;
-  }).join('');
-}
-
-const lancet = (x,w,tip,base,fill,op=1) =>
-  `<path d="M${x-w/2},${base} L${x-w/2},${tip+w*0.9} Q${x},${tip} ${x+w/2},${tip+w*0.9} L${x+w/2},${base} Z" fill="${fill}" opacity="${op}"/>`;
-
-const vig = p => `<defs><radialGradient id="${p}_vig" cx="50%" cy="46%" r="72%">
-  <stop offset="55%" stop-color="rgba(0,0,0,0)"/><stop offset="100%" stop-color="rgba(0,0,0,0.68)"/>
-</radialGradient></defs><rect width="1200" height="800" fill="url(#${p}_vig)"/>`;
-
-const svgOpen = `<svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">`;
-
-/* ============ SCENE 1 — Gothic: Cathedral of the Holy Cross ============ */
-function sceneGothic(){
-  const p='g';
-  /* nave arcade columns: [x, w, top, base] — mirrored via <use> */
-  const cols=[[118,34,205,832],[262,28,242,708],[382,22,272,614],[474,17,296,550]];
-  let arcade='<rect x="0" y="290" width="520" height="545" fill="rgba(5,4,9,.55)"/>';
-  cols.forEach(c=>{
-    arcade+=`<rect x="${c[0]-c[1]/2}" y="${c[2]}" width="${c[1]}" height="${c[3]-c[2]}" fill="url(#g_stone)"/>
-    <rect x="${c[0]-c[1]/2-3}" y="${c[2]-8}" width="${c[1]+6}" height="9" fill="#2e2540"/>
-    <rect x="${c[0]-c[1]/2-2}" y="${c[3]-10}" width="${c[1]+4}" height="10" fill="#231b31"/>`;
-  });
-  for(let i=0;i<cols.length-1;i++){
-    const a=cols[i], b=cols[i+1];
-    arcade+=`<path d="M${a[0]},${a[2]+6} Q${(a[0]+b[0])/2},${Math.min(a[2],b[2])-48} ${b[0]},${b[2]+6}" fill="none" stroke="#2e2540" stroke-width="6"/>`;
-  }
-  arcade+=`<path d="M474,302 Q516,252 548,300" fill="none" stroke="#2e2540" stroke-width="5"/>`;
-  /* clerestory */
-  for(let i=0;i<cols.length-1;i++){
-    arcade+=lancet((cols[i][0]+cols[i+1][0])/2, 16, 158, 230, 'url(#g_win)', .28);
-  }
-
-  const lancets=[-84,-42,0,42,84].map((o,i)=>{
-    const tips=[268,232,206,232,268];
-    return lancet(600+o,32,tips[i],386,'url(#g_win)',.92)
-      + `<line x1="${600+o}" y1="${tips[i]+30}" x2="${600+o}" y2="386" stroke="rgba(10,8,26,.55)" stroke-width="2.5"/>`
-      + `<line x1="${600+o-14}" y1="330" x2="${600+o+14}" y2="330" stroke="rgba(10,8,26,.5)" stroke-width="2"/>`
-      + `<line x1="${600+o-14}" y1="362" x2="${600+o+14}" y2="362" stroke="rgba(10,8,26,.5)" stroke-width="2"/>`;
-  }).join('');
-
-  let rose='';
-  for(let i=0;i<8;i++){
-    rose+=`<ellipse cx="600" cy="118" rx="10" ry="25" transform="rotate(${i*45} 600 150)" fill="rgba(16,12,36,.35)" stroke="rgba(22,16,46,.7)" stroke-width="1.5"/>`;
-  }
-
-  const steps = `
-    <polygon points="405,470 795,470 780,455 420,455" fill="#241b14"/>
-    <line x1="420" y1="455" x2="780" y2="455" stroke="rgba(232,196,138,.14)" stroke-width="2"/>
-    <polygon points="428,455 772,455 760,443 440,443" fill="#2c2219"/>
-    <line x1="440" y1="443" x2="760" y2="443" stroke="rgba(232,196,138,.14)" stroke-width="2"/>
-    <polygon points="450,443 750,443 742,432 458,432" fill="#241b14"/>
-    <line x1="458" y1="432" x2="742" y2="432" stroke="rgba(232,196,138,.16)" stroke-width="2"/>`;
-
-  return svgOpen + `
-  <defs>
-    <linearGradient id="g_bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#07060c"/><stop offset="55%" stop-color="#0d0a13"/><stop offset="100%" stop-color="#171019"/>
-    </linearGradient>
-    <linearGradient id="g_win" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#93a4ec"/><stop offset="45%" stop-color="#5064c8"/><stop offset="100%" stop-color="#7a4fb8"/>
-    </linearGradient>
-    <radialGradient id="g_rose" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#e9ccff"/><stop offset="70%" stop-color="#7a55d0"/><stop offset="100%" stop-color="#4c37a0"/>
-    </radialGradient>
-    <radialGradient id="g_wglow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(126,116,226,.32)"/><stop offset="100%" stop-color="rgba(126,116,226,0)"/>
-    </radialGradient>
-    <linearGradient id="g_stone" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#241c2c"/><stop offset="55%" stop-color="#191322"/><stop offset="100%" stop-color="#120d1b"/>
-    </linearGradient>
-    <linearGradient id="g_floor" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#231a16"/><stop offset="100%" stop-color="#0d0a09"/>
-    </linearGradient>
-    <linearGradient id="g_carpet" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#69161d"/><stop offset="100%" stop-color="#370c11"/>
-    </linearGradient>
-    <linearGradient id="g_gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#e6c07c"/><stop offset="100%" stop-color="#8a6529"/>
-    </linearGradient>
-    <radialGradient id="g_glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,188,112,.5)"/><stop offset="100%" stop-color="rgba(255,188,112,0)"/>
-    </radialGradient>
-    <radialGradient id="g_fglow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,196,102,.6)"/><stop offset="100%" stop-color="rgba(255,196,102,0)"/>
-    </radialGradient>
-    <radialGradient id="g_lamp" cx="50%" cy="42%" r="55%">
-      <stop offset="0%" stop-color="#f4574a"/><stop offset="60%" stop-color="#b02417"/><stop offset="100%" stop-color="#6d1009"/>
-    </radialGradient>
-    <radialGradient id="g_lampglow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,86,56,.5)"/><stop offset="100%" stop-color="rgba(255,86,56,0)"/>
-    </radialGradient>
-  </defs>
-
-  <rect width="1200" height="800" fill="url(#g_bg)"/>
-
-  <!-- vault -->
-  <path d="M0,0 H1200 V300 Q600,-150 0,300 Z" fill="#05040a"/>
-  <path d="M0,300 Q600,-150 1200,300" fill="none" stroke="#2a2138" stroke-width="4"/>
-  <path d="M70,326 Q600,-92 1130,326" fill="none" stroke="rgba(96,84,132,.3)" stroke-width="2.5"/>
-  <path d="M160,352 Q600,-30 1040,352" fill="none" stroke="rgba(96,84,132,.2)" stroke-width="2"/>
-
-  <!-- chancel interior -->
-  <path d="M336,800 L336,322 Q600,96 864,322 L864,800 Z" fill="#0b0912"/>
-  <circle cx="600" cy="300" r="200" fill="url(#g_wglow)"/>
-
-  <!-- east window & rose -->
-  ${lancets}
-  <circle cx="600" cy="150" r="66" fill="url(#g_wglow)"/>
-  <circle cx="600" cy="150" r="52" fill="url(#g_rose)" opacity=".95"/>
-  ${rose}
-  <circle cx="600" cy="150" r="10" fill="#f2e4ff"/>
-  <circle cx="600" cy="150" r="52" fill="none" stroke="#191228" stroke-width="6"/>
-
-  <!-- chancel arch -->
-  <path d="M336,800 L336,322 Q600,96 864,322 L864,800" fill="none" stroke="#2c2340" stroke-width="12"/>
-  <path d="M348,800 L348,328 Q600,110 852,328 L852,800" fill="none" stroke="rgba(120,104,160,.28)" stroke-width="3"/>
-
-  <!-- arcades, mirrored -->
-  <g id="g_arcL">${arcade}</g>
-  <use href="#g_arcL" transform="translate(1200,0) scale(-1,1)"/>
-
-  <!-- floor -->
-  <polygon points="0,800 455,432 0,432" fill="#0e0b0d"/>
-  <polygon points="1200,800 745,432 1200,432" fill="#0e0b0d"/>
-  <polygon points="0,800 1200,800 745,432 455,432" fill="url(#g_floor)"/>
-  ${floorLines(436,800,600,96,'rgba(0,0,0,.42)')}
-  ${courses(432,800,145,600,600,[458,486,522,566,620,684,756],'rgba(66,50,38,.5)')}
-  <polygon points="566,432 634,432 700,800 500,800" fill="url(#g_carpet)"/>
-  <polygon points="592,432 608,432 616,800 584,800" fill="rgba(255,120,90,.06)"/>
-
-  ${steps}
-
-  <!-- crucifix -->
-  <rect x="597" y="236" width="6" height="104" fill="#161020" stroke="rgba(226,192,124,.3)" stroke-width="1"/>
-  <rect x="566" y="260" width="68" height="6" fill="#161020" stroke="rgba(226,192,124,.3)" stroke-width="1"/>
-
-  <!-- gradine, tabernacle, candlesticks -->
-  <rect x="520" y="358" width="160" height="10" fill="#231a10"/>
-  <line x1="520" y1="358" x2="680" y2="358" stroke="rgba(232,196,138,.3)" stroke-width="1.5"/>
-  <rect x="582" y="322" width="36" height="36" fill="url(#g_gold)" stroke="#57411a" stroke-width="1.5"/>
-  <rect x="591" y="330" width="18" height="26" rx="7" fill="#6e4f1e"/>
-  <line x1="600" y1="334" x2="600" y2="352" stroke="#f0d9a0" stroke-width="1.6"/>
-  <line x1="595" y1="340" x2="605" y2="340" stroke="#f0d9a0" stroke-width="1.6"/>
-  <line x1="600" y1="314" x2="600" y2="322" stroke="url(#g_gold)" stroke-width="2.5"/>
-  ${stick(534,358,36,p)}${stick(552,358,30,p)}${stick(570,358,24,p)}
-  ${stick(666,358,36,p)}${stick(648,358,30,p)}${stick(630,358,24,p)}
-
-  <!-- altar -->
-  <rect x="508" y="368" width="184" height="34" fill="#efe4cd"/>
-  <rect x="508" y="368" width="184" height="5" fill="#faf3e2"/>
-  <rect x="516" y="376" width="168" height="24" fill="#3d0e13"/>
-  <line x1="516" y1="378.5" x2="684" y2="378.5" stroke="url(#g_gold)" stroke-width="2"/>
-  <line x1="516" y1="397.5" x2="684" y2="397.5" stroke="url(#g_gold)" stroke-width="2"/>
-  <line x1="600" y1="380" x2="600" y2="396" stroke="url(#g_gold)" stroke-width="2.5"/>
-  <line x1="593" y1="385" x2="607" y2="385" stroke="url(#g_gold)" stroke-width="2.5"/>
-
-  <!-- sanctuary lamp -->
-  <line x1="502" y1="208" x2="502" y2="252" stroke="#6b5a3a" stroke-width="1.6"/>
-  <circle cx="502" cy="266" r="30" fill="url(#g_lampglow)"/>
-  <ellipse cx="502" cy="264" rx="9" ry="12" fill="url(#g_lamp)"/>
-  <rect x="496" y="250" width="12" height="4" rx="1.5" fill="url(#g_gold)"/>
-  <ellipse cx="502" cy="261" rx="2.4" ry="3.4" fill="#ffd9a0"/>
-
-  <!-- light -->
-  <polygon points="560,300 640,300 730,800 470,800" fill="rgba(190,196,255,.045)"/>
-  <circle cx="600" cy="390" r="310" fill="url(#g_glow)" opacity=".64"/>
-  ` + vig(p) + `</svg>`;
-}
-
-/* ============ SCENE 2 — Baroque: Basilica of the Sacred Heart ============ */
-function sceneBaroque(){
-  const p='b';
-  const cols=[[126,30,300,828],[268,25,300,706],[386,20,300,616],[476,16,300,552]];
-  let arcade='<rect x="0" y="292" width="522" height="540" fill="rgba(8,5,3,.55)"/>';
-  cols.forEach(c=>{
-    arcade+=`<rect x="${c[0]-c[1]/2}" y="${c[2]}" width="${c[1]}" height="${c[3]-c[2]}" fill="url(#b_col)"/>
-    <rect x="${c[0]-c[1]/2-3}" y="${c[2]-9}" width="${c[1]+6}" height="9" fill="url(#b_gold)" opacity=".8"/>
-    <rect x="${c[0]-c[1]/2-2}" y="${c[3]-10}" width="${c[1]+4}" height="10" fill="#1b1108"/>`;
-  });
-  arcade+=`<rect x="60" y="286" width="470" height="7" fill="url(#b_gold)" opacity=".5"/>
-  <rect x="60" y="279" width="470" height="4" fill="#2a1c0c"/>`;
-  /* clerestory: warm arched windows above entablature */
-  for(let i=0;i<cols.length-1;i++){
-    const x=(cols[i][0]+cols[i+1][0])/2;
-    arcade+=`<path d="M${x-13},258 L${x-13},220 A 13,13 0 0 1 ${x+13},220 L${x+13},258 Z" fill="rgba(255,214,150,.24)"/>`;
-  }
-
-  /* coffered barrel vault */
-  let vault='<path d="M0,0 H1200 V300 Q600,-130 0,300 Z" fill="#0d0803"/>';
-  [[540,.16],[464,.12],[388,.08]].forEach(a=>{
-    vault+=`<path d="M${600-a[0]},318 A ${a[0]},${a[0]*0.72} 0 0 1 ${600+a[0]},318" fill="none" stroke="rgba(170,124,66,${a[1]})" stroke-width="15" stroke-dasharray="34 14"/>`;
-  });
-  vault+='<path d="M0,300 Q600,-130 1200,300" fill="none" stroke="#3a2812" stroke-width="4"/>';
-
-  /* apse glory */
-  let glory='';
-  for(let i=0;i<18;i++){
-    const a=Math.PI+(i/17)*Math.PI;
-    glory+=`<line x1="600" y1="330" x2="${(600+Math.cos(a)*186).toFixed(1)}" y2="${(330+Math.sin(a)*178).toFixed(1)}" stroke="rgba(224,180,110,.14)" stroke-width="3"/>`;
-  }
-
-  /* baldachin fringe + canopy */
-  let fringe='';
-  for(let x=516;x<=684;x+=14){ fringe+=`<rect x="${x-2}" y="243" width="4" height="8" fill="url(#b_gold)"/>`; }
-  const twist=(x)=>`<path d="M${x-2},254 q 5,20 -4,40 t 4,40 t -4,40" fill="none" stroke="rgba(250,222,160,.55)" stroke-width="2"/>`;
-
-  return svgOpen + `
-  <defs>
-    <linearGradient id="b_bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#140d06"/><stop offset="60%" stop-color="#1c1208"/><stop offset="100%" stop-color="#24170a"/>
-    </linearGradient>
-    <linearGradient id="b_col" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#3c2b15"/><stop offset="55%" stop-color="#2a1c0d"/><stop offset="100%" stop-color="#1c1207"/>
-    </linearGradient>
-    <linearGradient id="b_gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f2d494"/><stop offset="100%" stop-color="#966c28"/>
-    </linearGradient>
-    <linearGradient id="b_bronze" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#7d5a26"/><stop offset="50%" stop-color="#54390f"/><stop offset="100%" stop-color="#33210a"/>
-    </linearGradient>
-    <radialGradient id="b_dome" cx="50%" cy="38%" r="70%">
-      <stop offset="0%" stop-color="#4a3312"/><stop offset="70%" stop-color="#241708"/><stop offset="100%" stop-color="#140d05"/>
-    </radialGradient>
-    <linearGradient id="b_floor" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#2c1f12"/><stop offset="100%" stop-color="#120c07"/>
-    </linearGradient>
-    <linearGradient id="b_carpet" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#5e1519"/><stop offset="100%" stop-color="#320b0e"/>
-    </linearGradient>
-    <radialGradient id="b_ray" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,242,206,.95)"/><stop offset="45%" stop-color="rgba(255,214,140,.4)"/><stop offset="100%" stop-color="rgba(255,214,140,0)"/>
-    </radialGradient>
-    <radialGradient id="b_host" cx="50%" cy="46%" r="55%">
-      <stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#ffe6ae"/>
-    </radialGradient>
-    <radialGradient id="b_glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,182,100,.55)"/><stop offset="100%" stop-color="rgba(255,182,100,0)"/>
-    </radialGradient>
-    <radialGradient id="b_fglow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,196,102,.6)"/><stop offset="100%" stop-color="rgba(255,196,102,0)"/>
-    </radialGradient>
-    <radialGradient id="b_lamp" cx="50%" cy="42%" r="55%">
-      <stop offset="0%" stop-color="#f4574a"/><stop offset="60%" stop-color="#b02417"/><stop offset="100%" stop-color="#6d1009"/>
-    </radialGradient>
-    <radialGradient id="b_lampglow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,86,56,.5)"/><stop offset="100%" stop-color="rgba(255,86,56,0)"/>
-    </radialGradient>
-  </defs>
-
-  <rect width="1200" height="800" fill="url(#b_bg)"/>
-  ${vault}
-
-  <!-- apse half-dome -->
-  <path d="M410,432 A 190,186 0 0 1 790,432 Z" fill="url(#b_dome)"/>
-  ${glory}
-  <path d="M410,432 A 190,186 0 0 1 790,432" fill="none" stroke="url(#b_gold)" stroke-width="5" opacity=".55"/>
-  <path d="M430,432 A 170,166 0 0 1 770,432" fill="none" stroke="rgba(224,180,110,.2)" stroke-width="2.5"/>
-
-  <!-- arcades, mirrored -->
-  <g id="b_arcL">${arcade}</g>
-  <use href="#b_arcL" transform="translate(1200,0) scale(-1,1)"/>
-
-  <!-- floor -->
-  <polygon points="0,800 455,432 0,432" fill="#160e08"/>
-  <polygon points="1200,800 745,432 1200,432" fill="#160e08"/>
-  <polygon points="0,800 1200,800 745,432 455,432" fill="url(#b_floor)"/>
-  ${floorLines(436,800,600,96,'rgba(0,0,0,.4)')}
-  ${courses(432,800,145,600,600,[456,482,516,558,610,672,744],'rgba(88,64,40,.5)')}
-  <polygon points="566,432 634,432 700,800 500,800" fill="url(#b_carpet)"/>
-
-  <!-- steps -->
-  <polygon points="400,472 800,472 784,456 416,456" fill="#332413"/>
-  <line x1="416" y1="456" x2="784" y2="456" stroke="rgba(242,206,140,.18)" stroke-width="2"/>
-  <polygon points="424,456 776,456 764,444 436,444" fill="#3c2b17"/>
-  <line x1="436" y1="444" x2="764" y2="444" stroke="rgba(242,206,140,.18)" stroke-width="2"/>
-  <polygon points="446,444 754,444 745,432 455,432" fill="#332413"/>
-  <line x1="455" y1="432" x2="745" y2="432" stroke="rgba(242,206,140,.2)" stroke-width="2"/>
-
-  <!-- baldachin: rear columns -->
-  <rect x="551" y="258" width="9" height="112" fill="url(#b_bronze)"/>
-  <rect x="640" y="258" width="9" height="112" fill="url(#b_bronze)"/>
-
-  <!-- gradine & candles -->
-  <rect x="520" y="362" width="160" height="10" fill="#241708"/>
-  <line x1="520" y1="362" x2="680" y2="362" stroke="rgba(242,206,140,.3)" stroke-width="1.5"/>
-  ${stick(530,362,34,p)}${stick(548,362,28,p)}${stick(566,362,22,p)}
-  ${stick(670,362,34,p)}${stick(652,362,28,p)}${stick(634,362,22,p)}
-
-  <!-- monstrance throne -->
-  <rect x="586" y="354" width="28" height="8" fill="url(#b_gold)"/>
-
-  <!-- MONSTRANCE (the Blessed Sacrament exposed) -->
-  <circle cx="600" cy="316" r="62" fill="url(#b_ray)" opacity=".9"/>
-  <polygon points="585,372 615,372 607,362 593,362" fill="url(#b_gold)"/>
-  <rect x="597" y="330" width="6" height="32" fill="url(#b_gold)"/>
-  <circle cx="600" cy="346" r="5" fill="url(#b_gold)"/>
-  ${rays(600,316,16,11,36,'url(#b_gold)')}
-  <circle cx="600" cy="316" r="11.5" fill="#1a1208" stroke="url(#b_gold)" stroke-width="3"/>
-  <circle cx="600" cy="316" r="8" fill="url(#b_host)"/>
-  <line x1="600" y1="272" x2="600" y2="282" stroke="url(#b_gold)" stroke-width="2.5"/>
-  <line x1="595.5" y1="275.5" x2="604.5" y2="275.5" stroke="url(#b_gold)" stroke-width="2.5"/>
-
-  <!-- baldachin: front columns + canopy -->
-  <rect x="513" y="252" width="14" height="152" fill="url(#b_bronze)"/>
-  <rect x="673" y="252" width="14" height="152" fill="url(#b_bronze)"/>
-  ${twist(520)}${twist(680)}
-  <rect x="508" y="398" width="24" height="9" fill="url(#b_gold)"/>
-  <rect x="668" y="398" width="24" height="9" fill="url(#b_gold)"/>
-  <rect x="509" y="244" width="22" height="8" fill="url(#b_gold)"/>
-  <rect x="669" y="244" width="22" height="8" fill="url(#b_gold)"/>
-  <polygon points="496,244 704,244 686,216 514,216" fill="#2e1d0b"/>
-  <polygon points="506,244 694,244 680,228 520,228" fill="#1a1005"/>
-  <line x1="496" y1="244" x2="704" y2="244" stroke="url(#b_gold)" stroke-width="2.5"/>
-  <line x1="514" y1="216" x2="686" y2="216" stroke="rgba(242,206,140,.45)" stroke-width="2.5"/>
-  ${fringe}
-  <circle cx="600" cy="211" r="5" fill="url(#b_gold)"/>
-  <line x1="600" y1="196" x2="600" y2="206" stroke="url(#b_gold)" stroke-width="2.5"/>
-  <line x1="595.5" y1="199.5" x2="604.5" y2="199.5" stroke="url(#b_gold)" stroke-width="2.5"/>
-
-  <!-- altar -->
-  <rect x="540" y="372" width="120" height="30" fill="#efe4cd"/>
-  <rect x="540" y="372" width="120" height="4.5" fill="#faf3e2"/>
-  <rect x="546" y="379" width="108" height="20" fill="#efe4cd"/>
-  <rect x="546" y="379" width="108" height="20" fill="none" stroke="url(#b_gold)" stroke-width="2"/>
-
-  <!-- hanging lamps -->
-  <line x1="452" y1="152" x2="452" y2="262" stroke="#6b5a3a" stroke-width="1.5"/>
-  <circle cx="452" cy="274" r="26" fill="url(#b_lampglow)"/>
-  <ellipse cx="452" cy="272" rx="8" ry="11" fill="url(#b_lamp)"/>
-  <ellipse cx="452" cy="269" rx="2.2" ry="3" fill="#ffd9a0"/>
-  <line x1="748" y1="152" x2="748" y2="262" stroke="#6b5a3a" stroke-width="1.5"/>
-  <circle cx="748" cy="274" r="26" fill="url(#b_lampglow)"/>
-  <ellipse cx="748" cy="272" rx="8" ry="11" fill="url(#b_lamp)"/>
-  <ellipse cx="748" cy="269" rx="2.2" ry="3" fill="#ffd9a0"/>
-
-  <circle cx="600" cy="360" r="330" fill="url(#b_glow)" opacity=".6"/>
-  ` + vig(p) + `</svg>`;
-}
-
-/* ============ SCENE 3 — Romanesque: Abbey of Our Lady ============ */
-function sceneRomanesque(){
-  const p='r';
-  const cols=[[132,46,296,830],[276,38,300,706],[394,30,304,614],[482,23,306,552]];
-  let arcade='<rect x="0" y="292" width="528" height="540" fill="rgba(6,5,4,.55)"/>';
-  cols.forEach(c=>{
-    arcade+=`<rect x="${c[0]-c[1]/2}" y="${c[2]}" width="${c[1]}" height="${c[3]-c[2]}" fill="url(#r_stone)"/>
-    <rect x="${c[0]-c[1]/2-4}" y="${c[2]-9}" width="${c[1]+8}" height="9" fill="#332a1e"/>
-    <rect x="${c[0]-c[1]/2-3}" y="${c[3]-11}" width="${c[1]+6}" height="11" fill="#221b12"/>`;
-  });
-  for(let i=0;i<cols.length-1;i++){
-    const a=cols[i], b=cols[i+1], r=(b[0]-a[0])/2;
-    arcade+=`<path d="M${a[0]},${a[2]} A ${r},${r*0.95} 0 0 1 ${b[0]},${b[2]}" fill="none" stroke="#352b1d" stroke-width="9"/>`;
-  }
-  arcade+=`<path d="M482,306 Q522,268 552,306" fill="none" stroke="#352b1d" stroke-width="7"/>`;
-
-  /* rafters */
-  let roof='<polygon points="0,0 1200,0 1200,246 600,108 0,246" fill="#080604"/>';
-  for(let i=1;i<=5;i++){
-    roof+=`<line x1="600" y1="112" x2="${600-i*118}" y2="${118+i*26}" stroke="#332514" stroke-width="5"/>
-    <line x1="600" y1="112" x2="${600+i*118}" y2="${118+i*26}" stroke="#332514" stroke-width="5"/>`;
-  }
-  roof+='<line x1="70" y1="252" x2="1130" y2="252" stroke="#382a18" stroke-width="7"/>';
-
-  /* mosaic tesserae — golden-angle scatter inside the half-dome */
-  let tess='';
-  for(let i=0;i<110;i++){
-    const rr=Math.sqrt((i+0.5)/110)*168, a=Math.PI+((i*0.61803)%1)*Math.PI;
-    const x=600+Math.cos(a)*rr, y=432+Math.sin(a)*rr*0.93;
-    if(y<428) tess+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.6" fill="rgba(242,212,148,${(0.12+((i*0.377)%1)*0.2).toFixed(2)})"/>`;
-  }
-  /* stars around the cross */
-  let stars='';
-  [[520,330],[680,330],[545,282],[655,282],[600,250]].forEach(s=>{
-    stars+=`<path d="M${s[0]},${s[1]-6} L${s[0]+2},${s[1]-2} L${s[0]+6},${s[1]} L${s[0]+2},${s[1]+2} L${s[0]},${s[1]+6} L${s[0]-2},${s[1]+2} L${s[0]-6},${s[1]} L${s[0]-2},${s[1]-2} Z" fill="rgba(242,212,148,.55)"/>`;
-  });
-
-  const corona=(cx,cy)=>`
-  <line x1="${cx}" y1="${cy-108}" x2="${cx-40}" y2="${cy-6}" stroke="#3a2f20" stroke-width="1.6"/>
-  <line x1="${cx}" y1="${cy-108}" x2="${cx+40}" y2="${cy-6}" stroke="#3a2f20" stroke-width="1.6"/>
-  <line x1="${cx}" y1="${cy-108}" x2="${cx}" y2="${cy-10}" stroke="#3a2f20" stroke-width="1.6"/>
-  <ellipse cx="${cx}" cy="${cy}" rx="46" ry="10" fill="none" stroke="#3a2f20" stroke-width="5"/>
-  ${[-38,-19,0,19,38].map(o=>fl(cx+o, cy-8+Math.abs(o)*0.08, 1.9, 3.1, p)).join('')}`;
-
-  return svgOpen + `
-  <defs>
-    <linearGradient id="r_bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0b0a08"/><stop offset="60%" stop-color="#121009"/><stop offset="100%" stop-color="#17140e"/>
-    </linearGradient>
-    <radialGradient id="r_dome" cx="50%" cy="30%" r="75%">
-      <stop offset="0%" stop-color="#8a6426"/><stop offset="60%" stop-color="#523a15"/><stop offset="100%" stop-color="#2c1f0c"/>
-    </radialGradient>
-    <linearGradient id="r_stone" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#2e261b"/><stop offset="55%" stop-color="#211a12"/><stop offset="100%" stop-color="#17120c"/>
-    </linearGradient>
-    <linearGradient id="r_floor" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#221c15"/><stop offset="100%" stop-color="#0d0b08"/>
-    </linearGradient>
-    <linearGradient id="r_gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#e6c07c"/><stop offset="100%" stop-color="#8a6529"/>
-    </linearGradient>
-    <radialGradient id="r_glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,182,104,.42)"/><stop offset="100%" stop-color="rgba(255,182,104,0)"/>
-    </radialGradient>
-    <radialGradient id="r_fglow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,196,102,.6)"/><stop offset="100%" stop-color="rgba(255,196,102,0)"/>
-    </radialGradient>
-    <radialGradient id="r_win" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#ffe1a0"/><stop offset="100%" stop-color="#c78f3e"/>
-    </radialGradient>
-    <radialGradient id="r_lamp" cx="50%" cy="42%" r="55%">
-      <stop offset="0%" stop-color="#f4574a"/><stop offset="60%" stop-color="#b02417"/><stop offset="100%" stop-color="#6d1009"/>
-    </radialGradient>
-    <radialGradient id="r_lampglow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,86,56,.5)"/><stop offset="100%" stop-color="rgba(255,86,56,0)"/>
-    </radialGradient>
-  </defs>
-
-  <rect width="1200" height="800" fill="url(#r_bg)"/>
-  ${roof}
-
-  <!-- apse half-dome with gold mosaic -->
-  <path d="M418,432 A 182,172 0 0 1 782,432 Z" fill="url(#r_dome)"/>
-  ${tess}
-  <circle cx="600" cy="322" r="40" fill="none" stroke="rgba(242,212,148,.4)" stroke-width="3"/>
-  <rect x="593" y="278" width="14" height="112" fill="url(#r_gold)"/>
-  <rect x="562" y="308" width="76" height="14" fill="url(#r_gold)"/>
-  ${stars}
-  <path d="M418,432 A 182,172 0 0 1 782,432" fill="none" stroke="#3b2f1f" stroke-width="9"/>
-  <path d="M432,432 A 168,158 0 0 1 768,432" fill="none" stroke="rgba(214,180,106,.22)" stroke-width="2.5"/>
-
-  <!-- apse windows -->
-  <path d="M530,404 L530,368 A 11,11 0 0 1 552,368 L552,404 Z" fill="url(#r_win)" opacity=".85"/>
-  <path d="M648,404 L648,368 A 11,11 0 0 1 670,368 L670,404 Z" fill="url(#r_win)" opacity=".85"/>
-
-  <!-- arcades, mirrored -->
-  <g id="r_arcL">${arcade}</g>
-  <use href="#r_arcL" transform="translate(1200,0) scale(-1,1)"/>
-
-  <!-- coronae lucis -->
-  ${corona(322,318)}
-  ${corona(878,318)}
-
-  <!-- floor -->
-  <polygon points="0,800 455,432 0,432" fill="#100e0a"/>
-  <polygon points="1200,800 745,432 1200,432" fill="#100e0a"/>
-  <polygon points="0,800 1200,800 745,432 455,432" fill="url(#r_floor)"/>
-  ${floorLines(436,800,600,138,'rgba(0,0,0,.42)')}
-  ${courses(432,800,145,600,600,[462,498,548,614,696,780],'rgba(58,48,36,.55)')}
-
-  <!-- steps -->
-  <polygon points="416,466 784,466 770,452 430,452" fill="#262016"/>
-  <line x1="430" y1="452" x2="770" y2="452" stroke="rgba(220,188,128,.14)" stroke-width="2"/>
-  <polygon points="438,452 762,452 750,440 450,440" fill="#2e271b"/>
-  <line x1="450" y1="440" x2="750" y2="440" stroke="rgba(220,188,128,.14)" stroke-width="2"/>
-  <polygon points="458,440 742,440 734,432 466,432" fill="#262016"/>
-  <line x1="466" y1="432" x2="734" y2="432" stroke="rgba(220,188,128,.16)" stroke-width="2"/>
-
-  <!-- crucifix -->
-  <rect x="597" y="252" width="6" height="82" fill="#1b140c" stroke="rgba(214,180,106,.3)" stroke-width="1"/>
-  <rect x="572" y="272" width="56" height="6" fill="#1b140c" stroke="rgba(214,180,106,.3)" stroke-width="1"/>
-
-  <!-- tabernacle & candles -->
-  <rect x="586" y="332" width="28" height="30" fill="url(#r_gold)" stroke="#57411a" stroke-width="1.5"/>
-  <line x1="600" y1="340" x2="600" y2="356" stroke="#3b2c10" stroke-width="1.6"/>
-  <line x1="594" y1="345" x2="606" y2="345" stroke="#3b2c10" stroke-width="1.6"/>
-  ${stick(556,362,30,p)}${stick(644,362,30,p)}
-
-  <!-- stone altar -->
-  <rect x="540" y="368" width="120" height="34" fill="#a3957b"/>
-  <rect x="540" y="368" width="120" height="34" fill="none" stroke="#6e6350" stroke-width="1.5"/>
-  <rect x="534" y="362" width="132" height="9" fill="#f2ead8"/>
-  <polygon points="534,371 546,371 543,384 534,384" fill="#e6ddc8"/>
-  <polygon points="666,371 654,371 657,384 666,384" fill="#e6ddc8"/>
-  <line x1="600" y1="378" x2="600" y2="394" stroke="#6e6350" stroke-width="2"/>
-  <line x1="593" y1="383" x2="607" y2="383" stroke="#6e6350" stroke-width="2"/>
-
-  <!-- sanctuary lamp -->
-  <line x1="502" y1="252" x2="502" y2="288" stroke="#6b5a3a" stroke-width="1.6"/>
-  <circle cx="502" cy="300" r="28" fill="url(#r_lampglow)"/>
-  <ellipse cx="502" cy="298" rx="8.5" ry="11.5" fill="url(#r_lamp)"/>
-  <ellipse cx="502" cy="295" rx="2.3" ry="3.2" fill="#ffd9a0"/>
-
-  <circle cx="600" cy="392" r="300" fill="url(#r_glow)" opacity=".5"/>
-  ` + vig(p) + `</svg>`;
-}
-
-/* ============ SCENE 4 — Chapel of Perpetual Adoration ============ */
-function sceneAdoration(){
-  const p='a';
-  /* drape folds across the backdrop */
-  let folds='';
-  for(let x=392;x<=808;x+=38){
-    folds+=`<path d="M${x},104 q 7,80 -4,162 q -5,82 4,164" fill="none" stroke="rgba(0,0,0,.34)" stroke-width="9"/>
-    <path d="M${x+13},104 q 5,84 -3,166 q -4,80 3,160" fill="none" stroke="rgba(255,196,150,.05)" stroke-width="3"/>`;
-  }
-  /* sparse gold stars on the drape */
-  let stars='';
-  [[430,168],[540,140],[672,158],[772,186],[452,300],[748,296],[500,236],[706,232]].forEach(s=>{
-    stars+=`<path d="M${s[0]},${s[1]-5} L${s[0]+1.7},${s[1]-1.7} L${s[0]+5},${s[1]} L${s[0]+1.7},${s[1]+1.7} L${s[0]},${s[1]+5} L${s[0]-1.7},${s[1]+1.7} L${s[0]-5},${s[1]} L${s[0]-1.7},${s[1]-1.7} Z" fill="rgba(232,200,126,.4)"/>`;
-  });
-  /* pelmet scallops */
-  let pelmet='';
-  for(let i=0;i<6;i++){
-    const x=360+i*80;
-    pelmet+=`<path d="M${x},128 Q${x+40},166 ${x+80},128 L${x+80},96 L${x},96 Z" fill="#3a0c12"/>
-    <path d="M${x},128 Q${x+40},166 ${x+80},128" fill="none" stroke="url(#a_gold)" stroke-width="2.5"/>
-    <circle cx="${x+40}" cy="150" r="2.6" fill="url(#a_gold)"/>`;
-  }
-  const sconce=(x,y)=>`
-  <rect x="${x-8}" y="${y+8}" width="16" height="3.5" fill="#3a2f20"/>
-  <rect x="${x-1.6}" y="${y-8}" width="3.2" height="16" fill="#f0e6d2"/>
-  ${fl(x, y-11, 1.9, 3.1, p)}`;
-
-  return svgOpen + `
-  <defs>
-    <linearGradient id="a_bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#150a0d"/><stop offset="60%" stop-color="#1d0e12"/><stop offset="100%" stop-color="#241217"/>
-    </linearGradient>
-    <linearGradient id="a_drape" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#521118"/><stop offset="100%" stop-color="#2a080d"/>
-    </linearGradient>
-    <linearGradient id="a_gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f2d494"/><stop offset="100%" stop-color="#966c28"/>
-    </linearGradient>
-    <radialGradient id="a_ray" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,246,214,1)"/><stop offset="40%" stop-color="rgba(255,222,150,.5)"/><stop offset="100%" stop-color="rgba(255,222,150,0)"/>
-    </radialGradient>
-    <radialGradient id="a_host" cx="50%" cy="44%" r="58%">
-      <stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#ffe9b6"/>
-    </radialGradient>
-    <linearGradient id="a_floor" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#241318"/><stop offset="100%" stop-color="#0f080a"/>
-    </linearGradient>
-    <linearGradient id="a_carpet" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#5c141b"/><stop offset="100%" stop-color="#30090e"/>
-    </linearGradient>
-    <radialGradient id="a_glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,196,120,.5)"/><stop offset="100%" stop-color="rgba(255,196,120,0)"/>
-    </radialGradient>
-    <radialGradient id="a_fglow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="rgba(255,196,102,.6)"/><stop offset="100%" stop-color="rgba(255,196,102,0)"/>
-    </radialGradient>
-  </defs>
-
-  <rect width="1200" height="800" fill="url(#a_bg)"/>
-
-  <!-- side walls with sconces -->
-  <rect x="0" y="0" width="360" height="800" fill="#0d0709"/>
-  <rect x="840" y="0" width="360" height="800" fill="#0d0709"/>
-  ${sconce(140,296)}${sconce(252,320)}${sconce(1060,296)}${sconce(948,320)}
-
-  <!-- backdrop drape -->
-  <rect x="360" y="96" width="480" height="336" fill="url(#a_drape)"/>
-  ${folds}
-  <rect x="360" y="96" width="480" height="336" fill="none" stroke="url(#a_gold)" stroke-width="2.5" opacity=".65"/>
-  ${stars}
-  ${pelmet}
-
-  <!-- floor -->
-  <polygon points="0,800 1200,800 780,432 420,432" fill="url(#a_floor)"/>
-  ${courses(432,800,180,600,600,[466,510,566,636,716],'rgba(52,32,38,.55)')}
-  <polygon points="556,432 644,432 716,800 484,800" fill="url(#a_carpet)"/>
-
-  <!-- steps -->
-  <polygon points="410,474 790,474 774,458 426,458" fill="#2c1a1e"/>
-  <line x1="426" y1="458" x2="774" y2="458" stroke="rgba(242,206,140,.16)" stroke-width="2"/>
-  <polygon points="434,458 766,458 754,445 446,445" fill="#342026"/>
-  <line x1="446" y1="445" x2="754" y2="445" stroke="rgba(242,206,140,.16)" stroke-width="2"/>
-  <polygon points="454,445 746,445 736,432 464,432" fill="#2c1a1e"/>
-  <line x1="464" y1="432" x2="736" y2="432" stroke="rgba(242,206,140,.18)" stroke-width="2"/>
-
-  <!-- MONSTRANCE, solemnly exposed -->
-  <circle cx="600" cy="290" r="160" fill="url(#a_ray)" opacity=".32"/>
-  <circle cx="600" cy="290" r="86" fill="url(#a_ray)" opacity=".62"/>
-  <polygon points="574,380 626,380 612,364 588,364" fill="url(#a_gold)"/>
-  <rect x="595" y="318" width="10" height="46" fill="url(#a_gold)"/>
-  <circle cx="600" cy="340" r="7" fill="url(#a_gold)"/>
-  ${rays(600,290,24,17,82,'url(#a_gold)')}
-  <circle cx="600" cy="290" r="16" fill="#140d06" stroke="url(#a_gold)" stroke-width="3.5"/>
-  <circle cx="600" cy="290" r="11.5" fill="url(#a_host)"/>
-  <line x1="600" y1="286" x2="600" y2="294" stroke="rgba(200,150,60,.4)" stroke-width="1.4"/>
-  <line x1="596" y1="290" x2="604" y2="290" stroke="rgba(200,150,60,.4)" stroke-width="1.4"/>
-  <line x1="600" y1="190" x2="600" y2="203" stroke="url(#a_gold)" stroke-width="3"/>
-  <line x1="594.5" y1="194" x2="605.5" y2="194" stroke="url(#a_gold)" stroke-width="3"/>
-
-  <!-- great candlesticks -->
-  ${stick(505,380,58,p,1.5)}${stick(695,380,58,p,1.5)}
-  ${stick(548,378,38,p,1.1)}${stick(652,378,38,p,1.1)}
-
-  <!-- altar with lace-edged cloth -->
-  <rect x="464" y="376" width="272" height="9" fill="#faf3e2"/>
-  <rect x="470" y="384" width="260" height="30" fill="#efe4cd"/>
-  <line x1="470" y1="413" x2="730" y2="413" stroke="#d8ccb2" stroke-width="2" stroke-dasharray="3 3"/>
-  <rect x="478" y="390" width="244" height="18" fill="none" stroke="url(#a_gold)" stroke-width="1.8"/>
-  <line x1="600" y1="392" x2="600" y2="406" stroke="url(#a_gold)" stroke-width="2.2"/>
-  <line x1="594" y1="396.5" x2="606" y2="396.5" stroke="url(#a_gold)" stroke-width="2.2"/>
-
-  <circle cx="600" cy="330" r="340" fill="url(#a_glow)" opacity=".5"/>
-  ` + vig(p) + `</svg>`;
-}
-
-/* ================= app ================= */
-const BURN_HOURS = 10;                       /* a votive burns about ten hours */
+/* ---------- the church ---------- */
+const CHURCH_IMAGE = "https://www.jstafki.com/assets/lumen/c54ceee7-a68b-4ef2-83bb-7ecad65e5b91.png";
+const CHURCH_LABEL = "";        /* optional caption under the wordmark; "" hides it */
+const CHURCH_ATTRIB = "";       /* optional small credit line, e.g. a photographer */
+
+const BURN_HOURS = 10;                        /* a votive burns about ten hours */
 const BURN_MS = BURN_HOURS * 3600 * 1000;
 
 /* ------------------------------------------------------------------
-   CROSS-DEVICE SYNC (optional)
-   Paste your Firebase web config below and host this file, and your
-   candles sign in with Google and follow you across every device.
-   Leave it empty and everything is kept privately on this device.
-   Same Auth + Firestore pattern as the rest of the suite.
+   CROSS-DEVICE SYNC + PRIVATE / GLOBAL CANDLES  (optional)
+   Paste your Firebase web config below and host this file. Sign in
+   with Google and your candles follow you across devices, kept
+   private to your account — until you make one global, when it
+   appears for everyone. Leave it empty and everything stays on this
+   device (no accounts, no sharing).
 ------------------------------------------------------------------ */
 const FIREBASE_CONFIG = {
   // apiKey:            "…",
@@ -1026,14 +356,6 @@ const FIREBASE_CONFIG = {
   // appId:             "…",
 };
 
-/* ---------- the four built-in chapels (always available) ---------- */
-const BUILTINS = [
-  { id:'gothic',     name:'Cathedral of the Holy Cross',   desc:'Gothic',                                  scene:sceneGothic,     hasMonstrance:false },
-  { id:'baroque',    name:'Basilica of the Sacred Heart',  desc:'Baroque · the Blessed Sacrament exposed', scene:sceneBaroque,    hasMonstrance:true  },
-  { id:'romanesque', name:'Abbey of Our Lady',             desc:'Romanesque',                              scene:sceneRomanesque, hasMonstrance:false },
-  { id:'adoration',  name:'Chapel of Perpetual Adoration', desc:'the Blessed Sacrament exposed',           scene:sceneAdoration,  hasMonstrance:true  },
-];
-
 /* votive rack: back row of 9, front row of 8 parted around the button */
 const SLOTS = [
   ...[18,26,34,42,50,58,66,74,82].map(x => ({x, b:20.6, s:.78})),
@@ -1042,68 +364,65 @@ const SLOTS = [
 ];
 
 /* ---------- state ---------- */
-let candles = [];
-let custom  = [];        /* user-added photo churches */
-let curId   = null;
-let activeLayer = 'A';
-let pendingId = null;    /* a candle awaiting its flame — excluded from repaints */
 let backend = null;
-let booted = false;
+let all = [];            /* current merged, alive candles on display */
+let pendingId = null;    /* a candle awaiting its flame — excluded from repaints */
+let cal = { bottom:0, scale:1 };
+let holder = null;       /* the .cands element */
 
+const $ = s => document.querySelector(s);
+const R = (a,b) => a + Math.random()*(b-a);
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-
-const churches   = () => [...BUILTINS, ...custom];
-const churchById = id => churches().find(c => c.id === id) || null;
-const orderIds   = () => churches().map(c => c.id);
 
 const alive  = c => Date.now() - c.lit < BURN_MS;
 const frac   = c => Math.max(0, 1 - (Date.now() - c.lit) / BURN_MS);
 const waxPct = c => 6 + 86 * frac(c);
-
-const els = {
-  A:$('#sceneA'), B:$('#sceneB'), name:$('#chName'), desc:$('#chDesc'),
-  dots:$('#dots'), count:$('#count'), hint:$('#hint'), veil:$('#veil'),
-  intent:$('#intent'), note:$('#note'), pop:$('#pop'), toast:$('#toast'), fly:$('#fly'),
-};
+/* a candle is "mine" (editable) if local, or private, or a global one I own */
+const mineC  = c => !backend.cloud || !c.global || c.owner === backend.user?.uid;
 
 /* ================= storage backends ================= */
-/* Local: window.storage (artifact) -> localStorage -> memory. State is {candles, churches}. */
+/* Local: window.storage (artifact) -> localStorage. Everything on this device. */
 function makeLocalBackend(){
-  const KEY = 'lumen.state.v2';
+  const KEY = 'lumen.state.v3';
   const hasWS = typeof window.storage === 'object' && window.storage && window.storage.get;
-  let mem = null;
-  const rawGet = async () => {
+  const read = async () => {
     if (hasWS){ try{ const r = await window.storage.get(KEY); return r ? JSON.parse(r.value) : null; }catch(e){ return null; } }
-    try{ return JSON.parse(localStorage.getItem(KEY) || 'null'); }catch(e){ return mem; }
+    try{ return JSON.parse(localStorage.getItem(KEY) || 'null'); }catch(e){ return null; }
   };
-  const rawSet = async v => {
+  const write = async v => {
     const s = JSON.stringify(v);
     if (hasWS){ try{ await window.storage.set(KEY, s); }catch(e){} return; }
-    try{ localStorage.setItem(KEY, s); }catch(e){ mem = v; }
+    try{ localStorage.setItem(KEY, s); }catch(e){}
   };
-  const migrate = async () => {                       /* pull v1 candle array if present */
-    if (hasWS){ try{ const r = await window.storage.get('lumen.candles.v1'); if(r){ const a=JSON.parse(r.value); if(Array.isArray(a)) return {candles:a, churches:[]}; } }catch(e){} }
-    try{ const a = JSON.parse(localStorage.getItem('lumen.candles.v1')||'null'); if(Array.isArray(a)) return {candles:a, churches:[]}; }catch(e){}
+  const migrate = async () => {                          /* pull a v2 candle set if present */
+    if (hasWS){ try{ const r = await window.storage.get('lumen.state.v2'); if(r){ const o=JSON.parse(r.value); if(o&&o.candles) return o.candles; } }catch(e){} }
     return null;
   };
+  let state = { candles:[] }, cb = null;
+  const emit = () => { if (cb) cb(state.candles.filter(alive)); };
+  const persist = () => write(state);
   return {
     cloud:false, get user(){ return null; },
-    async load(){
-      let s = await rawGet();
-      if (Array.isArray(s)) s = {candles:s, churches:[]};
-      if (!s) s = await migrate();
-      return s || {candles:[], churches:[]};
+    async init(){
+      state = (await read()) || {};
+      if (!Array.isArray(state.candles)){ const m = await migrate(); state.candles = m || []; }
+      emit();
     },
-    async save(state){ await rawSet(state); },
-    onChange(){}, onAuth(){}, async signIn(){}, async signOut(){},
+    onData(f){ cb = f; },
+    onAuth(){}, async signIn(){}, async signOut(){},
+    async addPrivate(c){ state.candles.push({ id:c.id, text:c.text||'', lit:c.lit, slot:c.slot, global:false }); await persist(); emit(); },
+    async makeGlobal(c){ const x = state.candles.find(k=>k.id===c.id); if(x){ x.global = true; await persist(); emit(); } },
+    async makePrivate(c){ const x = state.candles.find(k=>k.id===c.id); if(x){ x.global = false; await persist(); emit(); } },
+    async removeExpired(){ const n = state.candles.length; state.candles = state.candles.filter(alive); if(state.candles.length !== n){ await persist(); } emit(); },
   };
 }
 
-/* Cloud: Firestore doc lumen/{uid}, live via onSnapshot. Falls back to local while signed out. */
+/* Cloud: private candles in lumenPrivate/{uid}; global candles in the shared
+   lumenGlobal collection. Both stream live via onSnapshot. Sign-in required. */
 let fbLoaded = false;
 function loadFirebase(){
-  if (fbLoaded || window.firebase) { fbLoaded = true; return Promise.resolve(); }
+  if (fbLoaded || window.firebase){ fbLoaded = true; return Promise.resolve(); }
   const base = 'https://www.gstatic.com/firebasejs/10.12.2/';
   const files = ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'];
   return files.reduce((p,f) => p.then(() => new Promise((res,rej) => {
@@ -1119,50 +438,76 @@ async function makeCloudBackend(cfg){
   const auth = firebase.auth();
   const db   = firebase.firestore();
   const provider = new firebase.auth.GoogleAuthProvider();
-  const local = makeLocalBackend();
-  let unsub = null, changeCb = null, authCb = null;
 
-  const docRef = () => auth.currentUser ? db.collection('lumen').doc(auth.currentUser.uid) : null;
+  let cb = null, authCb = null;
+  let priv = [], glob = [], unsubP = null, unsubG = null;
+
+  const privRef = () => auth.currentUser ? db.collection('lumenPrivate').doc(auth.currentUser.uid) : null;
+  const globCol = () => db.collection('lumenGlobal');
+  const P = c => ({ id:c.id, text:c.text||'', lit:c.lit, slot:c.slot });   /* stored shape */
+
+  const emit = () => { if (cb) cb(auth.currentUser ? [...priv, ...glob].filter(alive) : []); };
+
   const bind = () => {
-    if (unsub){ unsub(); unsub = null; }
-    const ref = docRef();
-    if (ref && changeCb){
-      unsub = ref.onSnapshot(
-        snap => changeCb(snap.data() || {candles:[], churches:[]}),
-        err  => console.warn('sync:', err.message)
-      );
-    }
+    if (unsubP){ unsubP(); unsubP = null; }
+    if (unsubG){ unsubG(); unsubG = null; }
+    priv = []; glob = [];
+    if (auth.currentUser){
+      unsubP = privRef().onSnapshot(
+        s => { priv = (((s.data()||{}).candles)||[]).map(c => ({ ...c, global:false })); emit(); },
+        e => console.warn('private sync:', e.message));
+      unsubG = globCol().onSnapshot(
+        s => { glob = s.docs.map(d => ({ ...d.data(), global:true })); emit(); },
+        e => console.warn('global sync:', e.message));
+    } else emit();
   };
   auth.onAuthStateChanged(u => { bind(); if (authCb) authCb(u); });
 
   return {
-    cloud:true,
-    get user(){ return auth.currentUser; },
-    async load(){
-      const ref = docRef();
-      if (!ref) return local.load();
-      const snap = await ref.get();
-      return snap.exists ? snap.data() : {candles:[], churches:[]};
-    },
-    async save(state){
-      const ref = docRef();
-      if (ref) { try{ await ref.set(state); }catch(e){ console.warn('save:', e.message); } }
-      else await local.save(state);
-    },
-    onChange(cb){ changeCb = cb; bind(); },
-    onAuth(cb){ authCb = cb; },
+    cloud:true, get user(){ return auth.currentUser; },
+    async init(){ /* snapshots drive the data once signed in */ },
+    onData(f){ cb = f; emit(); },
+    onAuth(f){ authCb = f; },
     async signIn(){ try{ await auth.signInWithPopup(provider); }catch(e){ console.warn(e.message); } },
     async signOut(){ try{ await auth.signOut(); }catch(e){} },
+    async addPrivate(c){
+      const ref = privRef(); if (!ref) return;
+      await ref.set({ candles: [...priv.map(P), P(c)] });
+    },
+    async makeGlobal(c){
+      const ref = privRef(); if (!ref) return;
+      await ref.set({ candles: priv.filter(k => k.id !== c.id).map(P) });
+      await globCol().doc(c.id).set({ ...P(c), owner: auth.currentUser.uid });
+    },
+    async makePrivate(c){
+      const ref = privRef(); if (!ref) return;
+      await globCol().doc(c.id).delete();
+      await ref.set({ candles: [...priv.map(P), P(c)] });
+    },
+    async removeExpired(){
+      const ref = privRef();
+      if (ref){ const a = priv.filter(alive).map(P); if (a.length !== priv.length) await ref.set({ candles:a }); }
+      const me = auth.currentUser?.uid;
+      for (const c of glob.filter(c => c.owner === me && !alive(c))){ try{ await globCol().doc(c.id).delete(); }catch(e){} }
+    },
   };
 }
-
-const saveState = () => backend.save({ candles, churches: custom });
-
 /* ================= rendering ================= */
+function buildScene(){
+  const scene = $('#scene');
+  scene.innerHTML =
+    '<div class="photo"><img src="'+esc(CHURCH_IMAGE)+'" alt="" referrerpolicy="no-referrer" ' +
+    'onerror="this.closest(\'.photo\').classList.add(\'imgfail\')">' +
+    '<div class="photo-grad"></div><div class="photo-vig"></div></div>' +
+    (CHURCH_ATTRIB ? '<div class="attrib">'+esc(CHURCH_ATTRIB)+'</div>' : '') +
+    '<div class="cands"><div class="shelf back"></div><div class="shelf front"></div></div>';
+  holder = scene.querySelector('.cands');
+}
+
 function candleEl(c){
   const slot = SLOTS[c.slot] || SLOTS[0];
   const el = document.createElement('div');
-  el.className = 'candle';
+  el.className = 'candle' + (c.global ? ' global' : '');
   el.style.left = slot.x + '%';
   el.style.bottom = slot.b + '%';
   el.style.setProperty('--s', slot.s);
@@ -1173,93 +518,102 @@ function candleEl(c){
   el.dataset.id = c.id;
   el.dataset.slot = c.slot;
   el.setAttribute('role','button');
-  el.setAttribute('aria-label','A burning candle');
+  el.setAttribute('aria-label', c.global ? 'A candle, shared with everyone' : 'A candle');
   el.innerHTML = '<div class="glo"></div><div class="flm"><div class="f"></div></div><div class="glass"><div class="wax"></div></div>';
-  el.addEventListener('click', ev => { ev.stopPropagation(); showPop(c, el); });
+  el.addEventListener('click', ev => { ev.stopPropagation(); showPop(c.id, el); });
   return el;
 }
 
-const RACK = '<div class="cands"><div class="shelf back"></div><div class="shelf front"></div></div>';
-
-function renderScene(id, instant){
-  const entry = churchById(id) || BUILTINS[0];
-  id = entry.id;
-  const inEl  = activeLayer === 'A' ? els.B : els.A;
-  const outEl = activeLayer === 'A' ? els.A : els.B;
-  activeLayer = activeLayer === 'A' ? 'B' : 'A';
-
-  if (entry.img){
-    inEl.innerHTML =
-      '<div class="photo"><img src="'+esc(entry.img)+'" alt="" referrerpolicy="no-referrer" ' +
-      'onerror="this.closest(\'.photo\').classList.add(\'imgfail\')">' +
-      '<div class="photo-grad"></div><div class="photo-vig"></div></div>' +
-      (entry.attrib ? '<div class="attrib">'+esc(entry.attrib)+'</div>' : '') + RACK;
-  } else {
-    inEl.innerHTML = entry.scene() + RACK;
-  }
-
-  const holder = inEl.querySelector('.cands');
-  const mine = candles.filter(c => c.church === id && alive(c) && c.id !== pendingId);
-  mine.forEach((c,i) => {
-    const el = candleEl(c);
-    el.classList.add('lit');
-    holder.appendChild(el);
-    setTimeout(() => el.classList.add('show'), instant ? 60 + i*70 : 240 + i*70);
-  });
-
-  els.name.textContent = entry.name;
-  els.desc.textContent = entry.desc || (entry.hasMonstrance ? 'the Blessed Sacrament exposed' : '');
-  renderDots(id);
-
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    inEl.classList.add('on'); outEl.classList.remove('on');
-  }));
-  setTimeout(() => { if(!outEl.classList.contains('on')) outEl.innerHTML = ''; }, 640);
-  curId = id;
-  updateCount();
+function extinguish(el){
+  if (el.classList.contains('gone')) return;
+  el.classList.add('gone');
+  el.classList.remove('lit');
+  const s = document.createElement('div'); s.className = 'smoke';
+  el.appendChild(s);
+  setTimeout(() => el.remove(), 1800);
 }
 
-const activeCands = () => (activeLayer === 'A' ? els.A : els.B).querySelector('.cands');
-
-function renderDots(activeId){
-  els.dots.innerHTML = '';
-  churches().forEach(c => {
-    const d = document.createElement('button');
-    d.className = 'dot' + (c.id === activeId ? ' on' : '');
-    d.setAttribute('aria-label', c.name);
-    d.addEventListener('click', () => renderScene(c.id));
-    els.dots.appendChild(d);
+/* reconcile the rack against the current candle list */
+function syncCandles(list){
+  if (!holder) return;
+  const want = list.filter(alive);
+  const wantIds = new Set(want.map(c => c.id));
+  holder.querySelectorAll('.candle').forEach(el => {
+    if (!wantIds.has(el.dataset.id) && el.dataset.id !== pendingId) extinguish(el);
+  });
+  const have = new Set([...holder.querySelectorAll('.candle')].map(e => e.dataset.id));
+  want.forEach(c => {
+    if (c.id === pendingId) return;
+    let el = holder.querySelector('[data-id="'+c.id+'"]');
+    if (!el){
+      el = candleEl(c);
+      holder.appendChild(el);
+      requestAnimationFrame(() => { el.classList.add('lit','show'); });
+    } else {
+      el.style.setProperty('--wax', waxPct(c).toFixed(1));
+      el.classList.toggle('global', !!c.global);
+    }
   });
 }
 
-function updateCount(){
-  const n = candles.filter(alive).length;
-  els.count.textContent = n === 0 ? 'no candles burning'
-    : n === 1 ? '1 candle burning' : n + ' candles burning';
-  els.hint.classList.toggle('on', n === 0);
-}
-
-function step(delta){
-  const ids = orderIds();
-  const i = Math.max(0, ids.indexOf(curId));
-  renderScene(ids[(i + delta + ids.length) % ids.length]);
+function updateChrome(list){
+  const arr = (list || all).filter(alive);
+  const n = arr.length;
+  const signedOutCloud = backend && backend.cloud && !backend.user;
+  const count = $('#count'), hint = $('#hint');
+  count.textContent = n === 0 ? 'no candles burning' : n === 1 ? '1 candle burning' : n + ' candles burning';
+  count.style.visibility = signedOutCloud ? 'hidden' : 'visible';
+  hint.textContent = signedOutCloud ? 'Sign in to light a candle' : 'No candles are burning right now.';
+  hint.classList.toggle('on', signedOutCloud || n === 0);
 }
 
 /* ---------- popover ---------- */
-let popFor = null;
-function showPop(c, el){
-  popFor = c.id;
-  els.pop.innerHTML = '<div class="cross">✠</div>'
+let popFor = null, popEl = null;
+function showPop(id, el){
+  const c = all.find(k => k.id === id);
+  if (!c){ hidePop(); return; }
+  popFor = id; popEl = el;
+  const p = $('#pop');
+  const status = c.global
+    ? '<div class="status glob">✦ Shared with everyone</div>'
+    : '<div class="status priv">Private to you</div>';
+  let action = '';
+  if (mineC(c)){
+    action = c.global
+      ? '<button class="act plain" id="popPrivate">Make private again</button>'
+      : '<button class="act" id="popGlobal">Make global</button>';
+  }
+  const localNote = (!backend.cloud && c.global)
+    ? '<div class="meta" style="margin-top:9px">Sign in to share beyond this device</div>' : '';
+  p.innerHTML = '<div class="cross">✠</div>'
     + '<div class="txt">' + (c.text ? esc(c.text) : '<span style="color:#9c8f77">A silent intention.</span>') + '</div>'
-    + '<div class="meta">' + metaLine(c) + '</div>';
-  els.pop.classList.add('on');
+    + '<div class="meta">' + metaLine(c) + '</div>'
+    + status + localNote + action;
+  p.classList.add('on');
+
+  const g = $('#popGlobal'); if (g) g.onclick = () => actOn(id, 'global');
+  const v = $('#popPrivate'); if (v) v.onclick = () => actOn(id, 'private');
+
   const r = el.getBoundingClientRect();
-  const w = els.pop.offsetWidth, vw = innerWidth, vh = innerHeight;
-  els.pop.style.left = Math.min(Math.max(r.left + r.width/2 - w/2, 10), vw - w - 10) + 'px';
-  els.pop.style.bottom = Math.min(vh - r.top + 12, vh - 90) + 'px';
-  els.pop.style.top = 'auto';
+  const w = p.offsetWidth, vw = innerWidth, vh = innerHeight;
+  p.style.left = Math.min(Math.max(r.left + r.width/2 - w/2, 10), vw - w - 10) + 'px';
+  p.style.bottom = Math.min(vh - r.top + 12, vh - 90) + 'px';
+  p.style.top = 'auto';
 }
-const hidePop = () => { els.pop.classList.remove('on'); popFor = null; };
+function hidePop(){ $('#pop').classList.remove('on'); popFor = null; popEl = null; }
+
+async function actOn(id, to){
+  const c = all.find(k => k.id === id); if (!c) return;
+  c.global = (to === 'global');                 /* optimistic */
+  const el = holder && holder.querySelector('[data-id="'+id+'"]');
+  if (el) el.classList.toggle('global', c.global);
+  if (popFor === id && popEl) showPop(id, popEl);
+  try {
+    if (to === 'global') await backend.makeGlobal(c);
+    else await backend.makePrivate(c);
+  } catch(e){ console.warn(e.message); }
+}
+
 const metaLine = c => 'Lit ' + fmtWhen(c.lit) + '<br>' + fmtRemain(c) + ' remaining';
 function fmtWhen(ts){
   const d = new Date(ts), now = new Date();
@@ -1275,48 +629,40 @@ function fmtRemain(c){
 }
 
 /* ---------- lighting a candle ---------- */
-function pickPlacement(){
-  const ids = orderIds().slice().sort(() => Math.random() - .5);
-  for (const id of ids){
-    const used = new Set(candles.filter(c => c.church === id && alive(c)).map(c => c.slot));
-    const free = SLOTS.map((_,i) => i).filter(i => !used.has(i));
-    if (free.length) return { church:id, slot:free[Math.floor(Math.random()*free.length)] };
-  }
-  const oldest = candles.filter(alive).sort((a,b) => a.lit - b.lit)[0];   /* every rack full */
-  candles = candles.filter(c => c.id !== oldest.id);
-  return { church:oldest.church, slot:oldest.slot };
+function freeSlot(){
+  const used = new Set(all.filter(alive).map(c => c.slot));
+  const free = SLOTS.map((_,i) => i).filter(i => !used.has(i));
+  return free.length ? free[Math.floor(Math.random()*free.length)]
+                     : Math.floor(Math.random()*SLOTS.length);   /* overflow: gentle overlap */
 }
 
 async function lightCandle(){
-  const text = els.intent.value.trim();
+  const text = els_intent().value.trim();
+  const wantGlobal = $('#shareChk').checked;
   const b = $('#igniteBtn').getBoundingClientRect();
   const sx = b.left + b.width/2, sy = b.top + b.height/2;
   closeVeil();
 
-  const place = pickPlacement();
-  const c = { id: uid(), church: place.church, slot: place.slot, text, lit: Date.now() };
+  const c = { id: uid(), text, lit: Date.now(), slot: freeSlot(), global:false,
+              owner: backend.user?.uid };
   pendingId = c.id;
-  candles.push(c);
-  saveState();
 
-  const go = () => {
-    const holder = activeCands();
-    const stale = holder.querySelector('[data-slot="' + place.slot + '"]');
-    if (stale) stale.remove();
-    const el = candleEl(c);
-    holder.appendChild(el);
-    el.classList.add('show');
-    setTimeout(() => flyTo(el, sx, sy, () => {
-      el.classList.add('lit');
-      pendingId = null;
-      updateCount();
-      els.toast.classList.add('on');
-      setTimeout(() => els.toast.classList.remove('on'), 2400);
-    }), 120);
-  };
+  await backend.addPrivate(c);
+  if (wantGlobal){ try{ await backend.makeGlobal(c); c.global = true; }catch(e){ console.warn(e.message); } }
 
-  if (place.church !== curId){ renderScene(place.church); setTimeout(go, 620); }
-  else { updateCount(); go(); }
+  const stale = holder.querySelector('[data-slot="'+c.slot+'"]');
+  if (stale && stale.dataset.id !== pendingId) stale.remove();
+  const el = candleEl(c);
+  holder.appendChild(el);
+  el.classList.add('show');
+
+  setTimeout(() => flyTo(el, sx, sy, () => {
+    el.classList.add('lit');
+    pendingId = null;
+    updateChrome();
+    const t = $('#toast'); t.classList.add('on');
+    setTimeout(() => t.classList.remove('on'), 2400);
+  }), 120);
 }
 
 function flyTo(el, sx, sy, done){
@@ -1325,103 +671,41 @@ function flyTo(el, sx, sy, done){
   const tx = r.left + r.width/2 - 5.5, ty = r.top + r.height/2 - 9.5;
   const startX = sx - 5.5, startY = sy - 9.5;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches){ done(); return; }
-  els.fly.style.display = 'block';
-  const anim = els.fly.animate([
+  const fly = $('#fly');
+  fly.style.display = 'block';
+  const anim = fly.animate([
     { transform: `translate(${startX}px, ${startY}px) scale(.85)`, opacity: .95 },
     { transform: `translate(${(startX+tx)/2}px, ${Math.min(startY,ty)-110}px) scale(1.25)`, opacity: 1, offset: .55 },
     { transform: `translate(${tx}px, ${ty}px) scale(1)`, opacity: 1 }
   ], { duration: 1250, easing: 'cubic-bezier(.45,.08,.32,1)' });
-  anim.onfinish = () => { els.fly.style.display = 'none'; done(); };
+  anim.onfinish = () => { fly.style.display = 'none'; done(); };
 }
 
-/* ---------- the burn clock ---------- */
-function tick(){
-  let changed = false;
-  const holder = activeCands();
-  for (const c of candles.slice()){
-    if (!alive(c)){
-      changed = true;
-      candles = candles.filter(x => x.id !== c.id);
-      if (popFor === c.id) hidePop();
-      if (holder && c.church === curId){
-        const el = holder.querySelector('[data-id="' + c.id + '"]');
-        if (el){
-          el.classList.remove('lit');
-          const s = document.createElement('div'); s.className = 'smoke';
-          el.appendChild(s);
-          setTimeout(() => el.remove(), 1800);
-        }
-      }
-    } else if (holder && c.church === curId){
-      const el = holder.querySelector('[data-id="' + c.id + '"]');
-      if (el) el.style.setProperty('--wax', waxPct(c).toFixed(1));
-      if (popFor === c.id){ const m = els.pop.querySelector('.meta'); if (m) m.innerHTML = metaLine(c); }
-    }
-  }
-  if (changed){ saveState(); updateCount(); }
+/* ---------- calibrator ---------- */
+function loadCal(){
+  try{ const c = JSON.parse(localStorage.getItem('lumen.cal') || 'null'); if (c) cal = c; }catch(e){}
 }
+function applyCal(){
+  document.documentElement.style.setProperty('--rack-shift', cal.bottom + 'vh');
+  document.documentElement.style.setProperty('--rack-scale', cal.scale);
+  const b = $('#calB'), s = $('#calS');
+  if (b){ b.value = cal.bottom; $('#calBVal').textContent = (cal.bottom>0?'+':'') + cal.bottom; }
+  if (s){ s.value = cal.scale; $('#calSVal').textContent = '×' + Number(cal.scale).toFixed(2); }
+}
+function saveCal(){ try{ localStorage.setItem('lumen.cal', JSON.stringify(cal)); }catch(e){} }
 
-/* ---------- live sync from another device ---------- */
-function applyRemote(state){
-  if (pendingId) return;                 /* don't fight an in-flight flame */
-  candles = (state.candles || []).filter(alive);
-  custom  = state.churches || [];
-  if (!churchById(curId)) { renderScene(orderIds()[0]); return; }
-  renderDots(curId);
-  const holder = activeCands();
-  if (holder){
-    holder.querySelectorAll('.candle').forEach(el => el.remove());
-    candles.filter(c => c.church === curId && alive(c)).forEach(c => {
-      const el = candleEl(c); el.classList.add('lit','show'); holder.appendChild(el);
-    });
-  }
-  updateCount();
+/* ---------- modals ---------- */
+const els_intent = () => $('#intent');
+function openVeil(){
+  hidePop();
+  $('#shareChk').checked = false;
+  $('#veil').classList.add('on');
+  els_intent().value = '';
+  setTimeout(() => els_intent().focus(), 60);
 }
-
-/* ---------- churches settings ---------- */
-function renderChurchList(){
-  const box = $('#churchList'); box.innerHTML = '';
-  churches().forEach(c => {
-    const row = document.createElement('div'); row.className = 'churchrow';
-    row.innerHTML = (c.img
-        ? '<img class="th" src="'+esc(c.img)+'" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility=\'hidden\'">'
-        : '<div class="thi">✠</div>')
-      + '<div class="cn"><b>'+esc(c.name)+'</b><span>'
-      + (c.custom ? 'your church' : 'built in') + (c.hasMonstrance ? ' · monstrance' : '')
-      + '</span></div>';
-    if (c.custom){
-      const rm = document.createElement('button');
-      rm.className = 'rm'; rm.textContent = '×'; rm.title = 'Remove';
-      rm.onclick = () => removeChurch(c.id);
-      row.appendChild(rm);
-    }
-    box.appendChild(row);
-  });
-}
-async function addChurch(){
-  const img = $('#cImg').value.trim();
-  if (!img){ $('#cImg').focus(); return; }
-  const entry = {
-    id: uid(),
-    name: $('#cName').value.trim() || 'A church',
-    desc: $('#cDesc').value.trim() || '',
-    img, hasMonstrance: $('#cMon').checked, custom: true,
-  };
-  custom.push(entry);
-  await saveState();
-  $('#cImg').value = $('#cName').value = $('#cDesc').value = '';
-  $('#cMon').checked = false;
-  renderChurchList();
-  renderScene(entry.id);
-}
-async function removeChurch(id){
-  custom = custom.filter(c => c.id !== id);
-  candles = candles.filter(c => c.church !== id);
-  await saveState();
-  renderChurchList();
-  if (curId === id) renderScene(orderIds()[0]);
-  else { renderDots(curId); updateCount(); }
-}
+const closeVeil = () => $('#veil').classList.remove('on');
+const openSettings = () => $('#settings').classList.add('on');
+const closeSettings = () => $('#settings').classList.remove('on');
 
 /* ---------- auth UI ---------- */
 function refreshAuthUI(){
@@ -1433,73 +717,61 @@ function refreshAuthUI(){
   who.textContent = u ? (u.displayName || u.email || '') : '';
 }
 
-/* ---------- modal ---------- */
-function openVeil(){ hidePop(); els.veil.classList.add('on'); els.intent.value=''; setTimeout(()=>els.intent.focus(),60); }
-const closeVeil = () => els.veil.classList.remove('on');
-const openSettings = () => { renderChurchList(); $('#settings').classList.add('on'); };
-const closeSettings = () => $('#settings').classList.remove('on');
-
 /* ---------- wiring ---------- */
-$('#lightBtn').addEventListener('click', openVeil);
+$('#lightBtn').addEventListener('click', () => {
+  if (backend.cloud && !backend.user){ backend.signIn(); return; }
+  openVeil();
+});
 $('#cancelBtn').addEventListener('click', closeVeil);
 $('#igniteBtn').addEventListener('click', lightCandle);
-els.veil.addEventListener('click', e => { if (e.target === els.veil) closeVeil(); });
-els.intent.addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') lightCandle(); });
+$('#veil').addEventListener('click', e => { if (e.target.id === 'veil') closeVeil(); });
+els_intent().addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') lightCandle(); });
 
-$('#prev').addEventListener('click', () => step(-1));
-$('#next').addEventListener('click', () => step(1));
 $('#gearBtn').addEventListener('click', openSettings);
 $('#setClose').addEventListener('click', closeSettings);
-$('#cAdd').addEventListener('click', addChurch);
-$('#cImg').addEventListener('keydown', e => { if (e.key==='Enter') addChurch(); });
 $('#settings').addEventListener('click', e => { if (e.target.id === 'settings') closeSettings(); });
+$('#calReset').addEventListener('click', () => { cal = { bottom:0, scale:1 }; applyCal(); saveCal(); });
+$('#calB').addEventListener('input', e => { cal.bottom = parseFloat(e.target.value); applyCal(); saveCal(); });
+$('#calS').addEventListener('input', e => { cal.scale = parseFloat(e.target.value); applyCal(); saveCal(); });
+
 $('#authBtn').addEventListener('click', () => { backend.user ? backend.signOut() : backend.signIn(); });
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape'){ closeVeil(); hidePop(); closeSettings(); }
-  if (els.veil.classList.contains('on') || $('#settings').classList.contains('on')) return;
-  if (e.key === 'ArrowLeft') step(-1);
-  if (e.key === 'ArrowRight') step(1);
 });
 document.body.addEventListener('click', e => {
-  if (!els.pop.contains(e.target) && !e.target.closest('.candle')) hidePop();
+  if (!$('#pop').contains(e.target) && !e.target.closest('.candle')) hidePop();
 });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) syncCandles(all); });
 
 /* ---------- init ---------- */
-function boot(state){
-  if (booted){ applyRemote(state); return; }
-  booted = true;
-  custom  = state.churches || [];
-  candles = (state.candles || []).filter(alive);
-  saveState();
-  const latest = candles.slice().sort((a,b) => b.lit - a.lit)[0];
-  const start  = latest && churchById(latest.church) ? latest.church
-                 : orderIds()[Math.floor(Math.random()*BUILTINS.length)];
-  renderScene(start, true);
-  refreshAuthUI();
-  setInterval(tick, 30000);
-}
-
 (async () => {
-  els.note.innerHTML = '✠ &nbsp;Kept private<br>Each burns about ' + BURN_HOURS + ' hours, as a votive does';
-  $('#addHint').innerHTML = 'Any public image link works. For free, beautiful interiors, search '
-    + '<b>Wikimedia Commons</b> and use a link like<br>commons.wikimedia.org/wiki/Special:FilePath/YOUR_FILE.jpg';
+  loadCal(); applyCal();
+  buildScene();
+  if (CHURCH_LABEL){ $('#labelText').textContent = CHURCH_LABEL; } else { $('#label').style.display = 'none'; }
+  $('#note').innerHTML = '✠ &nbsp;Each candle burns about ' + BURN_HOURS + ' hours, as a votive does';
+  $('#calHint').innerHTML = 'Drag until the little candles rest on the floor of the church. Saved on this device.';
 
   const useCloud = FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey;
   try { backend = useCloud ? await makeCloudBackend(FIREBASE_CONFIG) : makeLocalBackend(); }
   catch(e){ console.warn('Cloud unavailable, staying local:', e.message); backend = makeLocalBackend(); }
 
-  if (backend.cloud){
-    backend.onChange(applyRemote);
-    backend.onAuth(async u => {
-      refreshAuthUI();
-      const s = await backend.load();
-      boot(s);
-    });
-  }
+  /* in local mode there is no one to share with — the share toggle is hidden */
+  if (!backend.cloud) $('#shareRow').style.display = 'none';
 
-  boot(await backend.load());
+  backend.onData(list => { all = list; syncCandles(all); updateChrome(list); });
+  if (backend.cloud){
+    backend.onAuth(() => { refreshAuthUI(); updateChrome(); $('#shareRow').style.display = backend.user ? '' : 'none'; });
+  }
+  await backend.init();
+  refreshAuthUI(); updateChrome();
+
+  let n = 0;
+  setInterval(async () => {
+    syncCandles(all); updateChrome();
+    if (popFor){ const c = all.find(k => k.id === popFor); const m = $('#pop').querySelector('.meta'); if (c && m) m.innerHTML = metaLine(c); }
+    if (++n % 3 === 0 && backend.removeExpired) await backend.removeExpired();
+  }, 12000);
 })();
 </script>
 </body>
