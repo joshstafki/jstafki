@@ -238,13 +238,60 @@ header{
   .flm .f,.glo{animation:none}
   .scene{transition:none}
 }
+
+/* ---------- photo scene ---------- */
+.photo{position:absolute;inset:0;background:#0a0806}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo.imgfail img{display:none}
+.photo.imgfail::after{content:"This image couldn’t be loaded — check the link, or the site may block hotlinking.";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 40px;color:var(--faint);font:italic 16px var(--serif)}
+.photo-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,5,4,.6) 0%,rgba(6,5,4,.1) 24%,rgba(6,5,4,0) 46%,rgba(6,5,4,.34) 66%,rgba(6,5,4,.88) 100%)}
+.photo-vig{position:absolute;inset:0;background:radial-gradient(122% 92% at 50% 42%,transparent 52%,rgba(4,3,2,.68) 100%)}
+.attrib{position:absolute;left:12px;bottom:calc(2.6% + 82px);z-index:2;font-size:9px;letter-spacing:.05em;color:rgba(200,186,160,.5);max-width:44%;pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+
+/* ---------- header buttons ---------- */
+.hbtns{display:flex;gap:14px;align-items:center;pointer-events:auto}
+.hbtn{background:none;border:0;color:var(--muted);font:600 9.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:4px 0;transition:.2s}
+.hbtn:hover{color:var(--gold-bright)}
+.who{font-size:9px;letter-spacing:.08em;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gear{color:var(--muted);cursor:pointer;transition:.25s;background:none;border:0;padding:0;line-height:0}
+.gear:hover{color:var(--gold-bright);transform:rotate(35deg)}
+
+/* ---------- settings panel ---------- */
+#settings{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(4,3,2,.68);backdrop-filter:blur(3px);padding:20px}
+#settings.on{display:flex}
+.pw{width:min(500px,100%);max-height:88vh;overflow:auto}
+.pw h2{text-align:left}.pw .sub{text-align:left;margin-bottom:14px}
+.churchrow{display:flex;align-items:center;gap:13px;padding:9px 0;border-bottom:1px solid rgba(200,167,105,.13)}
+.churchrow .th{width:54px;height:37px;border-radius:3px;object-fit:cover;background:#1a130c;flex:none}
+.churchrow .thi{width:54px;height:37px;border-radius:3px;background:linear-gradient(180deg,#241a10,#0e0a06);flex:none;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:13px}
+.churchrow .cn{flex:1;min-width:0}
+.churchrow .cn b{font-family:var(--serif);font-weight:500;font-size:16.5px;color:var(--ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.churchrow .cn span{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.churchrow .rm{background:none;border:0;color:var(--faint);font-size:19px;cursor:pointer;flex:none;padding:0 4px;line-height:1}
+.churchrow .rm:hover{color:#c0564a}
+.addform h3{font-family:var(--serif);font-weight:500;font-size:21px;color:#f0e2c4;margin-top:22px}
+.addform label{display:block;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:13px 0 5px}
+.addform input[type=text]{width:100%;background:#0a0705;border:1px solid rgba(200,167,105,.24);border-radius:4px;color:var(--ink);font:400 14px var(--sans);padding:9px 11px;outline:none;user-select:text;-webkit-user-select:text}
+.addform input[type=text]:focus{border-color:rgba(232,200,126,.55)}
+.addform input::placeholder{color:#5d5344}
+.chk{display:flex;align-items:center;gap:8px;margin-top:13px;font-size:12.5px;font-family:var(--serif);color:#b6a685;cursor:pointer}
+.chk input{accent-color:#a97f2c;width:15px;height:15px}
+.hintline{font-size:10.5px;line-height:1.75;color:var(--faint);margin-top:12px}
+.hintline b{color:var(--muted);font-weight:500;font-family:var(--sans)}
 </style>
 </head>
 <body>
 
 <header>
   <div class="wm">LVMEN<span class="wm-cross"> ✠</span></div>
-  <div class="count" id="count"></div>
+  <div class="hbtns">
+    <div class="count" id="count"></div>
+    <span class="who" id="who"></span>
+    <button class="hbtn" id="authBtn" style="display:none"></button>
+    <button class="gear" id="gearBtn" aria-label="Churches" title="Churches">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v3.2M12 18.2v3.2M2.6 12h3.2M18.2 12h3.2M5.05 5.05l2.26 2.26M16.69 16.69l2.26 2.26M18.95 5.05l-2.26 2.26M7.31 16.69l-2.26 2.26"/></svg>
+    </button>
+  </div>
 </header>
 
 <div id="title">
@@ -278,6 +325,29 @@ header{
 </div>
 
 <div id="pop"></div>
+
+<div id="settings" role="dialog" aria-modal="true" aria-labelledby="setH">
+  <div class="panel pw">
+    <h2 id="setH">Churches</h2>
+    <p class="sub">The chapels a candle may find</p>
+    <div id="churchList"></div>
+    <div class="addform">
+      <h3>Add a church</h3>
+      <label>Image link</label>
+      <input type="text" id="cImg" placeholder="https://…/church-interior.jpg" autocomplete="off" spellcheck="false">
+      <label>Name — optional</label>
+      <input type="text" id="cName" placeholder="e.g. St Mary’s" autocomplete="off">
+      <label>A word on its style — optional</label>
+      <input type="text" id="cDesc" placeholder="e.g. Gothic" autocomplete="off">
+      <label class="chk"><input type="checkbox" id="cMon"> The Blessed Sacrament is exposed</label>
+      <p class="hintline" id="addHint"></p>
+      <div class="actions">
+        <button class="ghost" id="setClose">Done</button>
+        <button class="solid" id="cAdd">Add church</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="toast">
   <div class="l1">Lumen Christi.</div>
@@ -937,48 +1007,59 @@ function sceneAdoration(){
 }
 
 /* ================= app ================= */
-const BURN_HOURS = 10;                      /* a votive burns about ten hours */
+const BURN_HOURS = 10;                       /* a votive burns about ten hours */
 const BURN_MS = BURN_HOURS * 3600 * 1000;
 
-const CHURCHES = [
-  { name:'Cathedral of the Holy Cross', desc:'Gothic', scene:sceneGothic },
-  { name:'Basilica of the Sacred Heart', desc:'Baroque · the Blessed Sacrament exposed', scene:sceneBaroque },
-  { name:'Abbey of Our Lady', desc:'Romanesque', scene:sceneRomanesque },
-  { name:'Chapel of Perpetual Adoration', desc:'the Blessed Sacrament exposed', scene:sceneAdoration },
+/* ------------------------------------------------------------------
+   CROSS-DEVICE SYNC (optional)
+   Paste your Firebase web config below and host this file, and your
+   candles sign in with Google and follow you across every device.
+   Leave it empty and everything is kept privately on this device.
+   Same Auth + Firestore pattern as the rest of the suite.
+------------------------------------------------------------------ */
+const FIREBASE_CONFIG = {
+  // apiKey:            "…",
+  // authDomain:        "your-app.firebaseapp.com",
+  // projectId:         "your-app",
+  // storageBucket:     "your-app.appspot.com",
+  // messagingSenderId: "…",
+  // appId:             "…",
+};
+
+/* ---------- the four built-in chapels (always available) ---------- */
+const BUILTINS = [
+  { id:'gothic',     name:'Cathedral of the Holy Cross',   desc:'Gothic',                                  scene:sceneGothic,     hasMonstrance:false },
+  { id:'baroque',    name:'Basilica of the Sacred Heart',  desc:'Baroque · the Blessed Sacrament exposed', scene:sceneBaroque,    hasMonstrance:true  },
+  { id:'romanesque', name:'Abbey of Our Lady',             desc:'Romanesque',                              scene:sceneRomanesque, hasMonstrance:false },
+  { id:'adoration',  name:'Chapel of Perpetual Adoration', desc:'the Blessed Sacrament exposed',           scene:sceneAdoration,  hasMonstrance:true  },
 ];
 
-/* votive rack slots: back row of 9, front row of 8 parted around the button */
+/* votive rack: back row of 9, front row of 8 parted around the button */
 const SLOTS = [
   ...[18,26,34,42,50,58,66,74,82].map(x => ({x, b:20.6, s:.78})),
   ...[10,18,26,34].map(x => ({x, b:8.0, s:1})),
   ...[66,74,82,90].map(x => ({x, b:8.0, s:1})),
 ];
 
-/* ---------- storage: window.storage -> localStorage -> memory ---------- */
-const store = (() => {
-  const KEY = 'lumen.candles.v1';
-  if (typeof window.storage === 'object' && window.storage && window.storage.get) {
-    return {
-      async load(){ try{ const r = await window.storage.get(KEY); return r ? JSON.parse(r.value) : []; }catch(e){ return []; } },
-      async save(c){ try{ await window.storage.set(KEY, JSON.stringify(c)); }catch(e){} }
-    };
-  }
-  try {
-    localStorage.setItem('__lumen_t','1'); localStorage.removeItem('__lumen_t');
-    return {
-      async load(){ try{ return JSON.parse(localStorage.getItem(KEY) || '[]'); }catch(e){ return []; } },
-      async save(c){ try{ localStorage.setItem(KEY, JSON.stringify(c)); }catch(e){} }
-    };
-  } catch(e){}
-  let mem = [];
-  return { async load(){ return mem; }, async save(c){ mem = c.slice(); } };
-})();
-
 /* ---------- state ---------- */
 let candles = [];
-let cur = 0;
+let custom  = [];        /* user-added photo churches */
+let curId   = null;
 let activeLayer = 'A';
-let pendingId = null;   /* a candle awaiting its flame — excluded from re-renders */
+let pendingId = null;    /* a candle awaiting its flame — excluded from repaints */
+let backend = null;
+let booted = false;
+
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+const churches   = () => [...BUILTINS, ...custom];
+const churchById = id => churches().find(c => c.id === id) || null;
+const orderIds   = () => churches().map(c => c.id);
+
+const alive  = c => Date.now() - c.lit < BURN_MS;
+const frac   = c => Math.max(0, 1 - (Date.now() - c.lit) / BURN_MS);
+const waxPct = c => 6 + 86 * frac(c);
 
 const els = {
   A:$('#sceneA'), B:$('#sceneB'), name:$('#chName'), desc:$('#chDesc'),
@@ -986,21 +1067,107 @@ const els = {
   intent:$('#intent'), note:$('#note'), pop:$('#pop'), toast:$('#toast'), fly:$('#fly'),
 };
 
-const alive = c => Date.now() - c.lit < BURN_MS;
-const frac  = c => Math.max(0, 1 - (Date.now() - c.lit) / BURN_MS);
-const waxPct = c => 6 + 86 * frac(c);
-const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
+/* ================= storage backends ================= */
+/* Local: window.storage (artifact) -> localStorage -> memory. State is {candles, churches}. */
+function makeLocalBackend(){
+  const KEY = 'lumen.state.v2';
+  const hasWS = typeof window.storage === 'object' && window.storage && window.storage.get;
+  let mem = null;
+  const rawGet = async () => {
+    if (hasWS){ try{ const r = await window.storage.get(KEY); return r ? JSON.parse(r.value) : null; }catch(e){ return null; } }
+    try{ return JSON.parse(localStorage.getItem(KEY) || 'null'); }catch(e){ return mem; }
+  };
+  const rawSet = async v => {
+    const s = JSON.stringify(v);
+    if (hasWS){ try{ await window.storage.set(KEY, s); }catch(e){} return; }
+    try{ localStorage.setItem(KEY, s); }catch(e){ mem = v; }
+  };
+  const migrate = async () => {                       /* pull v1 candle array if present */
+    if (hasWS){ try{ const r = await window.storage.get('lumen.candles.v1'); if(r){ const a=JSON.parse(r.value); if(Array.isArray(a)) return {candles:a, churches:[]}; } }catch(e){} }
+    try{ const a = JSON.parse(localStorage.getItem('lumen.candles.v1')||'null'); if(Array.isArray(a)) return {candles:a, churches:[]}; }catch(e){}
+    return null;
+  };
+  return {
+    cloud:false, get user(){ return null; },
+    async load(){
+      let s = await rawGet();
+      if (Array.isArray(s)) s = {candles:s, churches:[]};
+      if (!s) s = await migrate();
+      return s || {candles:[], churches:[]};
+    },
+    async save(state){ await rawSet(state); },
+    onChange(){}, onAuth(){}, async signIn(){}, async signOut(){},
+  };
+}
 
-/* ---------- rendering ---------- */
+/* Cloud: Firestore doc lumen/{uid}, live via onSnapshot. Falls back to local while signed out. */
+let fbLoaded = false;
+function loadFirebase(){
+  if (fbLoaded || window.firebase) { fbLoaded = true; return Promise.resolve(); }
+  const base = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  const files = ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'];
+  return files.reduce((p,f) => p.then(() => new Promise((res,rej) => {
+    const s = document.createElement('script');
+    s.src = base + f; s.onload = res; s.onerror = () => rej(new Error('Could not load '+f));
+    document.head.appendChild(s);
+  })), Promise.resolve()).then(() => { fbLoaded = true; });
+}
+
+async function makeCloudBackend(cfg){
+  await loadFirebase();
+  if (!firebase.apps.length) firebase.initializeApp(cfg);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+  const provider = new firebase.auth.GoogleAuthProvider();
+  const local = makeLocalBackend();
+  let unsub = null, changeCb = null, authCb = null;
+
+  const docRef = () => auth.currentUser ? db.collection('lumen').doc(auth.currentUser.uid) : null;
+  const bind = () => {
+    if (unsub){ unsub(); unsub = null; }
+    const ref = docRef();
+    if (ref && changeCb){
+      unsub = ref.onSnapshot(
+        snap => changeCb(snap.data() || {candles:[], churches:[]}),
+        err  => console.warn('sync:', err.message)
+      );
+    }
+  };
+  auth.onAuthStateChanged(u => { bind(); if (authCb) authCb(u); });
+
+  return {
+    cloud:true,
+    get user(){ return auth.currentUser; },
+    async load(){
+      const ref = docRef();
+      if (!ref) return local.load();
+      const snap = await ref.get();
+      return snap.exists ? snap.data() : {candles:[], churches:[]};
+    },
+    async save(state){
+      const ref = docRef();
+      if (ref) { try{ await ref.set(state); }catch(e){ console.warn('save:', e.message); } }
+      else await local.save(state);
+    },
+    onChange(cb){ changeCb = cb; bind(); },
+    onAuth(cb){ authCb = cb; },
+    async signIn(){ try{ await auth.signInWithPopup(provider); }catch(e){ console.warn(e.message); } },
+    async signOut(){ try{ await auth.signOut(); }catch(e){} },
+  };
+}
+
+const saveState = () => backend.save({ candles, churches: custom });
+
+/* ================= rendering ================= */
 function candleEl(c){
-  const slot = SLOTS[c.slot];
+  const slot = SLOTS[c.slot] || SLOTS[0];
   const el = document.createElement('div');
   el.className = 'candle';
   el.style.left = slot.x + '%';
   el.style.bottom = slot.b + '%';
   el.style.setProperty('--s', slot.s);
-  el.style.setProperty('--fd', R(0.92, 1.65).toFixed(2) + 's');
-  el.style.setProperty('--fdel', (-R(0, 1.5)).toFixed(2) + 's');
+  el.style.setProperty('--fd', R(0.92,1.65).toFixed(2)+'s');
+  el.style.setProperty('--fdel', (-R(0,1.5)).toFixed(2)+'s');
   el.style.setProperty('--wax', waxPct(c).toFixed(1));
   el.style.zIndex = slot.b < 15 ? 4 : 3;
   el.dataset.id = c.id;
@@ -1012,37 +1179,57 @@ function candleEl(c){
   return el;
 }
 
-function renderScene(idx, instant){
+const RACK = '<div class="cands"><div class="shelf back"></div><div class="shelf front"></div></div>';
+
+function renderScene(id, instant){
+  const entry = churchById(id) || BUILTINS[0];
+  id = entry.id;
   const inEl  = activeLayer === 'A' ? els.B : els.A;
   const outEl = activeLayer === 'A' ? els.A : els.B;
   activeLayer = activeLayer === 'A' ? 'B' : 'A';
 
-  inEl.innerHTML = CHURCHES[idx].scene() +
-    '<div class="cands"><div class="shelf back"></div><div class="shelf front"></div></div>';
+  if (entry.img){
+    inEl.innerHTML =
+      '<div class="photo"><img src="'+esc(entry.img)+'" alt="" referrerpolicy="no-referrer" ' +
+      'onerror="this.closest(\'.photo\').classList.add(\'imgfail\')">' +
+      '<div class="photo-grad"></div><div class="photo-vig"></div></div>' +
+      (entry.attrib ? '<div class="attrib">'+esc(entry.attrib)+'</div>' : '') + RACK;
+  } else {
+    inEl.innerHTML = entry.scene() + RACK;
+  }
+
   const holder = inEl.querySelector('.cands');
-  const mine = candles.filter(c => c.church === idx && alive(c) && c.id !== pendingId);
-  mine.forEach((c, i) => {
+  const mine = candles.filter(c => c.church === id && alive(c) && c.id !== pendingId);
+  mine.forEach((c,i) => {
     const el = candleEl(c);
     el.classList.add('lit');
     holder.appendChild(el);
     setTimeout(() => el.classList.add('show'), instant ? 60 + i*70 : 240 + i*70);
   });
 
-  els.name.textContent = CHURCHES[idx].name;
-  els.desc.textContent = CHURCHES[idx].desc;
-  [...els.dots.children].forEach((d, i) => d.classList.toggle('on', i === idx));
+  els.name.textContent = entry.name;
+  els.desc.textContent = entry.desc || (entry.hasMonstrance ? 'the Blessed Sacrament exposed' : '');
+  renderDots(id);
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    inEl.classList.add('on');
-    outEl.classList.remove('on');
+    inEl.classList.add('on'); outEl.classList.remove('on');
   }));
   setTimeout(() => { if(!outEl.classList.contains('on')) outEl.innerHTML = ''; }, 640);
-  cur = idx;
+  curId = id;
   updateCount();
 }
 
-function activeCands(){
-  return (activeLayer === 'A' ? els.A : els.B).querySelector('.cands');
+const activeCands = () => (activeLayer === 'A' ? els.A : els.B).querySelector('.cands');
+
+function renderDots(activeId){
+  els.dots.innerHTML = '';
+  churches().forEach(c => {
+    const d = document.createElement('button');
+    d.className = 'dot' + (c.id === activeId ? ' on' : '');
+    d.setAttribute('aria-label', c.name);
+    d.addEventListener('click', () => renderScene(c.id));
+    els.dots.appendChild(d);
+  });
 }
 
 function updateCount(){
@@ -1050,6 +1237,12 @@ function updateCount(){
   els.count.textContent = n === 0 ? 'no candles burning'
     : n === 1 ? '1 candle burning' : n + ' candles burning';
   els.hint.classList.toggle('on', n === 0);
+}
+
+function step(delta){
+  const ids = orderIds();
+  const i = Math.max(0, ids.indexOf(curId));
+  renderScene(ids[(i + delta + ids.length) % ids.length]);
 }
 
 /* ---------- popover ---------- */
@@ -1066,10 +1259,8 @@ function showPop(c, el){
   els.pop.style.bottom = Math.min(vh - r.top + 12, vh - 90) + 'px';
   els.pop.style.top = 'auto';
 }
-function hidePop(){ els.pop.classList.remove('on'); popFor = null; }
-function metaLine(c){
-  return 'Lit ' + fmtWhen(c.lit) + '<br>' + fmtRemain(c) + ' remaining';
-}
+const hidePop = () => { els.pop.classList.remove('on'); popFor = null; };
+const metaLine = c => 'Lit ' + fmtWhen(c.lit) + '<br>' + fmtRemain(c) + ' remaining';
 function fmtWhen(ts){
   const d = new Date(ts), now = new Date();
   const t = d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
@@ -1082,39 +1273,37 @@ function fmtRemain(c){
   const h = Math.floor(ms/3600000), m = Math.round(ms%3600000/60000);
   return h > 0 ? 'about ' + h + 'h ' + m + 'm' : 'about ' + m + 'm';
 }
-const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
 /* ---------- lighting a candle ---------- */
 function pickPlacement(){
-  const order = [0,1,2,3].sort(() => Math.random() - .5);
-  for (const ch of order){
-    const used = new Set(candles.filter(c => c.church === ch && alive(c)).map(c => c.slot));
-    const free = SLOTS.map((_, i) => i).filter(i => !used.has(i));
-    if (free.length) return { church: ch, slot: free[Math.floor(Math.random()*free.length)] };
+  const ids = orderIds().slice().sort(() => Math.random() - .5);
+  for (const id of ids){
+    const used = new Set(candles.filter(c => c.church === id && alive(c)).map(c => c.slot));
+    const free = SLOTS.map((_,i) => i).filter(i => !used.has(i));
+    if (free.length) return { church:id, slot:free[Math.floor(Math.random()*free.length)] };
   }
-  /* every rack is full: the sacristan clears the oldest */
-  const oldest = candles.filter(alive).sort((a,b) => a.lit - b.lit)[0];
+  const oldest = candles.filter(alive).sort((a,b) => a.lit - b.lit)[0];   /* every rack full */
   candles = candles.filter(c => c.id !== oldest.id);
-  return { church: oldest.church, slot: oldest.slot };
+  return { church:oldest.church, slot:oldest.slot };
 }
 
 async function lightCandle(){
   const text = els.intent.value.trim();
-  const startBtn = $('#igniteBtn').getBoundingClientRect();
-  const sx = startBtn.left + startBtn.width/2, sy = startBtn.top + startBtn.height/2;
+  const b = $('#igniteBtn').getBoundingClientRect();
+  const sx = b.left + b.width/2, sy = b.top + b.height/2;
   closeVeil();
 
   const place = pickPlacement();
   const c = { id: uid(), church: place.church, slot: place.slot, text, lit: Date.now() };
   pendingId = c.id;
   candles.push(c);
-  await store.save(candles);
+  saveState();
 
   const go = () => {
     const holder = activeCands();
     const stale = holder.querySelector('[data-slot="' + place.slot + '"]');
-    if (stale) stale.remove();         /* rack was full; the sacristan cleared it */
-    const el = candleEl(c);            /* unlit — awaiting the flame */
+    if (stale) stale.remove();
+    const el = candleEl(c);
     holder.appendChild(el);
     el.classList.add('show');
     setTimeout(() => flyTo(el, sx, sy, () => {
@@ -1126,7 +1315,7 @@ async function lightCandle(){
     }), 120);
   };
 
-  if (place.church !== cur){ renderScene(place.church); setTimeout(go, 620); }
+  if (place.church !== curId){ renderScene(place.church); setTimeout(go, 620); }
   else { updateCount(); go(); }
 }
 
@@ -1135,9 +1324,8 @@ function flyTo(el, sx, sy, done){
   const r = flm.getBoundingClientRect();
   const tx = r.left + r.width/2 - 5.5, ty = r.top + r.height/2 - 9.5;
   const startX = sx - 5.5, startY = sy - 9.5;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches){ done(); return; }
   els.fly.style.display = 'block';
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduce){ els.fly.style.display = 'none'; done(); return; }
   const anim = els.fly.animate([
     { transform: `translate(${startX}px, ${startY}px) scale(.85)`, opacity: .95 },
     { transform: `translate(${(startX+tx)/2}px, ${Math.min(startY,ty)-110}px) scale(1.25)`, opacity: 1, offset: .55 },
@@ -1145,15 +1333,6 @@ function flyTo(el, sx, sy, done){
   ], { duration: 1250, easing: 'cubic-bezier(.45,.08,.32,1)' });
   anim.onfinish = () => { els.fly.style.display = 'none'; done(); };
 }
-
-/* ---------- modal ---------- */
-function openVeil(){
-  hidePop();
-  els.veil.classList.add('on');
-  els.intent.value = '';
-  setTimeout(() => els.intent.focus(), 60);
-}
-function closeVeil(){ els.veil.classList.remove('on'); }
 
 /* ---------- the burn clock ---------- */
 function tick(){
@@ -1164,7 +1343,7 @@ function tick(){
       changed = true;
       candles = candles.filter(x => x.id !== c.id);
       if (popFor === c.id) hidePop();
-      if (holder && c.church === cur){
+      if (holder && c.church === curId){
         const el = holder.querySelector('[data-id="' + c.id + '"]');
         if (el){
           el.classList.remove('lit');
@@ -1173,33 +1352,114 @@ function tick(){
           setTimeout(() => el.remove(), 1800);
         }
       }
-    } else if (holder && c.church === cur){
+    } else if (holder && c.church === curId){
       const el = holder.querySelector('[data-id="' + c.id + '"]');
       if (el) el.style.setProperty('--wax', waxPct(c).toFixed(1));
-      if (popFor === c.id){
-        const m = els.pop.querySelector('.meta');
-        if (m) m.innerHTML = metaLine(c);
-      }
+      if (popFor === c.id){ const m = els.pop.querySelector('.meta'); if (m) m.innerHTML = metaLine(c); }
     }
   }
-  if (changed){ store.save(candles); updateCount(); }
+  if (changed){ saveState(); updateCount(); }
 }
+
+/* ---------- live sync from another device ---------- */
+function applyRemote(state){
+  if (pendingId) return;                 /* don't fight an in-flight flame */
+  candles = (state.candles || []).filter(alive);
+  custom  = state.churches || [];
+  if (!churchById(curId)) { renderScene(orderIds()[0]); return; }
+  renderDots(curId);
+  const holder = activeCands();
+  if (holder){
+    holder.querySelectorAll('.candle').forEach(el => el.remove());
+    candles.filter(c => c.church === curId && alive(c)).forEach(c => {
+      const el = candleEl(c); el.classList.add('lit','show'); holder.appendChild(el);
+    });
+  }
+  updateCount();
+}
+
+/* ---------- churches settings ---------- */
+function renderChurchList(){
+  const box = $('#churchList'); box.innerHTML = '';
+  churches().forEach(c => {
+    const row = document.createElement('div'); row.className = 'churchrow';
+    row.innerHTML = (c.img
+        ? '<img class="th" src="'+esc(c.img)+'" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility=\'hidden\'">'
+        : '<div class="thi">✠</div>')
+      + '<div class="cn"><b>'+esc(c.name)+'</b><span>'
+      + (c.custom ? 'your church' : 'built in') + (c.hasMonstrance ? ' · monstrance' : '')
+      + '</span></div>';
+    if (c.custom){
+      const rm = document.createElement('button');
+      rm.className = 'rm'; rm.textContent = '×'; rm.title = 'Remove';
+      rm.onclick = () => removeChurch(c.id);
+      row.appendChild(rm);
+    }
+    box.appendChild(row);
+  });
+}
+async function addChurch(){
+  const img = $('#cImg').value.trim();
+  if (!img){ $('#cImg').focus(); return; }
+  const entry = {
+    id: uid(),
+    name: $('#cName').value.trim() || 'A church',
+    desc: $('#cDesc').value.trim() || '',
+    img, hasMonstrance: $('#cMon').checked, custom: true,
+  };
+  custom.push(entry);
+  await saveState();
+  $('#cImg').value = $('#cName').value = $('#cDesc').value = '';
+  $('#cMon').checked = false;
+  renderChurchList();
+  renderScene(entry.id);
+}
+async function removeChurch(id){
+  custom = custom.filter(c => c.id !== id);
+  candles = candles.filter(c => c.church !== id);
+  await saveState();
+  renderChurchList();
+  if (curId === id) renderScene(orderIds()[0]);
+  else { renderDots(curId); updateCount(); }
+}
+
+/* ---------- auth UI ---------- */
+function refreshAuthUI(){
+  const btn = $('#authBtn'), who = $('#who');
+  if (!backend.cloud){ btn.style.display = 'none'; who.textContent = ''; return; }
+  const u = backend.user;
+  btn.style.display = '';
+  btn.textContent = u ? 'Sign out' : 'Sign in';
+  who.textContent = u ? (u.displayName || u.email || '') : '';
+}
+
+/* ---------- modal ---------- */
+function openVeil(){ hidePop(); els.veil.classList.add('on'); els.intent.value=''; setTimeout(()=>els.intent.focus(),60); }
+const closeVeil = () => els.veil.classList.remove('on');
+const openSettings = () => { renderChurchList(); $('#settings').classList.add('on'); };
+const closeSettings = () => $('#settings').classList.remove('on');
 
 /* ---------- wiring ---------- */
 $('#lightBtn').addEventListener('click', openVeil);
 $('#cancelBtn').addEventListener('click', closeVeil);
 $('#igniteBtn').addEventListener('click', lightCandle);
 els.veil.addEventListener('click', e => { if (e.target === els.veil) closeVeil(); });
-els.intent.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') lightCandle();
-});
-$('#prev').addEventListener('click', () => renderScene((cur+3)%4));
-$('#next').addEventListener('click', () => renderScene((cur+1)%4));
+els.intent.addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') lightCandle(); });
+
+$('#prev').addEventListener('click', () => step(-1));
+$('#next').addEventListener('click', () => step(1));
+$('#gearBtn').addEventListener('click', openSettings);
+$('#setClose').addEventListener('click', closeSettings);
+$('#cAdd').addEventListener('click', addChurch);
+$('#cImg').addEventListener('keydown', e => { if (e.key==='Enter') addChurch(); });
+$('#settings').addEventListener('click', e => { if (e.target.id === 'settings') closeSettings(); });
+$('#authBtn').addEventListener('click', () => { backend.user ? backend.signOut() : backend.signIn(); });
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape'){ closeVeil(); hidePop(); }
-  if (els.veil.classList.contains('on')) return;
-  if (e.key === 'ArrowLeft') renderScene((cur+3)%4);
-  if (e.key === 'ArrowRight') renderScene((cur+1)%4);
+  if (e.key === 'Escape'){ closeVeil(); hidePop(); closeSettings(); }
+  if (els.veil.classList.contains('on') || $('#settings').classList.contains('on')) return;
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
 });
 document.body.addEventListener('click', e => {
   if (!els.pop.contains(e.target) && !e.target.closest('.candle')) hidePop();
@@ -1207,23 +1467,39 @@ document.body.addEventListener('click', e => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
 
 /* ---------- init ---------- */
-(async () => {
-  els.note.innerHTML = '✠ &nbsp;Kept private, on this device<br>It will burn about ' + BURN_HOURS + ' hours, as a votive does';
-  CHURCHES.forEach((_, i) => {
-    const d = document.createElement('button');
-    d.className = 'dot';
-    d.setAttribute('aria-label', CHURCHES[i].name);
-    d.addEventListener('click', () => renderScene(i));
-    els.dots.appendChild(d);
-  });
-
-  candles = (await store.load()).filter(alive);
-  await store.save(candles);
-
+function boot(state){
+  if (booted){ applyRemote(state); return; }
+  booted = true;
+  custom  = state.churches || [];
+  candles = (state.candles || []).filter(alive);
+  saveState();
   const latest = candles.slice().sort((a,b) => b.lit - a.lit)[0];
-  const start = latest ? latest.church : Math.floor(Math.random()*4);
+  const start  = latest && churchById(latest.church) ? latest.church
+                 : orderIds()[Math.floor(Math.random()*BUILTINS.length)];
   renderScene(start, true);
+  refreshAuthUI();
   setInterval(tick, 30000);
+}
+
+(async () => {
+  els.note.innerHTML = '✠ &nbsp;Kept private<br>Each burns about ' + BURN_HOURS + ' hours, as a votive does';
+  $('#addHint').innerHTML = 'Any public image link works. For free, beautiful interiors, search '
+    + '<b>Wikimedia Commons</b> and use a link like<br>commons.wikimedia.org/wiki/Special:FilePath/YOUR_FILE.jpg';
+
+  const useCloud = FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey;
+  try { backend = useCloud ? await makeCloudBackend(FIREBASE_CONFIG) : makeLocalBackend(); }
+  catch(e){ console.warn('Cloud unavailable, staying local:', e.message); backend = makeLocalBackend(); }
+
+  if (backend.cloud){
+    backend.onChange(applyRemote);
+    backend.onAuth(async u => {
+      refreshAuthUI();
+      const s = await backend.load();
+      boot(s);
+    });
+  }
+
+  boot(await backend.load());
 })();
 </script>
 </body>
