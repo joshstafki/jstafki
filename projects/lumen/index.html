@@ -755,8 +755,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) sync
   $('#note').innerHTML = '✠ &nbsp;Each candle burns about ' + BURN_HOURS + ' hours, as a votive does';
   $('#calHint').innerHTML = 'Drag until the little candles rest on the floor of the church. Saved on this device.';
 
-  const useCloud = FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey;
-  try { backend = useCloud ? await makeCloudBackend(FIREBASE_CONFIG) : makeLocalBackend(); }
+  const useCloud = firebaseConfig && firebaseConfig.apiKey;
+  try { backend = useCloud ? await makeCloudBackend(firebaseConfig) : makeLocalBackend(); }
   catch(e){ console.warn('Cloud unavailable, staying local:', e.message); backend = makeLocalBackend(); }
 
   /* in local mode there is no one to share with — the share toggle is hidden */
