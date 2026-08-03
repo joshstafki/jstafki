@@ -34,7 +34,7 @@ body{
 #stage{position:fixed;inset:0;background:var(--bg)}
 #scene{position:absolute;inset:0}
 .photo{position:absolute;inset:0;background:#0a0806}
-.photo img{width:100%;height:100%;object-fit:cover;object-position:center bottom;display:block}
+.photo img{width:100%;height:100%;object-fit:cover;object-position:center var(--img-y,100%);display:block}
 .photo.imgfail img{display:none}
 .photo.imgfail::after{content:"The church image couldn’t be loaded — check the link.";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 40px;color:var(--faint);font:italic 16px var(--serif)}
 .photo-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,5,4,.5) 0%,rgba(6,5,4,.08) 22%,rgba(6,5,4,0) 44%,rgba(6,5,4,.3) 64%,rgba(6,5,4,.88) 100%)}
@@ -335,6 +335,7 @@ header{
 const CHURCH_IMAGE = "https://www.jstafki.com/assets/lumen/c54ceee7-a68b-4ef2-83bb-7ecad65e5b91.png";
 const CHURCH_LABEL = "";        /* optional caption under the wordmark; "" hides it */
 const CHURCH_ATTRIB = "";       /* optional small credit line, e.g. a photographer */
+const CHURCH_FOCAL_Y = 68;      /* 0 = show the top of the image, 100 = show the bottom. Lower this to reveal more of the top. */
 
 const BURN_HOURS = 10;                        /* a votive burns about ten hours */
 const BURN_MS = BURN_HOURS * 3600 * 1000;
@@ -747,6 +748,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) sync
 /* ---------- init ---------- */
 (async () => {
   loadCal(); applyCal();
+  document.documentElement.style.setProperty('--img-y', CHURCH_FOCAL_Y + '%');
   buildScene();
   if (CHURCH_LABEL){ $('#labelText').textContent = CHURCH_LABEL; } else { $('#label').style.display = 'none'; }
   $('#note').innerHTML = '✠ &nbsp;Each candle burns about ' + BURN_HOURS + ' hours, as a votive does';
