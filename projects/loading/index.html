@@ -1,0 +1,497 @@
+import { useState, useEffect } from "react";
+
+const MESSAGES = [
+  "Prepping the hyperdrive...",
+  "Reticulating splines...",
+  "Convincing the electrons...",
+  "Herding quantum hamsters...",
+  "Polishing the photons...",
+  "Untangling the wormholes...",
+  "Downloading more RAM...",
+  "Bribing the pixels...",
+  "Consulting the oracle...",
+  "Feeding the code gremlins...",
+  "Spinning up a parallel universe...",
+  "Teaching robots to dream...",
+  "Charging the flux capacitor...",
+  "Negotiating with gravity...",
+  "Summoning the loading spirits...",
+];
+
+// Saturated modern palette
+const C = {
+  magenta: "#ff2bd6",
+  cyan:    "#00e5ff",
+  amber:   "#ffb300",
+  violet:  "#8b5cf6",
+  lime:    "#a3ff2b",
+};
+
+// Sparkles scattered around the stage (✦ marks)
+const SPARKLES = [
+  { t:  6, l: 78, s: 15, c: C.cyan,    dur: 2.6, del: 0.0 },
+  { t: 14, l: 12, s: 11, c: C.magenta, dur: 3.1, del: 0.7 },
+  { t: 30, l: 92, s: 13, c: C.amber,   dur: 2.2, del: 1.4 },
+  { t: 55, l:  3, s: 16, c: C.violet,  dur: 3.4, del: 0.3 },
+  { t: 72, l: 90, s: 10, c: C.lime,    dur: 2.8, del: 2.0 },
+  { t: 88, l: 20, s: 14, c: C.cyan,    dur: 2.4, del: 1.1 },
+  { t: 92, l: 66, s: 11, c: C.magenta, dur: 3.0, del: 0.5 },
+  { t: 40, l:  0, s: 12, c: C.amber,   dur: 2.9, del: 2.6 },
+  { t:  2, l: 42, s: 10, c: C.lime,    dur: 3.3, del: 1.8 },
+  { t: 66, l: 97, s: 12, c: C.violet,  dur: 2.5, del: 0.9 },
+];
+
+// 3D orbit configs (tilt gives the elliptical path)
+const ORBITS = [
+  { r: 168, tz:   0, dur: 2.3, rev: false, c: C.cyan,    s: 9 },
+  { r: 185, tz:  60, dur: 3.4, rev: true,  c: C.magenta, s: 8 },
+  { r: 152, tz: 120, dur: 4.6, rev: false, c: C.amber,   s: 7 },
+];
+
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=JetBrains+Mono:wght@300;400&display=swap');
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { width:100%; height:100%; overflow:hidden; }
+
+/* ── Spins ── */
+@keyframes spinF { to { transform: rotate(360deg); } }
+@keyframes spinB { to { transform: rotate(-360deg); } }
+
+/* ── Full-spectrum hue cycling for the liquid core ── */
+@keyframes hueSpin { to { filter: hue-rotate(360deg); } }
+
+/* ── Liquid blob swirls (each a distinct path) ── */
+@keyframes swirl1 {
+  0%,100% { transform: translate(-18%,-14%) scale(1);    }
+  33%     { transform: translate( 22%, 10%) scale(1.28); }
+  66%     { transform: translate(-10%, 26%) scale(0.82); }
+}
+@keyframes swirl2 {
+  0%,100% { transform: translate( 20%, 16%) scale(1);    }
+  30%     { transform: translate(-24%,-6%)  scale(0.85); }
+  62%     { transform: translate( 8%,-24%)  scale(1.32); }
+}
+@keyframes swirl3 {
+  0%,100% { transform: translate(-6%, 24%)  scale(1.1);  }
+  40%     { transform: translate( 18%,-18%) scale(0.8);  }
+  75%     { transform: translate(-26%, 2%)  scale(1.25); }
+}
+@keyframes swirl4 {
+  0%,100% { transform: translate( 14%,-22%) scale(0.9);  }
+  45%     { transform: translate(-16%, 14%) scale(1.3);  }
+  80%     { transform: translate( 24%, 22%) scale(0.85); }
+}
+@keyframes swirl5 {
+  0%,100% { transform: translate( 0%,  0%)  scale(1.2);  }
+  50%     { transform: translate(-20%,-20%) scale(0.78); }
+}
+
+/* ── Organic membrane morph ── */
+@keyframes morph {
+  0%,100% { border-radius: 42% 58% 55% 45% / 48% 42% 58% 52%; transform: rotate(0deg)   scale(1);    }
+  33%     { border-radius: 58% 42% 40% 60% / 55% 60% 40% 45%; transform: rotate(120deg) scale(1.07); }
+  66%     { border-radius: 45% 55% 62% 38% / 40% 52% 48% 60%; transform: rotate(240deg) scale(0.96); }
+}
+
+/* ── Halo & core ── */
+@keyframes haloBreath {
+  0%,100% { transform: scale(1);    opacity: 0.5;  }
+  50%     { transform: scale(1.12); opacity: 0.75; }
+}
+@keyframes nucleusPulse {
+  0%,100% { transform: translate(-50%,-50%) scale(1);    opacity: 0.92; }
+  50%     { transform: translate(-50%,-50%) scale(1.35); opacity: 1;    }
+}
+@keyframes orbBreath {
+  0%,100% { transform: scale(1);    }
+  50%     { transform: scale(1.035);}
+}
+
+/* ── Sparkles ── */
+@keyframes twinkle {
+  0%,100% { transform: scale(0.35) rotate(0deg);  opacity: 0;   }
+  50%     { transform: scale(1.15) rotate(90deg); opacity: 1;   }
+}
+
+/* ── Ripples ── */
+@keyframes rippleOut {
+  from { transform: scale(0.35); opacity: 0.8; }
+  to   { transform: scale(4.6);  opacity: 0;   }
+}
+
+/* ── Aurora background ── */
+@keyframes auroraA {
+  0%,100% { transform: translate(0,0) scale(1) rotate(0deg);      }
+  33%     { transform: translate(9%,-11%) scale(1.2) rotate(40deg);}
+  66%     { transform: translate(-8%,7%) scale(0.88) rotate(-30deg);}
+}
+@keyframes auroraB {
+  0%,100% { transform: translate(0,0) scale(1);     }
+  40%     { transform: translate(-12%,9%) scale(1.15);}
+  75%     { transform: translate(10%,-7%) scale(0.9); }
+}
+@keyframes auroraC {
+  0%,100% { transform: translate(0,0) scale(1);   }
+  55%     { transform: translate(7%,13%) scale(1.25);}
+}
+
+/* ── Rainbow progress bar slide ── */
+@keyframes bgSlide { to { background-position: 200% 0; } }
+
+/* ── Message fade ── */
+@keyframes msgFade {
+  from { opacity:0; transform: translateY(6px); }
+  to   { opacity:1; transform: translateY(0);   }
+}
+
+/* ── Type ── */
+.loader-title {
+  font-family:'Unbounded',sans-serif;
+  font-weight:500;
+  letter-spacing:0.01em;
+  text-align:center;
+  color:rgba(250,250,255,0.95);
+  text-shadow:
+    -1.5px 0 rgba(255,43,214,0.45),
+     1.5px 0 rgba(0,229,255,0.45),
+     0 0 24px rgba(255,255,255,0.18);
+  background:transparent;
+  border:none;
+  outline:none;
+  caret-color:#ff2bd6;
+  width:100%;
+  max-width:640px;
+  padding:0 1rem;
+  font-size:clamp(1.25rem,3vw,2rem);
+}
+.loader-title::selection { background:rgba(255,43,214,0.3); }
+.loader-title::placeholder { color:rgba(250,250,255,0.22); text-shadow:none; }
+
+.msg-text {
+  color:rgba(210,215,235,0.9);
+  font-family:'JetBrains Mono',monospace;
+  font-weight:400;
+  font-size:clamp(0.7rem,1.2vw,0.84rem);
+  letter-spacing:0.05em;
+  animation:msgFade 0.4s ease forwards;
+  text-align:center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; }
+}
+`;
+
+export default function Loader() {
+  const [title,      setTitle]      = useState("Loading");
+  const [msgIdx,     setMsgIdx]     = useState(0);
+  const [msgVisible, setMsgVisible] = useState(true);
+  const [ripples,    setRipples]    = useState([]);
+
+  // Cycle status messages
+  useEffect(() => {
+    const id = setInterval(() => {
+      setMsgVisible(false);
+      setTimeout(() => {
+        setMsgIdx(i => (i + 1) % MESSAGES.length);
+        setMsgVisible(true);
+      }, 400);
+    }, 2900);
+    return () => clearInterval(id);
+  }, []);
+
+  // Fire expanding ripples
+  useEffect(() => {
+    const hues = [316, 187, 45, 262, 84];
+    const id = setInterval(() => {
+      setRipples(prev => [
+        ...prev.filter(r => Date.now() - r.ts < 3300),
+        { id: Date.now() + Math.random(), ts: Date.now(),
+          hue: hues[Math.floor(Math.random() * hues.length)] },
+      ]);
+    }, 1400);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <>
+      <style>{CSS}</style>
+
+      {/* ══ Root ══ */}
+      <div style={{
+        width:"100vw", height:"100vh",
+        background:"#0b0b14",
+        display:"flex", flexDirection:"column",
+        alignItems:"center", justifyContent:"center",
+        overflow:"hidden", position:"relative",
+        userSelect:"none",
+      }}>
+
+        {/* ── Aurora field ── */}
+        <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden" }}>
+          <div style={{
+            position:"absolute", width:"58vw", height:"58vw", top:"-6%", left:"-8%",
+            background:`radial-gradient(circle, ${C.magenta}44 0%, transparent 68%)`,
+            filter:"blur(90px)", animation:"auroraA 26s ease-in-out infinite",
+          }} />
+          <div style={{
+            position:"absolute", width:"52vw", height:"52vw", bottom:"-4%", right:"-6%",
+            background:`radial-gradient(circle, ${C.cyan}3d 0%, transparent 68%)`,
+            filter:"blur(100px)", animation:"auroraB 21s ease-in-out infinite 3s",
+          }} />
+          <div style={{
+            position:"absolute", width:"40vw", height:"40vw", top:"52%", left:"26%",
+            background:`radial-gradient(circle, ${C.violet}38 0%, transparent 68%)`,
+            filter:"blur(105px)", animation:"auroraC 30s ease-in-out infinite 7s",
+          }} />
+        </div>
+
+        {/* ── Vignette ── */}
+        <div style={{
+          position:"absolute", inset:0,
+          background:"radial-gradient(ellipse 74% 74% at 50% 50%, transparent 0%, rgba(11,11,20,0.6) 100%)",
+          pointerEvents:"none", zIndex:2,
+        }} />
+
+        {/* ── Editable title (chromatic aberration glow) ── */}
+        <input
+          className="loader-title"
+          value={title}
+          placeholder="what are you loading?"
+          onChange={e => setTitle(e.target.value)}
+          maxLength={40}
+          style={{ marginBottom:"2.5rem", zIndex:10 }}
+        />
+
+        {/* ══ STAGE ══ */}
+        <div style={{
+          position:"relative", width:400, height:400,
+          zIndex:10, overflow:"visible", perspective:"900px",
+        }}>
+
+          {/* Rainbow halo (soft, rotating, breathing) */}
+          <div style={{
+            position:"absolute", top:"50%", left:"50%",
+            width:300, height:300, marginTop:-150, marginLeft:-150,
+            borderRadius:"50%",
+            background:`conic-gradient(${C.magenta},${C.amber},${C.lime},${C.cyan},${C.violet},${C.magenta})`,
+            filter:"blur(46px)",
+            animation:"spinF 9s linear infinite, haloBreath 5s ease-in-out infinite",
+          }} />
+
+          {/* Morphing iridescent membrane */}
+          <div style={{
+            position:"absolute", top:"50%", left:"50%",
+            width:286, height:286, marginTop:-143, marginLeft:-143,
+            background:`linear-gradient(135deg, ${C.magenta}55, ${C.violet}44, ${C.cyan}55)`,
+            filter:"blur(7px)",
+            animation:"morph 13s ease-in-out infinite",
+            opacity:0.6,
+          }} />
+
+          {/* ── Liquid core (230px) ── */}
+          <div style={{
+            position:"absolute", top:"50%", left:"50%",
+            width:230, height:230, marginTop:-115, marginLeft:-115,
+            animation:"orbBreath 4.5s ease-in-out infinite",
+          }}>
+            <div style={{
+              position:"absolute", inset:0,
+              borderRadius:"50%",
+              overflow:"hidden",
+              background:"#12101f",
+              border:"1px solid rgba(255,255,255,0.16)",
+              boxShadow:`
+                0 0 60px ${C.magenta}33,
+                0 0 120px ${C.cyan}22,
+                inset 0 2px 0 rgba(255,255,255,0.2),
+                inset 0 -14px 40px rgba(0,0,0,0.35)`,
+            }}>
+              {/* Hue-cycling swirl chamber — full spectrum over 16s */}
+              <div style={{
+                position:"absolute", inset:0,
+                animation:"hueSpin 16s linear infinite",
+              }}>
+                <div style={{
+                  position:"absolute", width:"72%", height:"72%", top:"2%",  left:"-4%",
+                  borderRadius:"50%", background:C.magenta, filter:"blur(34px)",
+                  animation:"swirl1 7s ease-in-out infinite",
+                }} />
+                <div style={{
+                  position:"absolute", width:"66%", height:"66%", top:"30%", left:"38%",
+                  borderRadius:"50%", background:C.cyan, filter:"blur(32px)",
+                  animation:"swirl2 8.5s ease-in-out infinite 0.6s",
+                }} />
+                <div style={{
+                  position:"absolute", width:"58%", height:"58%", top:"-8%", left:"42%",
+                  borderRadius:"50%", background:C.amber, filter:"blur(30px)",
+                  animation:"swirl3 6.2s ease-in-out infinite 1.4s",
+                }} />
+                <div style={{
+                  position:"absolute", width:"62%", height:"62%", top:"44%", left:"-6%",
+                  borderRadius:"50%", background:C.violet, filter:"blur(32px)",
+                  animation:"swirl4 9.2s ease-in-out infinite 2.2s",
+                }} />
+                <div style={{
+                  position:"absolute", width:"48%", height:"48%", top:"24%", left:"22%",
+                  borderRadius:"50%", background:C.lime, filter:"blur(30px)",
+                  animation:"swirl5 5.4s ease-in-out infinite 0.9s",
+                }} />
+              </div>
+
+              {/* Specular highlight */}
+              <div style={{
+                position:"absolute", top:"7%", left:"13%",
+                width:"46%", height:"34%",
+                borderRadius:"50%",
+                background:"radial-gradient(ellipse, rgba(255,255,255,0.34) 0%, transparent 65%)",
+                filter:"blur(4px)",
+              }} />
+            </div>
+          </div>
+
+          {/* Bright nucleus */}
+          <div style={{
+            position:"absolute", top:"50%", left:"50%",
+            width:26, height:26,
+            borderRadius:"50%",
+            background:"radial-gradient(circle, #fff 0%, rgba(255,255,255,0.55) 45%, transparent 75%)",
+            animation:"nucleusPulse 2.4s ease-in-out infinite",
+            zIndex:7,
+          }} />
+
+          {/* ── SVG progress arcs (round caps — the modern spinner language) ── */}
+          <svg viewBox="0 0 400 400" style={{ position:"absolute", inset:0, overflow:"visible", zIndex:6 }}>
+            <defs>
+              <linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"  stopColor={C.magenta} />
+                <stop offset="50%" stopColor={C.violet}  />
+                <stop offset="100%" stopColor={C.cyan}   />
+              </linearGradient>
+              <linearGradient id="rg2" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%"  stopColor={C.amber}   />
+                <stop offset="100%" stopColor={C.magenta}/>
+              </linearGradient>
+            </defs>
+
+            {/* Outer arc — 1.6s */}
+            <g style={{
+              transformOrigin:"200px 200px",
+              animation:"spinF 1.6s linear infinite",
+              filter:`drop-shadow(0 0 7px ${C.magenta}aa)`,
+            }}>
+              <circle cx="200" cy="200" r="152" fill="none"
+                stroke="url(#rg1)" strokeWidth="5.5" strokeLinecap="round"
+                strokeDasharray="250 705" />
+            </g>
+
+            {/* Inner counter-arc — 2.5s */}
+            <g style={{
+              transformOrigin:"200px 200px",
+              animation:"spinB 2.5s linear infinite",
+              filter:`drop-shadow(0 0 6px ${C.amber}99)`,
+            }}>
+              <circle cx="200" cy="200" r="133" fill="none"
+                stroke="url(#rg2)" strokeWidth="4" strokeLinecap="round"
+                strokeDasharray="170 666" />
+            </g>
+          </svg>
+
+          {/* ── 3D orbiting satellites ── */}
+          {ORBITS.map(({ r, tz, dur, rev, c, s }, i) => (
+            <div key={i} style={{
+              position:"absolute", top:"50%", left:"50%",
+              width:0, height:0,
+              transform:`rotateZ(${tz}deg) rotateX(72deg)`,
+              transformStyle:"preserve-3d",
+              zIndex:8,
+            }}>
+              <div style={{
+                position:"absolute",
+                animation:`${rev ? "spinB" : "spinF"} ${dur}s linear infinite`,
+              }}>
+                <div style={{
+                  position:"absolute",
+                  left:r - s/2, top:-s/2,
+                  width:s, height:s,
+                  borderRadius:"50%",
+                  background:c,
+                  boxShadow:`0 0 ${s * 1.6}px ${c}, 0 0 ${s * 4}px ${c}88`,
+                }} />
+              </div>
+            </div>
+          ))}
+
+          {/* ── Expanding ripples ── */}
+          {ripples.map(rip => (
+            <div key={rip.id} style={{
+              position:"absolute", top:"50%", left:"50%",
+              width:90, height:90, marginTop:-45, marginLeft:-45,
+              borderRadius:"50%",
+              border:`2px solid hsl(${rip.hue},95%,64%)`,
+              boxShadow:`0 0 12px hsl(${rip.hue},95%,64%)66`,
+              filter:"blur(0.5px)",
+              animation:"rippleOut 3.3s ease-out forwards",
+              pointerEvents:"none",
+              zIndex:3,
+            }} />
+          ))}
+
+          {/* ── Twinkling sparkles ── */}
+          {SPARKLES.map((sp, i) => (
+            <span key={i} style={{
+              position:"absolute",
+              top:`${sp.t}%`, left:`${sp.l}%`,
+              fontSize:sp.s,
+              color:sp.c,
+              textShadow:`0 0 8px ${sp.c}, 0 0 18px ${sp.c}88`,
+              animation:`twinkle ${sp.dur}s ease-in-out infinite ${sp.del}s`,
+              zIndex:9,
+              lineHeight:1,
+              pointerEvents:"none",
+            }}>✦</span>
+          ))}
+        </div>
+
+        {/* ── Status message ── */}
+        <div style={{
+          marginTop:"2.4rem", height:"1.8rem",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          zIndex:10, minWidth:280,
+        }}>
+          {msgVisible && <p className="msg-text">{MESSAGES[msgIdx]}</p>}
+        </div>
+
+        {/* ── Sliding rainbow progress bar ── */}
+        <div style={{
+          marginTop:"1.4rem",
+          width:180, height:4,
+          borderRadius:99,
+          overflow:"hidden",
+          background:"rgba(255,255,255,0.07)",
+          zIndex:10,
+        }}>
+          <div style={{
+            width:"100%", height:"100%",
+            borderRadius:99,
+            background:`linear-gradient(90deg, ${C.magenta}, ${C.amber}, ${C.lime}, ${C.cyan}, ${C.violet}, ${C.magenta})`,
+            backgroundSize:"200% 100%",
+            animation:"bgSlide 2.2s linear infinite",
+          }} />
+        </div>
+
+        {/* Hint */}
+        <p style={{
+          position:"absolute", bottom:"1.5rem",
+          color:"rgba(255,255,255,0.1)",
+          fontFamily:"'JetBrains Mono',monospace",
+          fontSize:"0.55rem", letterSpacing:"0.14em",
+          zIndex:10,
+        }}>
+          click title to rename
+        </p>
+      </div>
+    </>
+  );
+}
