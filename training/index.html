@@ -1,418 +1,623 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Training Board</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg: #1B1B1B;
-    --surface: #242424;
-    --surface-2: #2C2C2C;
-    --line: #3A3A3A;
-    --orange: #E8622C;
-    --orange-bright: #F4823C;
-    --text: #F3EFE9;
-    --text-dim: #9C9691;
-    --text-faint: #6B6662;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    <!-- Primary Meta -->
+    <title>Intrepid Flights | Drone Photography</title>
+    <meta name="description" content="Professional drone photography, aerial imaging, and geographic mapping services across the Twin Cities. FAA-certified. Serving real estate, construction, and commercial clients in Minnesota.">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="theme-color" content="#002F6C">
+    <meta name="author" content="Intrepid Flights">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="canonical" href="https://www.intrepidflights.com/">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.intrepidflights.com/">
+    <meta property="og:title" content="Intrepid Flights | Precision Drone Photography & Aerial Imaging">
+    <meta property="og:description" content="Professional drone photography, aerial imaging, and geographic mapping across the Twin Cities. FAA-certified aerial services for real estate, construction, and commercial projects.">
+    <meta property="og:image" content="https://www.intrepidflights.com/assets/image.jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Intrepid Flights aerial drone photography over the Twin Cities">
+    <meta property="og:site_name" content="Intrepid Flights">
+    <meta property="og:locale" content="en_US">
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Intrepid Flights | Precision Drone Photography & Aerial Imaging">
+    <meta name="twitter:description" content="Professional drone photography and aerial imaging across the Twin Cities. FAA-certified. Real estate, construction, and commercial aerial services.">
+    <meta name="twitter:image" content="https://www.intrepidflights.com/assets/image.jpeg">
+    <meta name="twitter:image:alt" content="Intrepid Flights aerial drone photography over the Twin Cities">
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "name": "Intrepid Flights",
+      "url": "https://www.intrepidflights.com/",
+      "logo": "https://www.intrepidflights.com/assets/image.jpeg",
+      "image": "https://www.intrepidflights.com/assets/image.jpeg",
+      "description": "Professional drone photography, aerial imaging, and geographic mapping services across the Twin Cities, Minnesota.",
+      "areaServed": {
+        "@type": "AdministrativeArea",
+        "name": "Twin Cities Metropolitan Area, Minnesota"
+      },
+      "serviceType": [
+        "Drone Photography",
+        "Aerial Imaging",
+        "Geographic Mapping",
+        "Real Estate Drone Photography",
+        "Construction Aerial Surveys"
+      ],
+      "hasCredential": "FAA Part 107 Remote Pilot Certificate",
+      "sameAs": [
+        "https://www.instagram.com/intrepid.flights"
+      ]
+    }
+    </script>
+    
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-RJ5YS5ZN4V"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-RJ5YS5ZN4V');
+</script>
+<script type="text/javascript">
+    // Detect iPads
+    const isIPad = /iPad/i.test(navigator.userAgent);
+    // Detect Amazon Silk on Fire TV specifically (not tablets)
+    const isFireTV = /Silk/i.test(navigator.userAgent) && /AFTS|AFTB|AFTM|AFTT|AFTR|AFTEU|Amazon.*TV/i.test(navigator.userAgent);
+    // Detect other mobiles or small screens
+    const isMobileOrSmall = (/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 900);
+    // Detect Flipboard crawler
+    const isFlipboard = /flipboard/i.test(navigator.userAgent);
+    // Only redirect if it's a mobile/small device AND NOT an iPad or Fire TV or Flipboard
+    if (isMobileOrSmall && !isIPad && !isFireTV && !isFlipboard) {
+        window.location.href = "https://intrepidflights.com/home/";
+    }
+</script>
 
-  html, body{
-    margin:0; padding:0; min-height:100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', system-ui, sans-serif;
-  }
+<link rel="icon" type="image/png" href="https://intrepidflights.com/assets/indigo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://intrepidflights.com/assets/apple-touch-icon.png">
 
-  body{
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    display:flex;
-    justify-content:center;
-  }
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "name": "Intrepid Flights",
+      "image": "https://raw.githubusercontent.com/joshstafki/Intrepid-Flights/main/favicon.jpg",
+      "url": "https://www.intrepidflights.com",
+      "telephone": "763-910-1792",
+      "email": "joshstafki@intrepidflights.com",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Hanover",
+        "addressRegion": "MN",
+        "postalCode": "55341",
+        "addressCountry": "US"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 45.15,
+        "longitude": -93.66
+      },
+      "priceRange": "$$",
+      "sameAs": [
+        "https://x.com/intrepidflights",
+        "https://www.linkedin.com/company/intrepid-flights-drone-photography",
+        "https://www.instagram.com/intrepid.flights"
+      ]
+    }
+    </script>
+    
+    <title>Intrepid Flights | Drone Photography</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-  .page{
-    width:100%;
-    max-width: 560px;
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    padding: 20px 18px 32px;
-  }
+    <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "upp0ioykui");
+    </script>
 
-  /* ---------- day switcher ---------- */
-  .switcher{
-    display:flex;
-    justify-content:space-between;
-    gap:6px;
-    margin-bottom: 22px;
-  }
-  .switcher button{
-    flex:1;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    color: var(--text-dim);
-    font-family:'IBM Plex Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.03em;
-    padding: 10px 0;
-    border-radius: 8px;
-    cursor:pointer;
-    transition: background .15s ease, color .15s ease, border-color .15s ease;
-  }
-  .switcher button:hover{ border-color: var(--text-faint); }
-  .switcher button:focus-visible{ outline: 2px solid var(--orange-bright); outline-offset: 2px; }
-  .switcher button.is-today{ color: var(--text); }
-  .switcher button.is-selected{
-    background: var(--orange);
-    border-color: var(--orange);
-    color: #1B1B1B;
-    font-weight:600;
-  }
+    <style>
+        /* --- 1. CORE VARIABLES --- */
+        :root {
+            --bg-dark: #121212;
+            --bg-panel: #1a1a1a;
+            --text-white: #ffffff;
+            --text-mute: #b0b0b0; /* ADA: High contrast grey */
+        }
 
-  .back-today{
-    text-align:center;
-    margin: -12px 0 20px;
-    min-height: 18px;
-  }
-  .back-today button{
-    background:none; border:none; color: var(--orange-bright);
-    font-family:'IBM Plex Mono', monospace; font-size: 12px;
-    letter-spacing: .04em; cursor:pointer; padding: 4px 8px;
-    visibility:hidden;
-  }
-  .back-today button.show{ visibility:visible; }
-  .back-today button:focus-visible{ outline: 2px solid var(--orange-bright); outline-offset: 2px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-  /* ---------- hero ---------- */
-  .hero{ margin-bottom: 28px; }
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    color: var(--orange-bright);
-    text-transform: uppercase;
-    margin: 0 0 6px;
-  }
-  .day-name{
-    font-family:'Bebas Neue', sans-serif;
-    font-size: 64px;
-    line-height: 0.92;
-    letter-spacing: 0.01em;
-    margin: 0 0 10px;
-    position:relative;
-    display:inline-block;
-  }
-  .day-name::after{
-    content:"";
-    position:absolute;
-    left:2px; bottom:-8px;
-    width: 46%;
-    height: 5px;
-    background: var(--orange);
-  }
-  .meta{
-    margin-top: 18px;
-    font-size: 15px;
-    color: var(--text-dim);
-  }
-  .meta b{ color: var(--text); font-weight:600; }
-  .duration-tag{
-    display:inline-block;
-    margin-top:10px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size: 12px;
-    color: var(--text-faint);
-    border: 1px solid var(--line);
-    padding: 5px 10px;
-    border-radius: 999px;
-  }
+        /* ADA: Visible Focus States */
+        *:focus-visible {
+            outline: 2px solid #ffffff;
+            outline-offset: 4px;
+        }
 
-  /* ---------- exercise list ---------- */
-  .list{ display:flex; flex-direction:column; gap:10px; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            overflow: hidden; /* Locked to desktop view */
+            font-weight: 300;
+        }
 
-  .ex{
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--line);
-    border-radius: 10px;
-    padding: 14px 16px;
-    display:grid;
-    grid-template-columns: 1fr auto;
-    gap: 4px 14px;
-    align-items:center;
-  }
-  .ex.is-main{
-    background: var(--surface-2);
-    border-left: 3px solid var(--orange);
-  }
-  .ex .idx{
-    font-family:'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--text-faint);
-    grid-column: 1 / 2;
-  }
-  .ex.is-main .idx{ color: var(--orange-bright); }
-  .ex .name{
-    grid-column: 1 / 2;
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 1.25;
-  }
-  .ex .setsreps{
-    grid-column: 2 / 3;
-    grid-row: 1 / 3;
-    font-family:'IBM Plex Mono', monospace;
-    font-size: 17px;
-    font-weight: 600;
-    text-align:right;
-    white-space:nowrap;
-    align-self:center;
-  }
-  .ex .subrow{
-    grid-column: 1 / 3;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-top: 6px;
-  }
-  .ex .rest{
-    font-family:'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--text-faint);
-  }
-  .ex .main-tag{
-    font-family:'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    color: var(--orange-bright);
-    border: 1px solid var(--orange);
+        /* --- 2. DESKTOP LAYOUT --- */
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            flex-direction: row;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 380px;
+            background-color: var(--bg-panel);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px 45px;
+            border-right: 1px solid #2a2a2a;
+            z-index: 10;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        /* Typography */
+        .header-section h1 {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700; 
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            line-height: 1;
+        }
+
+        .header-section .title {
+            font-size: 0.95rem;
+            color: var(--text-mute);
+            margin-bottom: 30px;
+            display: block;
+            font-weight: 300; 
+            letter-spacing: 0.5px;
+        }
+
+        .location-text {
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: var(--text-mute);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 400;
+            margin-bottom: 50px;
+            border-left: 2px solid #333;
+            padding-left: 15px;
+        }
+
+        /* Menu Styling */
+        .services-menu h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #b0b0b0; 
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .service-list { list-style: none; }
+        
+        .service-item {
+            font-family: 'Oswald', sans-serif;
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 400;
+            
+            /* Button Reset */
+            background: none;
+            border: none;
+            padding: 0;
+            width: 100%;
+            text-align: left;
+        }
+        
+        /* Interactive States */
+        .service-item:hover, 
+        .service-item.active, 
+        .service-item:focus {
+            color: #fff;
+            transform: translateX(10px);
+            font-weight: 500; 
+        }
+
+        .service-item::before {
+            content: ''; display: inline-block; width: 0; height: 2px; background: #fff;
+            margin-right: 0; transition: all 0.3s ease;
+        }
+        .service-item:hover::before, 
+        .service-item.active::before, 
+        .service-item:focus::before {
+            width: 15px; margin-right: 12px;
+        }
+
+        /* Contact & Social */
+        .contact-box { margin-top: 40px; }
+        .contact-label {
+            font-size: 0.7rem;
+            text-transform: uppercase; letter-spacing: 2px;
+            color: #b0b0b0; 
+            margin-bottom: 15px; display: block;
+            font-weight: 600; 
+        }
+        .contact-details p { 
+            font-size: 1rem;
+            margin-bottom: 10px; 
+            font-weight: 300; 
+        }
+        .contact-details a { color: #bbb; text-decoration: none; border-bottom: 1px dotted #444; }
+        .contact-details a:hover { color: #fff; border-bottom-color: #fff; }
+
+        .social-links { display: flex; gap: 20px; margin-top: 30px; }
+        .social-links a { 
+            color: #bbb; 
+            font-size: 1.2rem; 
+            transition: 0.3s; 
+            text-decoration: none;
+        } 
+        .social-links a:hover { color: #fff; }
+
+      /* HERO VIEW */
+.hero-view {
+    flex-grow: 1;
+    background:
+        linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.3));
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 60px;
+        }
+
+        .precision-overlay h2 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 0.9;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1.2s forwards ease-out 0.3s;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .coordinates {
+            position: absolute; top: 40px; right: 40px;
+            font-family: monospace; 
+            font-size: 0.8rem; 
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.8); 
+        }
+
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* ADA: Reduced Motion Preference */
+        @media (prefers-reduced-motion: reduce) {
+            .precision-overlay h2 {
+                animation: none;
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .service-item, .service-item::before {
+                transition: none;
+            }
+        }
+/* --- NEWS POPUP BRANDING --- */
+  #news-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #1a1a1a; /* Matches your sidebar */
+    color: #ffffff;
+    padding: 40px;
     border-radius: 4px;
-    padding: 2px 6px;
-  }
-  .ex .note{
-    grid-column: 1 / 3;
-    font-size: 12.5px;
-    color: var(--text-dim);
-    font-style: italic;
-    margin-top: 2px;
+    border: 1px solid #333;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    z-index: 10000;
+    text-align: center;
+    width: 380px;
+    font-family: 'Inter', sans-serif;
   }
 
-  /* ---------- off-day states (cardio / rest) ---------- */
-  .off-state{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    justify-content:center;
-    padding: 30px 4px 60px;
-  }
-  .off-state .big{
-    font-family:'Bebas Neue', sans-serif;
-    font-size: 40px;
-    line-height: 1.05;
-    margin: 0 0 12px;
-    max-width: 380px;
-  }
-  .off-state .big .accent{ color: var(--orange-bright); }
-  .off-state p{
-    font-size: 15px;
-    color: var(--text-dim);
-    line-height: 1.55;
-    max-width: 360px;
-    margin: 0;
+  #news-popup h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    line-height: 1.4;
   }
 
-  /* ---------- footer note ---------- */
-  .footer{
-    margin-top: 26px;
-    padding-top: 16px;
-    border-top: 1px solid var(--line);
-    font-size: 12px;
-    color: var(--text-faint);
-    line-height: 1.6;
-  }
-  .footer b{ color: var(--text-dim); }
-
-  @media (max-width: 380px){
-    .day-name{ font-size: 52px; }
-    .ex .setsreps{ font-size: 15px; }
+  .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #b0b0b0;
+    border: none;
+    background: none;
   }
 
-  @media (prefers-reduced-motion: reduce){
-    *{ transition: none !important; }
+  .popup-btn {
+    font-family: 'Oswald', sans-serif;
+    margin: 10px;
+    padding: 12px 30px;
+    cursor: pointer;
+    border: 1px solid #444;
+    background-color: transparent;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: 0.3s;
   }
-</style>
+
+  .popup-btn:hover {
+    background-color: #fff;
+    color: #121212;
+  }
+    </style>
 </head>
 <body>
-<div class="page">
 
-  <nav class="switcher" id="switcher" aria-label="Choose a day"></nav>
-  <div class="back-today"><button id="backToday">&larr; back to today</button></div>
+    <div class="container">
+        
+        <aside class="sidebar" id="menu-panel">
+            <header class="header-section">
+                <h1>Intrepid Flights</h1>
+                <span class="title">by Joshua Stafki</span>
+                
+                <div class="location-text">
+                    Serving The Twin Cities<br>
+                    & Surrounding Communities
+                </div>
 
-  <main id="content"></main>
+                <nav class="services-menu" aria-label="Services Menu">
+                    <h3>Services</h3>
+                    <ul class="service-list">
+                        <li><button class="service-item" aria-pressed="false" onclick="activate(this)">Aerial Photography</button></li>
+                        <li><button class="service-item" aria-pressed="false" onclick="activate(this)">Geographical Mapping</button></li>
+                        <li><button class="service-item" aria-pressed="false" onclick="activate(this)">Real Estate</button></li>
+                        <li><button class="service-item" aria-pressed="false" onclick="activate(this)">Cinematography</button></li>
+                        <li><button class="service-item" aria-pressed="false" onclick="activate(this)">Inspections</button></li>
+                        <li><button class="service-item" aria-pressed="false" onclick="activate(this)">Media Licenses</button></li>
+                    </ul>
+                </nav>
+            </header>
 
-  <div class="footer">
-    <b>Good pain</b> = burning inside the muscle. <b>Bad pain</b> = sharp or joint-located &mdash; stop.
-    On the main lift, the last 1&ndash;2 reps should feel hard but controlled. Rest 90&ndash;120s on main lifts, 60&ndash;90s on everything else.
-  </div>
+            <div class="contact-box">
+                <span class="contact-label">Contact Info</span>
+                <address class="contact-details" style="font-style: normal;">
+                    <p><a href="tel:7639101792" aria-label="Call 7 6 3. 9 1 0. 1 7 9 2">763-910-1792</a></p>
+                    <p><a href="mailto:joshstafki@intrepidflights.com" aria-label="Email joshstafki at intrepidflights.com">joshstafki@intrepidflights.com</a></p>
+                    <p><a href="https://calendar.app.google/G2UdDi8vAQLdc6WB8" aria-label="Book an appointment with Intrepid Flights" target="_blank" rel="noopener noreferrer">Book An Appointment</a></p>
+                </address>
 
+                <nav class="social-links" aria-label="Social Media Links">
+                    <a href="https://x.com/intrepidflights?s=21" aria-label="Visit Intrepid Flights on X (Twitter)">
+                        <i class="fab fa-x-twitter" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/company/intrepid-flights-drone-photography" target="_blank" aria-label="Visit Intrepid Flights on LinkedIn">
+                        <i class="fab fa-linkedin-in" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://www.instagram.com/intrepid.flights?igsh=ZW11Zzd1OW13NnR3&utm_source=qr" target="_blank" aria-label="Visit Intrepid Flights on Instagram">
+                        <i class="fab fa-instagram" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://www.intrepidflights.com/effects/" target="_blank" aria-label="Visit Intrepid Flights on YouTube">
+                        <i class="fab fa-youtube" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://music.apple.com/us/playlist/intrepid-flights/pl.u-jV899PLsDENeq7z" target="_blank" aria-label="Visit Intrepid Flights on Apple Music">
+                        <i class="fab fa-apple" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://www.reddit.com/r/intrepidflights/s/YsrjHhGtir" target="_blank" aria-label="Visit Intrepid Flights on Reddit">
+                        <i class="fab fa-reddit" aria-hidden="true"></i>
+                    </a>
+                </nav>
+                
+                    <div style="margin-top: 50px; font-family: 'Inter', sans-serif; font-size: 0.8rem; color: #b0b0b0; text-align: left; line-height: 1.8;">
+    
+    <div style="margin-bottom: 8px;">
+    <a href="/legal" style="color: #b0b0b0; text-decoration: none; margin-right: 20px; border-bottom: 1px solid transparent;" onmouseover="this.style.borderBottom='1px solid #ffffff'" onmouseout="this.style.borderBottom='1px solid transparent'">Legal</a>
+    <a href="/about" style="color: #b0b0b0; text-decoration: none; margin-right: 20px; border-bottom: 1px solid transparent;" onmouseover="this.style.borderBottom='1px solid #ffffff'" onmouseout="this.style.borderBottom='1px solid transparent'">About</a>
+    <a href="/privacy" style="color: #b0b0b0; text-decoration: none; border-bottom: 1px solid transparent;" onmouseover="this.style.borderBottom='1px solid #ffffff'" onmouseout="this.style.borderBottom='1px solid transparent'">Privacy</a>
 </div>
 
+<div style="margin-bottom: 30px;"> 
+    <a href="/promotions" style="color: #b0b0b0; text-decoration: none; margin-right: 20px; border-bottom: 1px solid transparent;" onmouseover="this.style.borderBottom='1px solid #ffffff'" onmouseout="this.style.borderBottom='1px solid transparent'">Promotions</a>
+    <a href="/press" style="color: #b0b0b0; text-decoration: none; margin-right: 20px; border-bottom: 1px solid transparent;" onmouseover="this.style.borderBottom='1px solid #ffffff'" onmouseout="this.style.borderBottom='1px solid transparent'">Press</a>
+    <a href="/part-107" style="color: #b0b0b0; text-decoration: none; border-bottom: 1px solid transparent;" onmouseover="this.style.borderBottom='1px solid #ffffff'" onmouseout="this.style.borderBottom='1px solid transparent'">Part 107</a>
+</div>
+
+    <div style="color: #b0b0b0; opacity: 0.8;">
+        &copy; 2025 Intrepid Flights
+    </div>
+</div>
+        </aside>
+
+       <main class="hero-view">
+    <div class="coordinates" style="text-align: right;">
+        <div>LAT 44.9778° N</div>
+        <div>LON 93.2650° W</div>
+        <a href="about/about-hero" class="image-link" style="
+            display: block;
+            margin-top: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.4rem;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: 0.3s;
+        " onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">
+            About This Image
+        </a>
+    </div>
+
+            <div class="precision-overlay">
+                <h2>FLIGHTS<br>DESIGNED<br>WITH PRECISION.</h2>
+            </div>
+            
+            <div class="image-location" style="position: absolute; bottom: 20px; right: 60px; text-align: right; font-size: 0.9rem; opacity: 0.8; letter-spacing: 1px; font-weight: 300; text-transform: uppercase;">
+                Aerial View of Cancun, Mexico
+            </div>
+        </main>
+    </div>
+
+<div id="news-popup" style="display: none;">
+  <button class="close-btn" onclick="document.getElementById('news-popup').style.display='none'">&times;</button>
+  
+  <h3>Would you like to see Intrepid Flights publish periodic articles & news?</h3>
+  
+  <form id="news-form" action="https://formspree.io/f/xdayggbd" method="POST">
+    <button type="button" class="popup-btn" onclick="submitChoice('Yes')">Yes</button>
+    <button type="button" class="popup-btn" onclick="submitChoice('No')">No</button>
+
+    <input type="hidden" name="wants_news" id="wants_news">
+
+    <div id="success-msg" data-fs-success style="display:none; margin-top: 15px; color: #b0b0b0;">
+  Thanks for the feedback!
+</div>
+  </form>
+</div>
+
+    <script>
+        function activate(el) {
+            if (navigator.vibrate) navigator.vibrate(5);
+            const items = document.querySelectorAll('.service-item');
+            
+            // Reset all items
+            items.forEach(item => {
+                item.classList.remove('active');
+                item.setAttribute('aria-pressed', 'false'); // ADA Fix
+            });
+
+            // Activate clicked item
+            el.classList.add('active');
+            el.setAttribute('aria-pressed', 'true'); // ADA Fix
+        }
+    </script>
 <script>
-  const WORKOUTS = {
-    1: {
-      day: "Monday", tag: "PUSH", focus: "Chest — moderate",
-      duration: "60 min weights + 30 min cardio", type: "training",
-      exercises: [
-        { name: "Machine Chest Press", setsReps: "5 x 10-12", rest: "90-120s", main: true },
-        { name: "Incline Chest Press", setsReps: "4 x 10-12", rest: "60-90s" },
-        { name: "Pec Deck", setsReps: "3 x 12", rest: "60-90s" },
-        { name: "Cable Pec Flies", setsReps: "3 x 15", rest: "60-90s" },
-        { name: "Iso Lateral Hammer Press", setsReps: "3 x 12", rest: "60-90s" },
-      ]
-    },
-    2: {
-      day: "Tuesday", tag: "PULL", focus: "Back",
-      duration: "60 min weights + 30 min cardio", type: "training",
-      exercises: [
-        { name: "Seated Cable Row", setsReps: "5 x 10-12", rest: "90-120s", main: true },
-        { name: "Lat Pulldown (wide grip)", setsReps: "4 x 10-12", rest: "60-90s" },
-        { name: "Chest-Supported Row", setsReps: "3 x 12", rest: "60-90s" },
-        { name: "Single-Arm Lat Pulldown", setsReps: "3 x 12/side", rest: "60-90s" },
-        { name: "Straight-Arm Pulldown", setsReps: "3 x 15", rest: "60-90s", note: "Lat isolation — feel it, don't strain." },
-      ]
-    },
-    3: {
-      day: "Wednesday", tag: "PUSH", focus: "Shoulders",
-      duration: "60 min weights + 30 min cardio", type: "training",
-      exercises: [
-        { name: "Shoulder Overhead Press (barbell)", setsReps: "5 x 10-12", rest: "90-120s", main: true },
-        { name: "Lateral Raise", setsReps: "4 x 12-15", rest: "60-90s" },
-        { name: "Rear Delt Fly", setsReps: "3 x 12-15", rest: "60-90s" },
-        { name: "Front Raise", setsReps: "3 x 12", rest: "60-90s" },
-        { name: "Cable Lateral Raise", setsReps: "3 x 12", rest: "60-90s" },
-      ]
-    },
-    4: {
-      day: "Thursday", tag: "ARMS", focus: "Arms + back finisher",
-      duration: "60 min weights + 30 min cardio", type: "training",
-      exercises: [
-        { name: "Bicep Curl (barbell or machine)", setsReps: "5 x 10-12", rest: "90-120s", main: true },
-        { name: "Tricep Pushdown", setsReps: "5 x 10-12", rest: "90-120s", main: true },
-        { name: "Hammer Curl", setsReps: "3 x 12", rest: "60-90s" },
-        { name: "Overhead Tricep Extension", setsReps: "3 x 12", rest: "60-90s" },
-        { name: "Cable Curl", setsReps: "3 x 12", rest: "60-90s" },
-        { name: "Lat Pulldown or Pull-Ups", setsReps: "3 x AMRAP", rest: "60s", note: "Back finisher — burnout, not max effort." },
-      ]
-    },
-    5: {
-      day: "Friday", tag: "CARDIO", focus: "Cardio only",
-      duration: "45–60 min", type: "cardio"
-    },
-    6: {
-      day: "Saturday", tag: "PUSH · MARQUEE", focus: "Chest — big session",
-      duration: "≈2 hrs", type: "training",
-      exercises: [
-        { name: "Bench Press (or Machine Bench Press)", setsReps: "5 x 8-10", rest: "90-120s", main: true },
-        { name: "Incline Chest Press", setsReps: "5 x 10-12", rest: "90-120s" },
-        { name: "Machine Chest Press", setsReps: "4 x 10-12", rest: "60-90s" },
-        { name: "Pec Deck", setsReps: "4 x 12-15", rest: "60-90s" },
-        { name: "Cable Pec Flies", setsReps: "4 x 15", rest: "60-90s" },
-        { name: "Upper Chest Finisher", setsReps: "3 x 15", rest: "60-90s", note: "Low-to-high cable crossover." },
-      ]
-    },
-    0: {
-      day: "Sunday", tag: "REST", focus: "Rest",
-      duration: "off", type: "rest"
-    }
-  };
-
-  const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
-  const todayIndex = new Date().getDay();
-  let selectedIndex = todayIndex;
-
-  const switcherEl = document.getElementById("switcher");
-  const contentEl = document.getElementById("content");
-  const backBtn = document.getElementById("backToday");
-
-  function buildSwitcher(){
-    switcherEl.innerHTML = "";
-    for (let i = 0; i < 7; i++){
-      const btn = document.createElement("button");
-      btn.textContent = DAY_LETTERS[i];
-      btn.setAttribute("aria-label", WORKOUTS[i].day);
-      if (i === todayIndex) btn.classList.add("is-today");
-      if (i === selectedIndex) btn.classList.add("is-selected");
-      btn.addEventListener("click", () => {
-        selectedIndex = i;
-        render();
-      });
-      switcherEl.appendChild(btn);
-    }
-  }
-
-  function exerciseRow(ex, i){
-    const isMain = !!ex.main;
-    return `
-      <div class="ex ${isMain ? "is-main" : ""}">
-        <div class="idx">${(i + 1) < 10 ? "0" + (i + 1) : (i + 1)}</div>
-        <div class="setsreps">${ex.setsReps}</div>
-        <div class="name">${ex.name}</div>
-        <div class="subrow">
-          <div class="rest">rest ${ex.rest}</div>
-          ${isMain ? '<div class="main-tag">MAIN LIFT</div>' : ''}
-        </div>
-        ${ex.note ? `<div class="note">${ex.note}</div>` : ''}
-      </div>
-    `;
-  }
-
-  function render(){
-    const w = WORKOUTS[selectedIndex];
-    buildSwitcher();
-    backBtn.classList.toggle("show", selectedIndex !== todayIndex);
-
-    let html = `
-      <div class="hero">
-        <p class="eyebrow">${w.tag}</p>
-        <h1 class="day-name">${w.day}</h1>
-        <div class="meta"><b>${w.focus}</b></div>
-        <div class="duration-tag">${w.duration}</div>
-      </div>
-    `;
-
-    if (w.type === "rest"){
-      html += `
-        <div class="off-state">
-          <p class="big">Full <span class="accent">rest</span> day.</p>
-          <p>No lifting, no structured cardio. This is where the muscle actually rebuilds from the rest of the week — skipping it costs progress, it doesn't add to it.</p>
-        </div>
-      `;
-    } else if (w.type === "cardio"){
-      html += `
-        <div class="off-state">
-          <p class="big">Cardio day. <span class="accent">No weights.</span></p>
-          <p>Stairstepper, incline walk, or a run — whatever you actually enjoy, 45–60 minutes. Doubles as light active recovery from Mon–Thu.</p>
-        </div>
-      `;
-    } else {
-      html += `<div class="list">${w.exercises.map(exerciseRow).join("")}</div>`;
-    }
-
-    contentEl.innerHTML = html;
-  }
-
-  backBtn.addEventListener("click", () => {
-    selectedIndex = todayIndex;
-    render();
-  });
-
-  render();
+function submitChoice(value) {
+  document.getElementById("wants_news").value = value;
+  document.getElementById("news-form").requestSubmit();
+}
 </script>
+<script>
+document.getElementById("news-form").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const formData = new FormData(this);
+
+  try {
+    const response = await fetch(this.action, {
+      method: "POST",
+      body: formData,
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Formspree request failed");
+    }
+
+    // SUCCESS STATE
+    document.getElementById("success-msg").style.display = "block";
+
+    document.querySelectorAll(".popup-btn").forEach(btn => {
+      btn.style.display = "none";
+    });
+
+    setTimeout(() => {
+      document.getElementById("news-popup").style.display = "none";
+    }, 2500);
+
+  } catch (err) {
+    console.error(err);
+    alert("Submission failed. Please check your connection and try again.");
+  }
+});
+</script>
+
+<script>
+let activeTime = 0;
+let popupShown = false;
+let activityTimer = null;
+let inactivityTimeout = null;
+
+function showPopup() {
+  const popup = document.getElementById("news-popup");
+  if (popup) popup.style.display = "block";
+  popupShown = true;
+  clearInterval(activityTimer);
+}
+
+function startActiveTracking() {
+  if (popupShown || activityTimer) return;
+
+  activityTimer = setInterval(() => {
+    activeTime++;
+
+    if (activeTime >= 10) {
+      showPopup();
+    }
+  }, 1000);
+}
+
+function resetInactivity() {
+  clearTimeout(inactivityTimeout);
+
+  inactivityTimeout = setTimeout(() => {
+    clearInterval(activityTimer);
+    activityTimer = null;
+    activeTime = 0;
+  }, 6000);
+}
+
+["mousemove", "keydown", "scroll", "click"].forEach(event => {
+  window.addEventListener(event, () => {
+    startActiveTracking();
+    resetInactivity();
+  });
+});
+
+// START IMMEDIATELY (critical fix)
+startActiveTracking();
+</script>
+
+
+
 </body>
 </html>
