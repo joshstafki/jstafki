@@ -107,7 +107,9 @@
         .summary-card { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
         .summary-title { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
         .summary-value { font-size: 2rem; font-weight: 700; }
-        .ghost-input { border: none; background: transparent; font-size: 2rem; font-weight: 700; color: var(--text-main); width: 100%; outline: none; font-family: inherit; border-bottom: 2px dashed transparent; transition: border-bottom 0.2s; padding: 0; }
+        
+        /* Updated ghost-input to prevent iOS styling */
+        .ghost-input { border: none; background: transparent; font-size: 2rem; font-weight: 700; color: var(--text-main); width: 100%; outline: none; font-family: inherit; border-bottom: 2px dashed transparent; transition: border-bottom 0.2s; padding: 0; -webkit-appearance: none; border-radius: 0; }
         .ghost-input:focus { border-bottom: 2px dashed var(--border-color); }
 
         /* ---------- Login / Auth screen ---------- */
@@ -150,9 +152,8 @@
             body { padding: 1rem; } 
             #auth-screen { margin: -1rem; padding: 1rem; } 
             .dashboard-grid { grid-template-columns: 1fr; }
-            th, td { padding: 0.75rem 0.75rem; } /* Slightly tighter padding on mobile tables */
+            th, td { padding: 0.75rem 0.75rem; } 
             
-            /* Stack header elements for easy thumb tapping */
             .dashboard-header { flex-direction: column !important; align-items: stretch !important; gap: 1rem; }
             .header-actions { flex-direction: column; align-items: flex-start !important; width: 100%; }
             .header-button-group { display: flex; width: 100%; gap: 0.5rem; }
@@ -364,7 +365,6 @@
             const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
             const remaining = Math.max(0, spendable - totalExpenses);
             
-            // Fetch current card background color to hide the chart gap lines seamlessly in Dark/Light mode
             const cardBgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim() || '#ffffff';
 
             const data = {
@@ -601,7 +601,7 @@
             const startField = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
             const savedStart = settings[startField] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500);
 
-            htmlString += `<tr class="highlight-row"><td style="display: flex; align-items: baseline; font-weight: bold;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" oninput="recalcRecon('${tbodyId}', '${tabName}')" onchange="persistStartingBalance('${tbodyId}', '${tabName}')"></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
+            htmlString += `<tr class="highlight-row"><td style="font-weight: bold;"><div style="display: flex; align-items: baseline;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" oninput="recalcRecon('${tbodyId}', '${tabName}')" onchange="persistStartingBalance('${tbodyId}', '${tabName}')"></div></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
 
             let expenseTotal = 0;
             rows.forEach(item => {
