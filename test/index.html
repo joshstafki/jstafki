@@ -495,6 +495,8 @@
                 htmlString += `<tr><td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td><td>${escapeHTML(item.name)}</td><td class="action-cell"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
             });
 
+            expenseTotals[tabName] = total;
+
             htmlString += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="3">+ Add New</td></tr>
                 <tr id="inline-form-${tbodyId}" style="display: none; background-color: #f9fafb;">
                     <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01"></td>
