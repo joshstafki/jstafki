@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
+            /* Light Mode Variables (Default) */
             --bg-color: #f4f7f9;
             --card-bg: #ffffff;
             --text-main: #333333;
@@ -19,6 +20,7 @@
             --success-green: #10b981;
             --danger-red: #ef4444;
             --border-color: #e5e7eb;
+            
             --header-blue: #eff6ff;
             --header-red: #fef2f2;
             --header-green: #ecfdf5;
@@ -28,29 +30,66 @@
             --grad-blue: #3b82f6;
             --grad-teal: #2dd4bf;
             --ink: #0f172a;
+            
+            --row-alt: #f9fafb;
+        }
+
+        /* ---------- Dark Mode Overrides ---------- */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0f172a;
+                --card-bg: #1e293b;
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --border-color: #334155;
+                
+                --header-blue: rgba(59, 130, 246, 0.15);
+                --header-red: rgba(239, 68, 68, 0.15);
+                --header-green: rgba(16, 185, 129, 0.15);
+                --header-purple: rgba(139, 92, 246, 0.15);
+
+                --row-alt: #0f172a;
+            }
+            .add-row-btn { background-color: var(--card-bg) !important; color: #60a5fa !important; }
+            .add-row-btn:hover { background-color: #334155 !important; }
+            .badge-paid { background-color: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important; }
+            .badge-unpaid { background-color: rgba(239, 68, 68, 0.2) !important; color: #f87171 !important; }
+            .inline-input { background-color: #0f172a; color: var(--text-main); }
+            .inline-input option { background-color: #0f172a; }
+            .header-blue { color: #60a5fa !important; }
+            .header-red { color: #f87171 !important; }
+            .header-green { color: #34d399 !important; }
+            .header-purple { color: #a78bfa !important; }
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem; transition: background-color 0.3s, color 0.3s; }
+        
         .dashboard-header { margin-bottom: 2rem; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start; }
         .card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .card-header { padding: 1rem 1.25rem; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
+        
         .header-blue { background-color: var(--header-blue); color: #1d4ed8; }
         .header-red { background-color: var(--header-red); color: #b91c1c; }
         .header-green { background-color: var(--header-green); color: #047857; }
         .header-purple { background-color: var(--header-purple); color: #6d28d9; }
+        
         .card-body { padding: 0; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
+        
+        /* Mobile Table Optimization */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 320px; }
         th, td { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color); }
-        th { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); background-color: #f9fafb; font-weight: 500; }
+        th { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); background-color: var(--row-alt); font-weight: 500; }
         tr:last-child td { border-bottom: none; }
 
         .badge { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
         .badge-paid { background-color: #d1fae5; color: #065f46; }
         .badge-unpaid { background-color: #fee2e2; color: #991b1b; }
 
-        .total-row { background-color: #f9fafb; font-weight: 700; font-size: 1.1rem; }
+        .highlight-row { background-color: var(--row-alt); }
+        .total-row { background-color: var(--row-alt); font-weight: 700; font-size: 1.1rem; }
         .amount-cell { font-family: "Courier New", Courier, monospace; font-weight: 600; }
         .amount-red { color: var(--danger-red); }
         .amount-green { color: var(--success-green); }
@@ -68,110 +107,73 @@
         .summary-card { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
         .summary-title { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
         .summary-value { font-size: 2rem; font-weight: 700; }
-        .ghost-input { border: none; background: transparent; font-size: 2rem; font-weight: 700; color: var(--text-main); width: 100%; outline: none; font-family: inherit; border-bottom: 2px dashed transparent; transition: border-bottom 0.2s; padding: 0; }
+        
+        /* Updated ghost-input to prevent iOS styling */
+        .ghost-input { border: none; background: transparent; font-size: 2rem; font-weight: 700; color: var(--text-main); width: 100%; outline: none; font-family: inherit; border-bottom: 2px dashed transparent; transition: border-bottom 0.2s; padding: 0; -webkit-appearance: none; border-radius: 0; }
         .ghost-input:focus { border-bottom: 2px dashed var(--border-color); }
 
         /* ---------- Login / Auth screen ---------- */
         #auth-screen {
-            position: relative;
-            min-height: 100vh;
-            margin: -2rem;
-            padding: 2rem;
+            position: relative; min-height: 100vh; margin: -2rem; padding: 2rem;
             background: linear-gradient(135deg, var(--grad-violet) 0%, var(--grad-blue) 50%, var(--grad-teal) 100%);
-            background-size: 200% 200%;
-            animation: gradientDrift 12s ease infinite;
-            overflow: hidden;
+            background-size: 200% 200%; animation: gradientDrift 12s ease infinite; overflow: hidden;
         }
         #auth-screen::before {
-            content: '';
-            position: absolute; inset: 0;
-            background-image: radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px);
-            background-size: 28px 28px;
-            pointer-events: none;
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background-image: radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px); background-size: 28px 28px;
         }
-        @keyframes gradientDrift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
+        @keyframes gradientDrift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        
         .login-card {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 380px;
-            margin: 0 auto;
-            padding: 2.25rem 2rem;
-            background: rgba(255, 255, 255, 0.10);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 20px;
+            position: relative; z-index: 1; width: 100%; max-width: 380px; margin: 0 auto;
+            padding: 2.25rem 2rem; background: rgba(255, 255, 255, 0.10); text-align: center; color: #ffffff;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 20px;
             box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255,255,255,0.05) inset;
-            text-align: center;
-            color: #ffffff;
         }
         .login-logo { display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-bottom: 0.6rem; }
         .logo-tile {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 44px; height: 44px; border-radius: 12px;
-            background: linear-gradient(135deg, #93c5fd, #5eead4);
-            color: var(--ink);
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 800; font-size: 1.4rem;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            width: 44px; height: 44px; border-radius: 12px; color: var(--ink);
+            background: linear-gradient(135deg, #93c5fd, #5eead4); font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800; font-size: 1.4rem; box-shadow: 0 6px 16px rgba(0,0,0,0.2);
         }
-        .logo-word {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 800; font-size: 1.6rem;
-            letter-spacing: 0.04em;
-            color: #ffffff;
-        }
-        .login-tagline {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.75);
-            margin-bottom: 1.5rem;
-        }
-        .login-status {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem; letter-spacing: 0.05em;
-            color: rgba(255,255,255,0.65);
-            background: rgba(0,0,0,0.15);
-            padding: 0.35rem 0.75rem;
-            border-radius: 999px;
-            margin-bottom: 1.75rem;
-        }
-        .status-dot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: #34d399;
-            box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
-            animation: pulseDot 2s infinite;
-        }
-        @keyframes pulseDot {
-            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); }
-            70% { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
-        }
-        .google-btn {
-            width: 100%;
-            display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-            padding: 0.75rem 1rem;
-            border-radius: 10px; border: none;
-            background: #ffffff; color: #1f2937;
-            font-weight: 600; font-size: 0.95rem;
-            cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
+        .logo-word { font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.6rem; letter-spacing: 0.04em; color: #ffffff; }
+        .login-tagline { font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 1.5rem; }
+        .login-status { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.05em; color: rgba(255,255,255,0.65); background: rgba(0,0,0,0.15); padding: 0.35rem 0.75rem; border-radius: 999px; margin-bottom: 1.75rem; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); animation: pulseDot 2s infinite; }
+        @keyframes pulseDot { 0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); } 70% { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } }
+        .google-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.75rem 1rem; border-radius: 10px; border: none; background: #ffffff; color: #1f2937; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
         .google-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
-        .login-error {
-            color: #fecaca;
-            font-size: 0.85rem;
-            margin-top: 0.9rem;
-            min-height: 1.2em;
-        }
+        .login-error { color: #fecaca; font-size: 0.85rem; margin-top: 0.9rem; min-height: 1.2em; }
 
-        @media (max-width: 768px) { body { padding: 1rem; } .dashboard-grid { grid-template-columns: 1fr; } #auth-screen { margin: -1rem; padding: 1rem; } }
+        /* ---------- Mobile Optimizations ---------- */
+        @media (max-width: 768px) { 
+            body { padding: 1rem; } 
+            #auth-screen { margin: -1rem; padding: 1rem; } 
+            .dashboard-grid { grid-template-columns: 1fr; }
+            th, td { padding: 0.75rem 0.75rem; } 
+            
+            .dashboard-header { flex-direction: column !important; align-items: stretch !important; gap: 1rem; }
+            .header-actions { flex-direction: column; align-items: flex-start !important; width: 100%; }
+            .header-button-group { display: flex; width: 100%; gap: 0.5rem; }
+            .header-button-group button { flex-grow: 1; justify-content: center; }
+        }
+        
+        /* ---------- Print / PDF Optimization ---------- */
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { background-color: #ffffff; padding: 0; }
+            button, .add-row-btn, .delete-btn, #auth-screen { display: none !important; }
+            tr[id^="inline-form-"] { display: none !important; }
+            .dashboard-header { margin-bottom: 1rem; }
+            .dashboard-header p { display: none; }
+            .dashboard-grid { display: block; }
+            .card { margin-bottom: 2rem; page-break-inside: avoid; break-inside: avoid; box-shadow: none; }
+            .ghost-input { border-bottom: none !important; }
+            .table-responsive { overflow-x: visible; }
+            #revenueChart { max-width: 400px !important; max-height: 400px !important; margin: 0 auto; }
+        }
     </style>
 </head>
 <body>
@@ -198,7 +200,7 @@
 
     <div id="app-content" style="display: none;">
 
-    <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+    <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
             <h1>Financial Dashboard</h1>
             <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase)</p>
@@ -206,11 +208,16 @@
                 Hard Reset (Wipe All Data)
             </button>
         </div>
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
             <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
-            <button onclick="signOutUser()" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                Sign Out
-            </button>
+            <div class="header-button-group" style="display: flex; gap: 0.5rem;">
+                <button onclick="window.print()" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">
+                    Save PDF
+                </button>
+                <button onclick="signOutUser()" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">
+                    Sign Out
+                </button>
+            </div>
         </div>
     </div>
 
@@ -219,22 +226,26 @@
             <div class="card">
                 <div class="card-header header-blue">Out of Pocket Expenses</div>
                 <div class="card-body">
-                    <table>
-                        <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
-                        <tbody id="out-of-pocket-body"></tbody>
-                        <tr class="total-row"><td colspan="3">Total: <span id="out-of-pocket-total">$0.00</span></td></tr>
-                    </table>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
+                            <tbody id="out-of-pocket-body"></tbody>
+                            <tr class="total-row"><td colspan="3">Total: <span id="out-of-pocket-total">$0.00</span></td></tr>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-header header-red">Bank Initiated Expenses</div>
                 <div class="card-body">
-                    <table>
-                        <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
-                        <tbody id="bank-initiated-body"></tbody>
-                        <tr class="total-row"><td colspan="3">Total: <span id="bank-initiated-total">$0.00</span></td></tr>
-                    </table>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
+                            <tbody id="bank-initiated-body"></tbody>
+                            <tr class="total-row"><td colspan="3">Total: <span id="bank-initiated-total">$0.00</span></td></tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -259,7 +270,7 @@
 
             <div class="card">
                 <div class="card-header header-blue">Revenue vs. Expenses</div>
-                <div class="card-body" style="padding: 1.5rem;">
+                <div class="card-body" style="padding: 1.5rem; height: 320px; display: flex; justify-content: center; align-items: center;">
                     <canvas id="revenueChart"></canvas>
                 </div>
             </div>
@@ -269,26 +280,32 @@
             <div class="card">
                 <div class="card-header header-green">Fill Ups</div>
                 <div class="card-body">
-                    <table>
-                        <thead><tr><th>Name</th><th>Status</th></tr></thead>
-                        <tbody id="fill-ups-body"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Name</th><th>Status</th></tr></thead>
+                            <tbody id="fill-ups-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="card">
                 <div class="card-header header-blue">Bank Reconciliation</div>
                 <div class="card-body">
-                    <table>
-                        <tbody id="bank-recon-body"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table>
+                            <tbody id="bank-recon-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="card">
                 <div class="card-header header-purple">Grocery Budget</div>
                 <div class="card-body">
-                    <table>
-                        <tbody id="grocery-budget-body"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table>
+                            <tbody id="grocery-budget-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -300,7 +317,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
         import {
             getFirestore, collection, doc, addDoc, deleteDoc, setDoc,
-            onSnapshot, getDocs, writeBatch, serverTimestamp
+            onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy
         } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
         import {
             getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
@@ -320,37 +337,92 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // These get (re)assigned per signed-in user — see attachListeners() below.
-        // Nothing reads from Firestore until someone is authenticated.
         let entriesCol = null;
         let settingsRef = null;
         let unsubEntries = null;
         let unsubSettings = null;
 
-        // In-memory mirrors of whatever is currently in Firestore.
-        // These get rebuilt fresh every time a listener fires.
         let liveData = { Out_Of_Pocket: [], Bank_Initiated: [], Fill_Ups: [], Bank_Reconciliation: [], Grocery_Budget: [] };
         let settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500 };
         const expenseTotals = { Out_Of_Pocket: 0, Bank_Initiated: 0 };
         const reconBalances = { Bank_Reconciliation: { start: 0, expenses: 0 }, Grocery_Budget: { start: 0, expenses: 0 } };
         let revenueChartInstance = null;
 
+        const escapeHTML = (str) => {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        };
+
         const updateChart = () => {
             const ctx = document.getElementById('revenueChart').getContext('2d');
-            const expenses = expenseTotals.Out_Of_Pocket + expenseTotals.Bank_Initiated;
+            
+            const outOfPocket = expenseTotals.Out_Of_Pocket || 0;
+            const bankInitiated = expenseTotals.Bank_Initiated || 0;
+            const totalExpenses = outOfPocket + bankInitiated;
+            
             const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
-            const remaining = Math.max(0, spendable - expenses);
+            const remaining = Math.max(0, spendable - totalExpenses);
+            
+            const cardBgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim() || '#ffffff';
 
             const data = {
-                labels: ['Expenses', 'Remaining'],
-                datasets: [{ data: [expenses, remaining], backgroundColor: ['#ef4444', '#10b981'], borderWidth: 0 }]
+                labels: ['Remaining Revenue', 'Out of Pocket', 'Bank Initiated'],
+                datasets: [{ 
+                    data: [remaining, outOfPocket, bankInitiated], 
+                    backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], 
+                    borderWidth: 2,
+                    borderColor: cardBgColor, 
+                    hoverOffset: 4,
+                    borderRadius: 4
+                }]
             };
 
             if (revenueChartInstance) {
                 revenueChartInstance.data = data;
-                revenueChartInstance.update();
+                revenueChartInstance.update('none'); 
             } else {
-                revenueChartInstance = new Chart(ctx, { type: 'pie', data: data, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
+                revenueChartInstance = new Chart(ctx, { 
+                    type: 'doughnut', 
+                    data: data, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        cutout: '75%', 
+                        plugins: { 
+                            legend: { 
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true, 
+                                    padding: 20,
+                                    font: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+                                bodyFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) { label += ': '; }
+                                        if (context.parsed !== null) {
+                                            label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            animateScale: false,
+                            animateRotate: true
+                        }
+                    } 
+                });
             }
         };
 
@@ -385,8 +457,6 @@
             document.getElementById(`input-name-${tbodyId}`).focus();
         };
 
-        // Delete by the document's real Firestore ID, scoped to whichever
-        // user's collection is currently active.
         window.deleteItem = async (id) => {
             try { await deleteDoc(doc(entriesCol, id)); }
             catch (err) { alert("Couldn't delete — check your connection."); console.error(err); }
@@ -414,16 +484,7 @@
             } catch (err) {
                 alert("Couldn't save — check your connection.");
                 console.error(err);
-                return;
             }
-
-            if (amountInput) amountInput.value = '';
-            nameInput.value = '';
-            statusInput.value = 'PAID';
-            document.getElementById(`inline-form-${tbodyId}`).style.display = 'none';
-            document.getElementById(`add-btn-${tbodyId}`).style.display = 'table-row';
-            // No manual row insertion needed — the onSnapshot listener below
-            // will see this new document and re-render automatically.
         };
 
         window.recalcRecon = (tbodyId, tabName) => {
@@ -434,7 +495,7 @@
             const balanceAmountCell = document.getElementById(`balance-amount-${tbodyId}`);
             const balanceStatusCell = document.getElementById(`balance-status-${tbodyId}`);
             balanceAmountCell.innerText = formatMoney(currentBalance);
-            balanceAmountCell.className = currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : '');
+            balanceAmountCell.className = 'amount-cell ' + (currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : ''));
             balanceStatusCell.innerText = currentBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED';
             balanceStatusCell.style.color = currentBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)';
         };
@@ -459,12 +520,7 @@
             } catch (err) {
                 alert("Couldn't save — check your connection.");
                 console.error(err);
-                return;
             }
-
-            amountInput.value = ''; nameInput.value = '';
-            document.getElementById(`inline-form-${tbodyId}`).style.display = 'none';
-            document.getElementById(`add-btn-${tbodyId}`).style.display = 'table-row';
         };
 
         window.performHardReset = async () => {
@@ -472,10 +528,24 @@
             if (!confirm("FINAL WARNING: This cannot be undone. Click OK to wipe everything.")) return;
             try {
                 const snap = await getDocs(entriesCol);
-                const batch = writeBatch(db);
-                snap.forEach((d) => batch.delete(d.ref));
-                batch.set(settingsRef, { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500 });
-                await batch.commit();
+                const batches = [];
+                let currentBatch = writeBatch(db);
+                let count = 0;
+
+                snap.forEach((d) => {
+                    currentBatch.delete(d.ref);
+                    count++;
+                    if (count === 499) {
+                        batches.push(currentBatch.commit());
+                        currentBatch = writeBatch(db);
+                        count = 0;
+                    }
+                });
+
+                currentBatch.set(settingsRef, { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500 });
+                batches.push(currentBatch.commit());
+                await Promise.all(batches);
+
                 alert("Data reset successfully.");
             } catch (error) {
                 alert("Failed to reset.");
@@ -485,61 +555,74 @@
 
         const renderExpenseTable = (rows, tbodyId, totalId, tabName) => {
             const tbody = document.getElementById(tbodyId);
-            tbody.innerHTML = ''; let total = 0;
+            let htmlString = '';
+            let total = 0;
+
             rows.forEach(item => {
                 if (!item.name) return;
                 total += (item.amount || 0);
-                tbody.innerHTML += `<tr><td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td><td>${item.name}</td><td class="action-cell"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
+                htmlString += `<tr><td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td><td>${escapeHTML(item.name)}</td><td class="action-cell"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
             });
+
             expenseTotals[tabName] = total;
-            tbody.innerHTML += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="3">+ Add New</td></tr>
-                <tr id="inline-form-${tbodyId}" style="display: none; background-color: #f9fafb;">
+
+            htmlString += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="3">+ Add New</td></tr>
+                <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
                     <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01"></td>
                     <td><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"></td>
                     <td><div style="display: flex; gap: 0.5rem; align-items: center;"><select id="input-status-${tbodyId}" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select><button class="save-btn" onclick="saveInlineExpense('${tbodyId}', '${tabName}')">Save</button></div></td>
                 </tr>`;
+
+            tbody.innerHTML = htmlString;
             document.getElementById(totalId).innerText = formatMoney(total);
         };
 
         const renderFillUps = (rows) => {
             const tbody = document.getElementById('fill-ups-body');
-            tbody.innerHTML = '';
+            let htmlString = '';
+
             rows.forEach(item => {
-                if (item.name) tbody.innerHTML += `<tr><td>${item.name}</td><td class="action-cell" style="text-align: right; justify-content: flex-end;"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
+                if (item.name) htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell" style="text-align: right; justify-content: flex-end;"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
             });
-            tbody.innerHTML += `<tr id="add-btn-fill-ups-body" class="add-row-btn" onclick="openInlineForm('fill-ups-body')"><td colspan="2">+ Add New</td></tr>
-                <tr id="inline-form-fill-ups-body" style="display: none; background-color: #f9fafb;">
+
+            htmlString += `<tr id="add-btn-fill-ups-body" class="add-row-btn" onclick="openInlineForm('fill-ups-body')"><td colspan="2">+ Add New</td></tr>
+                <tr id="inline-form-fill-ups-body" class="highlight-row" style="display: none;">
                     <td><input type="text" id="input-name-fill-ups-body" class="inline-input" placeholder="Name (e.g. Fill Up 1)"></td>
                     <td><div style="display: flex; gap: 0.5rem; align-items: center;"><select id="input-status-fill-ups-body" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select><button class="save-btn" onclick="saveInlineExpense('fill-ups-body', 'Fill_Ups', true)">Save</button></div></td>
                 </tr>`;
+
+            tbody.innerHTML = htmlString;
         };
 
         const renderReconciliation = (rows, tbodyId, tabName) => {
             const tbody = document.getElementById(tbodyId);
-            tbody.innerHTML = '';
+            let htmlString = '';
+            
             const startField = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
             const savedStart = settings[startField] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500);
 
-            tbody.innerHTML += `<tr style="background: #f9fafb;"><td style="display: flex; align-items: baseline; font-weight: bold;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" oninput="recalcRecon('${tbodyId}', '${tabName}')" onchange="persistStartingBalance('${tbodyId}', '${tabName}')"></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
+            htmlString += `<tr class="highlight-row"><td style="font-weight: bold;"><div style="display: flex; align-items: baseline;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" oninput="recalcRecon('${tbodyId}', '${tabName}')" onchange="persistStartingBalance('${tbodyId}', '${tabName}')"></div></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
 
             let expenseTotal = 0;
             rows.forEach(item => {
                 if (!item.name) return;
                 const amount = parseFloat(item.amount) || 0;
                 expenseTotal += amount;
-                tbody.innerHTML += `<tr><td>${item.name}</td><td class="action-cell amount-red" style="text-align: right; justify-content: flex-end;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
+                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right; justify-content: flex-end;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
             });
 
             reconBalances[tabName] = { start: parseFloat(savedStart), expenses: expenseTotal };
             const currentBalance = parseFloat(savedStart) - expenseTotal;
 
-            tbody.innerHTML += `<tr id="total-row-${tbodyId}" class="total-row"><td id="balance-amount-${tbodyId}" class="${currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : '')}">${formatMoney(currentBalance)}</td><td id="balance-status-${tbodyId}" style="text-align: right; font-size: 0.8rem; color: ${currentBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)'};">${currentBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED'}</td></tr>`;
+            htmlString += `<tr id="total-row-${tbodyId}" class="total-row"><td id="balance-amount-${tbodyId}" class="amount-cell ${currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : '')}">${formatMoney(currentBalance)}</td><td id="balance-status-${tbodyId}" style="text-align: right; font-size: 0.8rem; color: ${currentBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)'};">${currentBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED'}</td></tr>`;
 
-            tbody.innerHTML += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="2">+ Add New</td></tr>
-                <tr id="inline-form-${tbodyId}" style="display: none; background-color: #f9fafb;">
+            htmlString += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="2">+ Add New</td></tr>
+                <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
                     <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01"></td>
                     <td><div style="display: flex; gap: 0.5rem; align-items: center;"><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"><button class="save-btn" onclick="saveReconciliation('${tbodyId}', '${tabName}')">Save</button></div></td>
                 </tr>`;
+
+            tbody.innerHTML = htmlString;
         };
 
         function renderAll() {
@@ -573,15 +656,12 @@
             if (unsubSettings) { unsubSettings(); unsubSettings = null; }
         };
 
-        // Points entriesCol/settingsRef at this user's own subtree —
-        // users/{uid}/entries and users/{uid}/settings/budget — and starts
-        // listening. Firestore security rules enforce that a uid can only
-        // ever read/write its own subtree, so this is isolation, not just convenience.
         const attachListeners = (uid) => {
             entriesCol = collection(db, "users", uid, "entries");
+            const orderedQuery = query(entriesCol, orderBy("createdAt", "asc"));
             settingsRef = doc(db, "users", uid, "settings", "budget");
 
-            unsubEntries = onSnapshot(entriesCol, (snap) => {
+            unsubEntries = onSnapshot(orderedQuery, (snap) => {
                 for (const key in liveData) liveData[key] = [];
                 snap.forEach((docSnap) => {
                     const row = { id: docSnap.id, ...docSnap.data() };
@@ -598,10 +678,6 @@
             }, (err) => console.error("Settings listener error:", err));
         };
 
-        // Fires immediately on page load with the cached session if one
-        // exists (this is what gives you "remembered across sessions" —
-        // Firebase Auth persists this in the browser automatically), and
-        // again any time sign-in/sign-out happens.
         onAuthStateChanged(auth, (user) => {
             detachListeners();
             if (user) {
