@@ -172,6 +172,66 @@
         }
 
         @media (max-width: 768px) { body { padding: 1rem; } .dashboard-grid { grid-template-columns: 1fr; } #auth-screen { margin: -1rem; padding: 1rem; } }
+        /* ---------- Print / PDF Optimization ---------- */
+        @media print {
+            /* Force browsers to print background colors and gradients */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Reset the body background to white to save ink/look cleaner */
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+
+            /* Hide all interactive UI elements that don't belong on paper */
+            button, 
+            .add-row-btn, 
+            .delete-btn, 
+            #auth-screen {
+                display: none !important;
+            }
+
+            /* Hide any open inline forms */
+            tr[id^="inline-form-"] {
+                display: none !important;
+            }
+
+            /* Clean up the header to just show the title and user email */
+            .dashboard-header {
+                margin-bottom: 1rem;
+            }
+            .dashboard-header p {
+                display: none; /* Hides the "Live Data Connected" text */
+            }
+
+            /* Disable CSS Grid so elements stack neatly vertically */
+            .dashboard-grid {
+                display: block;
+            }
+
+            /* Prevent cards from being chopped in half across page breaks */
+            .card {
+                margin-bottom: 2rem;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                box-shadow: none; /* Remove shadows for a cleaner 2D print look */
+            }
+
+            /* Make input fields look like static text */
+            .ghost-input {
+                border-bottom: none !important;
+            }
+
+            /* Constrain the chart so it doesn't blow up in size on A4 paper */
+            #revenueChart {
+                max-width: 400px !important;
+                max-height: 400px !important;
+                margin: 0 auto;
+            }
+        }
     </style>
 </head>
 <body>
