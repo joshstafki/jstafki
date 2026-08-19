@@ -172,60 +172,26 @@
         }
 
         @media (max-width: 768px) { body { padding: 1rem; } .dashboard-grid { grid-template-columns: 1fr; } #auth-screen { margin: -1rem; padding: 1rem; } }
+        
         /* ---------- Print / PDF Optimization ---------- */
         @media print {
-            /* Force browsers to print background colors and gradients */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-
-            /* Reset the body background to white to save ink/look cleaner */
-            body {
-                background-color: #ffffff;
-                padding: 0;
-            }
-
-            /* Hide all interactive UI elements that don't belong on paper */
-            button, 
-            .add-row-btn, 
-            .delete-btn, 
-            #auth-screen {
-                display: none !important;
-            }
-
-            /* Hide any open inline forms */
-            tr[id^="inline-form-"] {
-                display: none !important;
-            }
-
-            /* Clean up the header to just show the title and user email */
-            .dashboard-header {
-                margin-bottom: 1rem;
-            }
-            .dashboard-header p {
-                display: none; /* Hides the "Live Data Connected" text */
-            }
-
-            /* Disable CSS Grid so elements stack neatly vertically */
-            .dashboard-grid {
-                display: block;
-            }
-
-            /* Prevent cards from being chopped in half across page breaks */
+            body { background-color: #ffffff; padding: 0; }
+            button, .add-row-btn, .delete-btn, #auth-screen { display: none !important; }
+            tr[id^="inline-form-"] { display: none !important; }
+            .dashboard-header { margin-bottom: 1rem; }
+            .dashboard-header p { display: none; }
+            .dashboard-grid { display: block; }
             .card {
                 margin-bottom: 2rem;
                 page-break-inside: avoid;
                 break-inside: avoid;
-                box-shadow: none; /* Remove shadows for a cleaner 2D print look */
+                box-shadow: none;
             }
-
-            /* Make input fields look like static text */
-            .ghost-input {
-                border-bottom: none !important;
-            }
-
-            /* Constrain the chart so it doesn't blow up in size on A4 paper */
+            .ghost-input { border-bottom: none !important; }
             #revenueChart {
                 max-width: 400px !important;
                 max-height: 400px !important;
@@ -268,6 +234,9 @@
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+            <button onclick="window.print()" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                Save PDF
+            </button>
             <button onclick="signOutUser()" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">
                 Sign Out
             </button>
@@ -319,7 +288,8 @@
 
             <div class="card">
                 <div class="card-header header-blue">Revenue vs. Expenses</div>
-                <div class="card-body" style="padding: 1.5rem;">
+                <!-- Fixed height container to stop DOM jumping during chart updates -->
+                <div class="card-body" style="padding: 1.5rem; height: 320px; display: flex; justify-content: center; align-items: center;">
                     <canvas id="revenueChart"></canvas>
                 </div>
             </div>
@@ -400,20 +370,72 @@
 
         const updateChart = () => {
             const ctx = document.getElementById('revenueChart').getContext('2d');
-            const expenses = expenseTotals.Out_Of_Pocket + expenseTotals.Bank_Initiated;
+            
+            // Break expenses out for more detail
+            const outOfPocket = expenseTotals.Out_Of_Pocket || 0;
+            const bankInitiated = expenseTotals.Bank_Initiated || 0;
+            const totalExpenses = outOfPocket + bankInitiated;
+            
             const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
-            const remaining = Math.max(0, spendable - expenses);
+            const remaining = Math.max(0, spendable - totalExpenses);
 
             const data = {
-                labels: ['Expenses', 'Remaining'],
-                datasets: [{ data: [expenses, remaining], backgroundColor: ['#ef4444', '#10b981'], borderWidth: 0 }]
+                labels: ['Remaining Revenue', 'Out of Pocket', 'Bank Initiated'],
+                datasets: [{ 
+                    data: [remaining, outOfPocket, bankInitiated], 
+                    backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], // Green, Blue, Red
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 4,
+                    borderRadius: 4 // Rounds the edges of the arcs
+                }]
             };
 
             if (revenueChartInstance) {
                 revenueChartInstance.data = data;
-                revenueChartInstance.update();
+                // 'none' disables the spin animation on every keystroke
+                revenueChartInstance.update('none'); 
             } else {
-                revenueChartInstance = new Chart(ctx, { type: 'pie', data: data, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
+                revenueChartInstance = new Chart(ctx, { 
+                    type: 'doughnut', 
+                    data: data, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, // Prevents layout shifting
+                        cutout: '75%', // Creates the thin premium ring effect
+                        plugins: { 
+                            legend: { 
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true, // Changes legend boxes to dots
+                                    padding: 20,
+                                    font: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+                                bodyFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) { label += ': '; }
+                                        if (context.parsed !== null) {
+                                            label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            animateScale: false,
+                            animateRotate: true
+                        }
+                    } 
+                });
             }
         };
 
