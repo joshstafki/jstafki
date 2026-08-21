@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="https://www.jstafki.com/assets/fintech/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Light Mode Variables (Default) */
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #6b7280;
+            --primary-blue: #3b82f6;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+            --border-color: #e5e7eb;
+            
+            --header-blue: #eff6ff;
+            --header-red: #fef2f2;
+            --header-green: #ecfdf5;
+            --header-purple: #faf5ff;
+
+            --grad-violet: #7c3aed;
+            --grad-blue: #3b82f6;
+            --grad-teal: #2dd4bf;
+            --ink: #0f172a;
+            
+            --row-alt: #f9fafb;
+        }
+
+        /* ---------- Dark Mode Overrides ---------- */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0f172a;
+                --card-bg: #1e293b;
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --border-color: #334155;
+                
+                --header-blue: rgba(59, 130, 246, 0.15);
+                --header-red: rgba(239, 68, 68, 0.15);
+                --header-green: rgba(16, 185, 129, 0.15);
+                --header-purple: rgba(139, 92, 246, 0.15);
+
+                --row-alt: #0f172a;
+            }
+            .add-row-btn { background-color: var(--card-bg) !important; color: #60a5fa !important; }
+            .add-row-btn:hover { background-color: #334155 !important; }
+            .badge-paid { background-color: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important; }
+            .badge-unpaid { background-color: rgba(239, 68, 68, 0.2) !important; color: #f87171 !important; }
+            .inline-input { background-color: #0f172a; color: var(--text-main); }
+            .inline-input option { background-color: #0f172a; }
+            .header-blue { color: #60a5fa !important; }
+            .header-red { color: #f87171 !important; }
+            .header-green { color: #34d399 !important; }
+            .header-purple { color: #a78bfa !important; }
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem; transition: background-color 0.3s, color 0.3s; }
+        
+        .dashboard-header { margin-bottom: 2rem; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start; }
+        .card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .card-header { padding: 1rem 1.25rem; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
+        
+        .header-blue { background-color: var(--header-blue); color: #1d4ed8; }
+        .header-red { background-color: var(--header-red); color: #b91c1c; }
+        .header-green { background-color: var(--header-green); color: #047857; }
+        .header-purple { background-color: var(--header-purple); color: #6d28d9; }
+        
+        .card-body { padding: 0; }
+        
+        /* Mobile Table Optimization */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 320px; }
+        th, td { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color); }
+        th { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); background-color: var(--row-alt); font-weight: 500; }
+        tr:last-child td { border-bottom: none; }
+
+        .badge { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+        .badge-paid { background-color: #d1fae5; color: #065f46; }
+        .badge-unpaid { background-color: #fee2e2; color: #991b1b; }
+
+        .highlight-row { background-color: var(--row-alt); }
+        .total-row { background-color: var(--row-alt); font-weight: 700; font-size: 1.1rem; }
+        .amount-cell { font-family: "Courier New", Courier, monospace; font-weight: 600; }
+        .amount-red { color: var(--danger-red); }
+        .amount-green { color: var(--success-green); }
+
+        .add-row-btn { cursor: pointer; color: var(--primary-blue); font-weight: 600; text-align: center; background-color: #ffffff; transition: background-color 0.2s; }
+        .add-row-btn:hover { background-color: #eff6ff; }
+        .inline-input { width: 100%; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; font-family: inherit; }
+        .save-btn { background: var(--success-green); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        .save-btn:hover { background: #059669; }
+
+        .action-cell { display: flex; justify-content: space-between; align-items: center; }
+        .delete-btn { color: #d1d5db; font-size: 1.2rem; cursor: pointer; padding-left: 0.75rem; transition: color 0.2s; font-weight: bold; line-height: 1; }
+        .delete-btn:hover { color: var(--danger-red); }
+
+        .summary-card { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .summary-title { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+        .summary-value { font-size: 2rem; font-weight: 700; }
+        
+        /* Ghost-input to prevent iOS styling */
+        .ghost-input { border: none; background: transparent; font-size: 2rem; font-weight: 700; color: var(--text-main); width: 100%; outline: none; font-family: inherit; border-bottom: 2px dashed transparent; transition: border-bottom 0.2s; padding: 0; -webkit-appearance: none; border-radius: 0; }
+        .ghost-input:focus { border-bottom: 2px dashed var(--border-color); }
+
+        /* ---------- Login / Auth screen ---------- */
+        #auth-screen {
+            position: relative; min-height: 100vh; margin: -2rem; padding: 2rem;
+            background: linear-gradient(135deg, var(--grad-violet) 0%, var(--grad-blue) 50%, var(--grad-teal) 100%);
+            background-size: 200% 200%; animation: gradientDrift 12s ease infinite; overflow: hidden;
+        }
+        #auth-screen::before {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background-image: radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px); background-size: 28px 28px;
+        }
+        @keyframes gradientDrift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        
+        .login-card {
+            position: relative; z-index: 1; width: 100%; max-width: 380px; margin: 0 auto;
+            padding: 2.25rem 2rem; background: rgba(255, 255, 255, 0.10); text-align: center; color: #ffffff;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255,255,255,0.05) inset;
+        }
+        .login-logo { display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-bottom: 0.6rem; }
+        .logo-tile {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px; border-radius: 12px; color: var(--ink);
+            background: linear-gradient(135deg, #93c5fd, #5eead4); font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800; font-size: 1.4rem; box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        .logo-word { font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.6rem; letter-spacing: 0.04em; color: #ffffff; }
+        .login-tagline { font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 1.5rem; }
+        .login-status { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.05em; color: rgba(255,255,255,0.65); background: rgba(0,0,0,0.15); padding: 0.35rem 0.75rem; border-radius: 999px; margin-bottom: 1.75rem; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); animation: pulseDot 2s infinite; }
+        @keyframes pulseDot { 0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); } 70% { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } }
+        .google-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.75rem 1rem; border-radius: 10px; border: none; background: #ffffff; color: #1f2937; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .google-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+        .login-error { color: #fecaca; font-size: 0.85rem; margin-top: 0.9rem; min-height: 1.2em; }
+
+        /* ---------- Mobile Optimizations ---------- */
+        @media (max-width: 768px) { 
+            body { padding: 1rem; } 
+            #auth-screen { margin: -1rem; padding: 1rem; } 
+            .dashboard-grid { grid-template-columns: 1fr; }
+            th, td { padding: 0.75rem 0.75rem; } 
+            
+            .dashboard-header { flex-direction: column !important; align-items: stretch !important; gap: 1rem; }
+            .header-actions { flex-direction: column; align-items: flex-start !important; width: 100%; }
+            .header-button-group { display: flex; width: 100%; gap: 0.5rem; }
+            .header-button-group button { flex-grow: 1; justify-content: center; }
+        }
+        
+        /* ---------- Print / PDF Optimization ---------- */
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { background-color: #ffffff; padding: 0; }
+            button, .add-row-btn, .delete-btn, #auth-screen { display: none !important; }
+            tr[id^="inline-form-"] { display: none !important; }
+            .dashboard-header { margin-bottom: 1rem; }
+            .dashboard-header p { display: none; }
+            .dashboard-grid { display: block; }
+            .card { margin-bottom: 2rem; page-break-inside: avoid; break-inside: avoid; box-shadow: none; }
+            .ghost-input { border-bottom: none !important; }
+            .table-responsive { overflow-x: visible; }
+            #revenueChart { max-width: 400px !important; max-height: 400px !important; margin: 0 auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen" style="display: flex; align-items: center; justify-content: center;">
+        <div class="login-card">
+            <div class="login-logo">
+                <span class="logo-tile">F</span><span class="logo-word">INTECH</span>
+            </div>
+            <p class="login-tagline">Personal. Finance. Reimagined.</p>
+            <div class="login-status"><span class="status-dot"></span> SECURE&nbsp;CONNECTION&nbsp;&middot;&nbsp;FIRESTORE</div>
+            <button class="google-btn" onclick="signInWithGoogle()">
+                <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.89 2.69-6.64z"/>
+                    <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.92-2.27c-.81.54-1.84.87-3.04.87-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/>
+                    <path fill="#FBBC05" d="M3.97 10.72c-.18-.54-.28-1.12-.28-1.72s.1-1.18.28-1.72V4.95H.96A8.997 8.997 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/>
+                    <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+                </svg>
+                Sign in with Google
+            </button>
+            <p id="auth-error" class="login-error"></p>
+        </div>
+    </div>
+
+    <div id="app-content" style="display: none;">
+
+    <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <h1>Financial Dashboard</h1>
+            <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase)</p>
+            <button onclick="performHardReset()" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
+                Hard Reset (Wipe All Data)
+            </button>
+        </div>
+        <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
+            <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+            <div class="header-button-group" style="display: flex; gap: 0.5rem;">
+                <button onclick="window.print()" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">
+                    Save PDF
+                </button>
+                <button onclick="signOutUser()" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Column 1: Expenses -->
+        <div>
+            <div class="card">
+                <div class="card-header header-blue">Out of Pocket Expenses</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
+                            <tbody id="out-of-pocket-body"></tbody>
+                            <tr class="total-row"><td colspan="3">Total: <span id="out-of-pocket-total">$0.00</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header header-red">Bank Initiated Expenses</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
+                            <tbody id="bank-initiated-body"></tbody>
+                            <tr class="total-row"><td colspan="3">Total: <span id="bank-initiated-total">$0.00</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2: Revenue & Chart -->
+        <div style="display: flex; flex-direction: column;">
+            <div class="card">
+                <div class="summary-card">
+                    <span class="summary-title">Total Spendable Income</span>
+                    <div style="display: flex; align-items: baseline; font-size: 2rem; font-weight: 700;">
+                        <span style="color: var(--text-muted); margin-right: 4px;">$</span>
+                        <input type="number" id="spendable-income" class="ghost-input" value="0" step="0.01" oninput="calculateRevenue()" onchange="persistSpendableIncome()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="summary-card">
+                    <span class="summary-title">Actual Total Revenue</span>
+                    <span class="summary-value" id="actual-revenue">$0.00</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header header-blue">Revenue vs. Expenses</div>
+                <div class="card-body" style="padding: 1.5rem; height: 320px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 3: Fill Ups, Recon, Grocery Budget, and Ledger Session -->
+        <div style="display: flex; flex-direction: column;">
+            <div class="card">
+                <div class="card-header header-green">Fill Ups</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Name</th><th>Status</th></tr></thead>
+                            <tbody id="fill-ups-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header header-blue">Bank Reconciliation</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <tbody id="bank-recon-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header header-purple">Grocery Budget</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <tbody id="grocery-budget-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ledger Session Date Range Card -->
+            <div class="card">
+                <div class="summary-card">
+                    <span class="summary-title">Ledger Session</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                        <input type="date" id="session-start" class="inline-input" onchange="persistDates()">
+                        <span style="color: var(--text-muted); font-weight: bold;">to</span>
+                        <input type="date" id="session-end" class="inline-input" onchange="persistDates()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+        import {
+            getFirestore, collection, doc, addDoc, deleteDoc, setDoc,
+            onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy
+        } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+        import {
+            getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy-TtJUv-lqhNd_aiadEoiLSveYSTatVA",
+            authDomain: "fintech-dashboard-ff65f.firebaseapp.com",
+            projectId: "fintech-dashboard-ff65f",
+            storageBucket: "fintech-dashboard-ff65f.firebasestorage.app",
+            messagingSenderId: "447875559759",
+            appId: "1:447875559759:web:93cd3a61024ed62336953a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        let entriesCol = null;
+        let settingsRef = null;
+        let unsubEntries = null;
+        let unsubSettings = null;
+
+        let liveData = { Out_Of_Pocket: [], Bank_Initiated: [], Fill_Ups: [], Bank_Reconciliation: [], Grocery_Budget: [] };
+        let settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500, sessionStart: '', sessionEnd: '' };
+        const expenseTotals = { Out_Of_Pocket: 0, Bank_Initiated: 0 };
+        const reconBalances = { Bank_Reconciliation: { start: 0, expenses: 0 }, Grocery_Budget: { start: 0, expenses: 0 } };
+        let revenueChartInstance = null;
+
+        const escapeHTML = (str) => {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        };
+
+        const updateChart = () => {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            
+            const outOfPocket = expenseTotals.Out_Of_Pocket || 0;
+            const bankInitiated = expenseTotals.Bank_Initiated || 0;
+            const totalExpenses = outOfPocket + bankInitiated;
+            
+            const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
+            const remaining = Math.max(0, spendable - totalExpenses);
+            
+            const cardBgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim() || '#ffffff';
+
+            const data = {
+                labels: ['Remaining Revenue', 'Out of Pocket', 'Bank Initiated'],
+                datasets: [{ 
+                    data: [remaining, outOfPocket, bankInitiated], 
+                    backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], 
+                    borderWidth: 2,
+                    borderColor: cardBgColor, 
+                    hoverOffset: 4,
+                    borderRadius: 4
+                }]
+            };
+
+            if (revenueChartInstance) {
+                revenueChartInstance.data = data;
+                revenueChartInstance.update('none'); 
+            } else {
+                revenueChartInstance = new Chart(ctx, { 
+                    type: 'doughnut', 
+                    data: data, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        cutout: '75%', 
+                        plugins: { 
+                            legend: { 
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true, 
+                                    padding: 20,
+                                    font: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+                                bodyFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) { label += ': '; }
+                                        if (context.parsed !== null) {
+                                            label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            animateScale: false,
+                            animateRotate: true
+                        }
+                    } 
+                });
+            }
+        };
+
+        window.calculateRevenue = () => {
+            const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
+            const actualRevenue = spendable - (expenseTotals.Out_Of_Pocket + expenseTotals.Bank_Initiated);
+            const display = document.getElementById('actual-revenue');
+            display.innerText = formatMoney(actualRevenue);
+            display.style.color = (actualRevenue < 0) ? 'var(--danger-red)' : 'var(--text-main)';
+            updateChart();
+        };
+
+        window.persistSpendableIncome = async () => {
+            const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
+            try { await setDoc(settingsRef, { spendableIncome: spendable }, { merge: true }); }
+            catch (err) { console.error("Couldn't save income:", err); }
+        };
+
+        window.persistDates = async () => {
+            const start = document.getElementById('session-start').value;
+            const end = document.getElementById('session-end').value;
+            try { await setDoc(settingsRef, { sessionStart: start, sessionEnd: end }, { merge: true }); }
+            catch (err) { console.error("Couldn't save session dates:", err); }
+        };
+
+        const formatMoney = (amount) => {
+            const num = parseFloat(amount);
+            return (isNaN(num) ? '$0.00' : (num < 0 ? '-' : '') + '$' + Math.abs(num).toFixed(2));
+        };
+
+        const getBadgeClass = (status) => {
+            if (!status) return '';
+            return (status.toString().toUpperCase() === 'PAID') ? 'badge-paid' : 'badge-unpaid';
+        };
+
+        window.openInlineForm = (tbodyId) => {
+            document.getElementById(`add-btn-${tbodyId}`).style.display = 'none';
+            document.getElementById(`inline-form-${tbodyId}`).style.display = 'table-row';
+            document.getElementById(`input-name-${tbodyId}`).focus();
+        };
+
+        window.deleteItem = async (id) => {
+            try { await deleteDoc(doc(entriesCol, id)); }
+            catch (err) { alert("Couldn't delete — check your connection."); console.error(err); }
+        };
+
+        window.saveInlineExpense = async (tbodyId, tabName, isFillUp = false) => {
+            const nameInput = document.getElementById(`input-name-${tbodyId}`);
+            const statusInput = document.getElementById(`input-status-${tbodyId}`);
+            const amountInput = document.getElementById(`input-amount-${tbodyId}`);
+
+            const name = nameInput.value.trim();
+            const status = statusInput.value;
+            const amount = parseFloat(amountInput?.value || 0);
+
+            if (!name) { alert("Please enter a name."); return; }
+
+            try {
+                await addDoc(entriesCol, {
+                    category: tabName,
+                    name,
+                    amount: isFillUp ? 0 : amount,
+                    status,
+                    createdAt: serverTimestamp()
+                });
+            } catch (err) {
+                alert("Couldn't save — check your connection.");
+                console.error(err);
+            }
+        };
+
+        window.recalcRecon = (tbodyId, tabName) => {
+            const startVal = parseFloat(document.getElementById(`start-input-${tbodyId}`).value) || 0;
+            reconBalances[tabName].start = startVal;
+            const currentBalance = startVal - reconBalances[tabName].expenses;
+
+            const balanceAmountCell = document.getElementById(`balance-amount-${tbodyId}`);
+            const balanceStatusCell = document.getElementById(`balance-status-${tbodyId}`);
+            balanceAmountCell.innerText = formatMoney(currentBalance);
+            balanceAmountCell.className = 'amount-cell ' + (currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : ''));
+            balanceStatusCell.innerText = currentBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED';
+            balanceStatusCell.style.color = currentBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)';
+        };
+
+        window.persistStartingBalance = async (tbodyId, tabName) => {
+            const startVal = parseFloat(document.getElementById(`start-input-${tbodyId}`).value) || 0;
+            const field = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
+            try { await setDoc(settingsRef, { [field]: startVal }, { merge: true }); }
+            catch (err) { console.error("Couldn't save starting balance:", err); }
+        };
+
+        window.saveReconciliation = async (tbodyId, tabName) => {
+            const amountInput = document.getElementById(`input-amount-${tbodyId}`);
+            const nameInput = document.getElementById(`input-name-${tbodyId}`);
+            const amount = parseFloat(amountInput.value);
+            const name = nameInput.value.trim();
+
+            if (!name || isNaN(amount)) { alert("Please enter both a name and an amount."); return; }
+
+            try {
+                await addDoc(entriesCol, { category: tabName, name, amount, status: '', createdAt: serverTimestamp() });
+            } catch (err) {
+                alert("Couldn't save — check your connection.");
+                console.error(err);
+            }
+        };
+
+        window.performHardReset = async () => {
+            if (!confirm("⚠️ DANGER: This will delete ALL data. Are you absolutely sure?")) return;
+            if (!confirm("FINAL WARNING: This cannot be undone. Click OK to wipe everything.")) return;
+            try {
+                const snap = await getDocs(entriesCol);
+                const batches = [];
+                let currentBatch = writeBatch(db);
+                let count = 0;
+
+                snap.forEach((d) => {
+                    currentBatch.delete(d.ref);
+                    count++;
+                    if (count === 499) {
+                        batches.push(currentBatch.commit());
+                        currentBatch = writeBatch(db);
+                        count = 0;
+                    }
+                });
+
+                currentBatch.set(settingsRef, { 
+                    spendableIncome: 0, 
+                    bankReconStart: 2500, 
+                    groceryStart: 500,
+                    sessionStart: '',
+                    sessionEnd: ''
+                });
+                batches.push(currentBatch.commit());
+                await Promise.all(batches);
+
+                alert("Data reset successfully.");
+            } catch (error) {
+                alert("Failed to reset.");
+                console.error(error);
+            }
+        };
+
+        const renderExpenseTable = (rows, tbodyId, totalId, tabName) => {
+            const tbody = document.getElementById(tbodyId);
+            let htmlString = '';
+            let total = 0;
+
+            rows.forEach(item => {
+                if (!item.name) return;
+                total += (item.amount || 0);
+                htmlString += `<tr><td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td><td>${escapeHTML(item.name)}</td><td class="action-cell"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
+            });
+
+            expenseTotals[tabName] = total;
+
+            htmlString += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="3">+ Add New</td></tr>
+                <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
+                    <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01"></td>
+                    <td><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"></td>
+                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><select id="input-status-${tbodyId}" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select><button class="save-btn" onclick="saveInlineExpense('${tbodyId}', '${tabName}')">Save</button></div></td>
+                </tr>`;
+
+            tbody.innerHTML = htmlString;
+            document.getElementById(totalId).innerText = formatMoney(total);
+        };
+
+        const renderFillUps = (rows) => {
+            const tbody = document.getElementById('fill-ups-body');
+            let htmlString = '';
+
+            rows.forEach(item => {
+                if (item.name) htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell" style="text-align: right; justify-content: flex-end;"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
+            });
+
+            htmlString += `<tr id="add-btn-fill-ups-body" class="add-row-btn" onclick="openInlineForm('fill-ups-body')"><td colspan="2">+ Add New</td></tr>
+                <tr id="inline-form-fill-ups-body" class="highlight-row" style="display: none;">
+                    <td><input type="text" id="input-name-fill-ups-body" class="inline-input" placeholder="Name (e.g. Fill Up 1)"></td>
+                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><select id="input-status-fill-ups-body" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select><button class="save-btn" onclick="saveInlineExpense('fill-ups-body', 'Fill_Ups', true)">Save</button></div></td>
+                </tr>`;
+
+            tbody.innerHTML = htmlString;
+        };
+
+        const renderReconciliation = (rows, tbodyId, tabName) => {
+            const tbody = document.getElementById(tbodyId);
+            let htmlString = '';
+            
+            const startField = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
+            const savedStart = settings[startField] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500);
+
+            htmlString += `<tr class="highlight-row"><td style="font-weight: bold;"><div style="display: flex; align-items: baseline;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" oninput="recalcRecon('${tbodyId}', '${tabName}')" onchange="persistStartingBalance('${tbodyId}', '${tabName}')"></div></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
+
+            let expenseTotal = 0;
+            rows.forEach(item => {
+                if (!item.name) return;
+                const amount = parseFloat(item.amount) || 0;
+                expenseTotal += amount;
+                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right; justify-content: flex-end;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
+            });
+
+            reconBalances[tabName] = { start: parseFloat(savedStart), expenses: expenseTotal };
+            const currentBalance = parseFloat(savedStart) - expenseTotal;
+
+            htmlString += `<tr id="total-row-${tbodyId}" class="total-row"><td id="balance-amount-${tbodyId}" class="amount-cell ${currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : '')}">${formatMoney(currentBalance)}</td><td id="balance-status-${tbodyId}" style="text-align: right; font-size: 0.8rem; color: ${currentBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)'};">${currentBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED'}</td></tr>`;
+
+            htmlString += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="2">+ Add New</td></tr>
+                <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
+                    <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01"></td>
+                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"><button class="save-btn" onclick="saveReconciliation('${tbodyId}', '${tabName}')">Save</button></div></td>
+                </tr>`;
+
+            tbody.innerHTML = htmlString;
+        };
+
+        function renderAll() {
+            renderExpenseTable(liveData.Out_Of_Pocket, 'out-of-pocket-body', 'out-of-pocket-total', 'Out_Of_Pocket');
+            renderExpenseTable(liveData.Bank_Initiated, 'bank-initiated-body', 'bank-initiated-total', 'Bank_Initiated');
+            renderFillUps(liveData.Fill_Ups);
+            renderReconciliation(liveData.Bank_Reconciliation, 'bank-recon-body', 'Bank_Reconciliation');
+            renderReconciliation(liveData.Grocery_Budget, 'grocery-budget-body', 'Grocery_Budget');
+            window.calculateRevenue();
+        }
+
+        window.signInWithGoogle = async () => {
+            const errorEl = document.getElementById('auth-error');
+            errorEl.style.display = 'none';
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (err) {
+                errorEl.innerText = "Sign-in failed — check your connection and try again.";
+                errorEl.style.display = 'block';
+                console.error(err);
+            }
+        };
+
+        window.signOutUser = async () => {
+            try { await signOut(auth); }
+            catch (err) { console.error(err); }
+        };
+
+        const detachListeners = () => {
+            if (unsubEntries) { unsubEntries(); unsubEntries = null; }
+            if (unsubSettings) { unsubSettings(); unsubSettings = null; }
+        };
+
+        const attachListeners = (uid) => {
+            entriesCol = collection(db, "users", uid, "entries");
+            const orderedQuery = query(entriesCol, orderBy("createdAt", "asc"));
+            settingsRef = doc(db, "users", uid, "settings", "budget");
+
+            unsubEntries = onSnapshot(orderedQuery, (snap) => {
+                for (const key in liveData) liveData[key] = [];
+                snap.forEach((docSnap) => {
+                    const row = { id: docSnap.id, ...docSnap.data() };
+                    if (liveData[row.category]) liveData[row.category].push(row);
+                });
+                renderAll();
+            }, (err) => console.error("Entries listener error:", err));
+
+            unsubSettings = onSnapshot(settingsRef, (snap) => {
+                settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500, sessionStart: '', sessionEnd: '' };
+                if (snap.exists()) settings = { ...settings, ...snap.data() };
+                
+                document.getElementById('spendable-income').value = settings.spendableIncome;
+                document.getElementById('session-start').value = settings.sessionStart || '';
+                document.getElementById('session-end').value = settings.sessionEnd || '';
+                
+                renderAll();
+            }, (err) => console.error("Settings listener error:", err));
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            detachListeners();
+            if (user) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                document.getElementById('user-email').innerText = user.email;
+                liveData = { Out_Of_Pocket: [], Bank_Initiated: [], Fill_Ups: [], Bank_Reconciliation: [], Grocery_Budget: [] };
+                attachListeners(user.uid);
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('app-content').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
