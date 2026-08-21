@@ -520,7 +520,7 @@
             display.style.color = (actualRevenue < 0) ? 'var(--danger-red)' : 'var(--text-main)';
             
             updateChart();
-            updateSafeToSpend(actualRevenue);
+            updateSafeToSpend(spendable); 
         };
 
         // NEW: Safe to Spend Splitter Logic
@@ -542,33 +542,27 @@
             const end = document.getElementById('session-end').value;
             const badge = document.getElementById('burn-rate-badge');
 
-            if (!start) {
+            if (!start || !end) {
                 badge.innerText = "Burn: --/day";
                 return;
             }
 
             const startDate = new Date(start);
-            let endDate = end ? new Date(end) : new Date();
-            const today = new Date();
+            const endDate = new Date(end);
             
             // Normalize time
             startDate.setHours(0,0,0,0);
             endDate.setHours(0,0,0,0);
-            today.setHours(0,0,0,0);
 
-            let elapsedEnd = endDate;
-            if (end && today < endDate) {
-                elapsedEnd = today;
-            } else if (!end) {
-                elapsedEnd = today;
-            }
-
-            const diffTime = Math.abs(elapsedEnd - startDate);
-            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            if (diffDays === 0) diffDays = 1; // avoid division by zero
+            // Calculate total days in the session
+            const diffTime = Math.abs(endDate - startDate);
+            let totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Prevent division by zero if dates are identical
+            if (totalDays === 0) totalDays = 1; 
 
             const totalExpenses = (expenseTotals.Out_Of_Pocket || 0) + (expenseTotals.Bank_Initiated || 0);
-            const burnRate = totalExpenses / diffDays;
+            const burnRate = totalExpenses / totalDays;
 
             badge.innerText = `Burn: ${formatMoney(burnRate)}/day`;
         };
