@@ -265,7 +265,7 @@
                     <span class="summary-title">Total Spendable Income</span>
                     <div style="display: flex; align-items: baseline; font-size: 2rem; font-weight: 700;">
                         <span style="color: var(--text-muted); margin-right: 4px;">$</span>
-                        <input type="number" id="spendable-income" class="ghost-input" value="0" step="0.01" oninput="calculateRevenue()" onchange="persistSpendableIncome()">
+                        <input type="number" id="spendable-income" class="ghost-input" value="0" step="0.01" min="0" oninput="calculateRevenue()" onchange="persistSpendableIncome()">
                     </div>
                 </div>
             </div>
@@ -279,11 +279,11 @@
                     <div style="display: flex; gap: 1rem; margin-top: 0.25rem;">
                         <div style="display: flex; align-items: baseline; font-size: 0.75rem; color: #f87171;">
                             <span>Gas: $</span>
-                            <input type="number" id="est-gas" class="ghost-input" style="font-size: 0.85rem; width: 45px; color: #f87171; border-bottom: 1px dashed rgba(248,113,113,0.5); margin-left: 2px;" value="0" oninput="calculateRevenue()" onchange="persistEstExpenses()">
+                            <input type="number" id="est-gas" class="ghost-input" style="font-size: 0.85rem; width: 45px; color: #f87171; border-bottom: 1px dashed rgba(248,113,113,0.5); margin-left: 2px;" value="0" min="0" oninput="calculateRevenue()" onchange="persistEstExpenses()">
                         </div>
                         <div style="display: flex; align-items: baseline; font-size: 0.75rem; color: #f87171;">
                             <span>Groc: $</span>
-                            <input type="number" id="est-groceries" class="ghost-input" style="font-size: 0.85rem; width: 45px; color: #f87171; border-bottom: 1px dashed rgba(248,113,113,0.5); margin-left: 2px;" value="0" oninput="calculateRevenue()" onchange="persistEstExpenses()">
+                            <input type="number" id="est-groceries" class="ghost-input" style="font-size: 0.85rem; width: 45px; color: #f87171; border-bottom: 1px dashed rgba(248,113,113,0.5); margin-left: 2px;" value="0" min="0" oninput="calculateRevenue()" onchange="persistEstExpenses()">
                         </div>
                     </div>
                     
@@ -319,11 +319,11 @@
                     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.5rem;">
                         <div style="display: flex; align-items: baseline;">
                             <span style="color: var(--text-muted); font-size: 1rem; margin-right: 2px;">$</span>
-                            <input type="number" id="goal-current" class="ghost-input" style="font-size: 1.5rem; width: 100px;" value="0" oninput="updateGoalUI()" onchange="persistGoal()">
+                            <input type="number" id="goal-current" class="ghost-input" style="font-size: 1.5rem; width: 100px;" value="0" min="0" oninput="updateGoalUI()" onchange="persistGoal()">
                         </div>
                         <div style="display: flex; align-items: baseline; color: var(--text-muted);">
                             <span style="font-size: 0.85rem; margin-right: 4px;">of $</span>
-                            <input type="number" id="goal-target" class="ghost-input" style="font-size: 1rem; width: 80px; color: var(--text-muted);" value="0" oninput="updateGoalUI()" onchange="persistGoal()">
+                            <input type="number" id="goal-target" class="ghost-input" style="font-size: 1rem; width: 80px; color: var(--text-muted);" value="0" min="0" oninput="updateGoalUI()" onchange="persistGoal()">
                         </div>
                     </div>
                     <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; margin-top: 0.5rem; overflow: hidden;">
@@ -425,7 +425,6 @@
 
         let liveData = { Out_Of_Pocket: [], Bank_Initiated: [], Fill_Ups: [], Bank_Reconciliation: [], Grocery_Budget: [] };
         
-        // Expanded settings object
         let settings = { 
             spendableIncome: 0, 
             bankReconStart: 2500, 
@@ -449,6 +448,14 @@
             return str.replace(/[&<>'"]/g, tag => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
             }[tag]));
+        };
+
+        // Fix for negative zero jitter due to precision loss
+        const formatMoney = (amount) => {
+            const num = parseFloat(amount);
+            if (isNaN(num)) return '$0.00';
+            if (Math.abs(num) < 0.005) return '$0.00';
+            return (num < 0 ? '-' : '') + '$' + Math.abs(num).toFixed(2);
         };
 
         const updateChart = () => {
@@ -529,9 +536,8 @@
             
             const display = document.getElementById('actual-revenue');
             display.innerText = formatMoney(actualRevenue);
-            display.style.color = (actualRevenue < 0) ? 'var(--danger-red)' : 'var(--text-main)';
+            display.style.color = (actualRevenue < -0.005) ? 'var(--danger-red)' : 'var(--text-main)';
             
-            // Calculate True Net Revenue (subtracting Gas and Groceries)
             const estGas = parseFloat(document.getElementById('est-gas').value) || 0;
             const estGroceries = parseFloat(document.getElementById('est-groceries').value) || 0;
             const trueNet = actualRevenue - (estGas + estGroceries);
@@ -640,11 +646,6 @@
             catch (err) { console.error("Couldn't save est expenses:", err); }
         };
 
-        const formatMoney = (amount) => {
-            const num = parseFloat(amount);
-            return (isNaN(num) ? '$0.00' : (num < 0 ? '-' : '') + '$' + Math.abs(num).toFixed(2));
-        };
-
         const getBadgeClass = (status) => {
             if (!status) return '';
             return (status.toString().toUpperCase() === 'PAID') ? 'badge-paid' : 'badge-unpaid';
@@ -670,7 +671,8 @@
             const status = statusInput.value;
             const amount = parseFloat(amountInput?.value || 0);
 
-            if (!name) { alert("Please enter a name."); return; }
+            // Poison Pill fix: Ensure amount is finite
+            if (!name || !isFinite(amount)) { alert("Please enter a valid name and amount."); return; }
 
             try {
                 await addDoc(entriesCol, {
@@ -691,12 +693,15 @@
             reconBalances[tabName].start = startVal;
             const currentBalance = startVal - reconBalances[tabName].expenses;
 
+            // Precision fix: Check against tolerance instead of strict 0
+            const isReconciled = Math.abs(currentBalance) < 0.005;
+
             const balanceAmountCell = document.getElementById(`balance-amount-${tbodyId}`);
             const balanceStatusCell = document.getElementById(`balance-status-${tbodyId}`);
             balanceAmountCell.innerText = formatMoney(currentBalance);
-            balanceAmountCell.className = 'amount-cell ' + (currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : ''));
-            balanceStatusCell.innerText = currentBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED';
-            balanceStatusCell.style.color = currentBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)';
+            balanceAmountCell.className = 'amount-cell ' + (currentBalance < -0.005 ? 'amount-red' : (isReconciled ? 'amount-green' : ''));
+            balanceStatusCell.innerText = isReconciled ? 'RECONCILED' : 'NOT RECONCILED';
+            balanceStatusCell.style.color = isReconciled ? 'var(--success-green)' : 'var(--danger-red)';
         };
 
         window.persistStartingBalance = async (tbodyId, tabName) => {
@@ -712,7 +717,8 @@
             const amount = parseFloat(amountInput.value);
             const name = nameInput.value.trim();
 
-            if (!name || isNaN(amount)) { alert("Please enter both a name and an amount."); return; }
+            // Poison Pill fix: Ensure amount is finite
+            if (!name || !isFinite(amount)) { alert("Please enter both a valid name and an amount."); return; }
 
             try {
                 await addDoc(entriesCol, { category: tabName, name, amount, status: '', createdAt: serverTimestamp() });
@@ -741,7 +747,6 @@
                     }
                 });
 
-                // Uses merge: true so we DONT overwrite the Sinking Fund goal
                 currentBatch.set(settingsRef, { 
                     spendableIncome: 0, 
                     bankReconStart: 2500, 
@@ -778,7 +783,7 @@
 
             htmlString += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="3">+ Add New</td></tr>
                 <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
-                    <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01"></td>
+                    <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01" min="0"></td>
                     <td><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"></td>
                     <td><div style="display: flex; gap: 0.5rem; align-items: center;"><select id="input-status-${tbodyId}" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select><button class="save-btn" onclick="saveInlineExpense('${tbodyId}', '${tabName}')">Save</button></div></td>
                 </tr>`;
@@ -811,7 +816,7 @@
             const startField = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
             const savedStart = settings[startField] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500);
 
-            htmlString += `<tr class="highlight-row"><td style="font-weight: bold;"><div style="display: flex; align-items: baseline;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" oninput="recalcRecon('${tbodyId}', '${tabName}')" onchange="persistStartingBalance('${tbodyId}', '${tabName}')"></div></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
+            htmlString += `<tr class="highlight-row"><td style="font-weight: bold;"><div style="display: flex; align-items: baseline;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" min="0" oninput="recalcRecon('${tbodyId}', '${tabName}')" onchange="persistStartingBalance('${tbodyId}', '${tabName}')"></div></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
 
             let expenseTotal = 0;
             rows.forEach(item => {
@@ -822,13 +827,15 @@
             });
 
             reconBalances[tabName] = { start: parseFloat(savedStart), expenses: expenseTotal };
+            
             const currentBalance = parseFloat(savedStart) - expenseTotal;
+            const isReconciled = Math.abs(currentBalance) < 0.005; // Precision fix
 
-            htmlString += `<tr id="total-row-${tbodyId}" class="total-row"><td id="balance-amount-${tbodyId}" class="amount-cell ${currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : '')}">${formatMoney(currentBalance)}</td><td id="balance-status-${tbodyId}" style="text-align: right; font-size: 0.8rem; color: ${currentBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)'};">${currentBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED'}</td></tr>`;
+            htmlString += `<tr id="total-row-${tbodyId}" class="total-row"><td id="balance-amount-${tbodyId}" class="amount-cell ${currentBalance < -0.005 ? 'amount-red' : (isReconciled ? 'amount-green' : '')}">${formatMoney(currentBalance)}</td><td id="balance-status-${tbodyId}" style="text-align: right; font-size: 0.8rem; color: ${isReconciled ? 'var(--success-green)' : 'var(--danger-red)'};">${isReconciled ? 'RECONCILED' : 'NOT RECONCILED'}</td></tr>`;
 
             htmlString += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="2">+ Add New</td></tr>
                 <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
-                    <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01"></td>
+                    <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01" min="0"></td>
                     <td><div style="display: flex; gap: 0.5rem; align-items: center;"><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"><button class="save-btn" onclick="saveReconciliation('${tbodyId}', '${tabName}')">Save</button></div></td>
                 </tr>`;
 
