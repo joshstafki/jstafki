@@ -450,7 +450,6 @@
             }[tag]));
         };
 
-        // Fix for negative zero jitter due to precision loss
         const formatMoney = (amount) => {
             const num = parseFloat(amount);
             if (isNaN(num)) return '$0.00';
@@ -669,10 +668,17 @@
 
             const name = nameInput.value.trim();
             const status = statusInput.value;
-            const amount = parseFloat(amountInput?.value || 0);
+            let amount = 0;
 
-            // Poison Pill fix: Ensure amount is finite
-            if (!name || !isFinite(amount)) { alert("Please enter a valid name and amount."); return; }
+            if (!isFillUp) {
+                amount = parseFloat(amountInput.value);
+                if (isNaN(amount) || !isFinite(amount) || amount < 0 || amount > 9999999) {
+                    alert("Please enter a valid positive amount.");
+                    return;
+                }
+            }
+
+            if (!name) { alert("Please enter a name."); return; }
 
             try {
                 await addDoc(entriesCol, {
@@ -693,7 +699,6 @@
             reconBalances[tabName].start = startVal;
             const currentBalance = startVal - reconBalances[tabName].expenses;
 
-            // Precision fix: Check against tolerance instead of strict 0
             const isReconciled = Math.abs(currentBalance) < 0.005;
 
             const balanceAmountCell = document.getElementById(`balance-amount-${tbodyId}`);
@@ -717,8 +722,10 @@
             const amount = parseFloat(amountInput.value);
             const name = nameInput.value.trim();
 
-            // Poison Pill fix: Ensure amount is finite
-            if (!name || !isFinite(amount)) { alert("Please enter both a valid name and an amount."); return; }
+            if (!name || isNaN(amount) || !isFinite(amount) || amount < 0 || amount > 9999999) {
+                alert("Please enter a valid name and a positive amount.");
+                return;
+            }
 
             try {
                 await addDoc(entriesCol, { category: tabName, name, amount, status: '', createdAt: serverTimestamp() });
@@ -776,7 +783,7 @@
             rows.forEach(item => {
                 if (!item.name) return;
                 total += (item.amount || 0);
-                htmlString += `<tr><td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td><td>${escapeHTML(item.name)}</td><td class="action-cell"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
+                htmlString += `<tr><td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td><td>${escapeHTML(item.name)}</td><td class="action-cell"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${escapeHTML(item.id)}')">×</span></td></tr>`;
             });
 
             expenseTotals[tabName] = total;
@@ -797,7 +804,7 @@
             let htmlString = '';
 
             rows.forEach(item => {
-                if (item.name) htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell" style="text-align: right; justify-content: flex-end;"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
+                if (item.name) htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell" style="text-align: right; justify-content: flex-end;"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${escapeHTML(item.id)}')">×</span></td></tr>`;
             });
 
             htmlString += `<tr id="add-btn-fill-ups-body" class="add-row-btn" onclick="openInlineForm('fill-ups-body')"><td colspan="2">+ Add New</td></tr>
@@ -823,13 +830,13 @@
                 if (!item.name) return;
                 const amount = parseFloat(item.amount) || 0;
                 expenseTotal += amount;
-                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right; justify-content: flex-end;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
+                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right; justify-content: flex-end;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" onclick="deleteItem('${escapeHTML(item.id)}')">×</span></td></tr>`;
             });
 
             reconBalances[tabName] = { start: parseFloat(savedStart), expenses: expenseTotal };
             
             const currentBalance = parseFloat(savedStart) - expenseTotal;
-            const isReconciled = Math.abs(currentBalance) < 0.005; // Precision fix
+            const isReconciled = Math.abs(currentBalance) < 0.005;
 
             htmlString += `<tr id="total-row-${tbodyId}" class="total-row"><td id="balance-amount-${tbodyId}" class="amount-cell ${currentBalance < -0.005 ? 'amount-red' : (isReconciled ? 'amount-green' : '')}">${formatMoney(currentBalance)}</td><td id="balance-status-${tbodyId}" style="text-align: right; font-size: 0.8rem; color: ${isReconciled ? 'var(--success-green)' : 'var(--danger-red)'};">${isReconciled ? 'RECONCILED' : 'NOT RECONCILED'}</td></tr>`;
 
