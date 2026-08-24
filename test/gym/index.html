@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regimen // Daily Focus</title>
+
+  <!-- Google Fonts: Syne + Plus Jakarta Sans + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            surface: {
+              DEFAULT: '#090a0f',
+              card: 'rgba(18, 20, 29, 0.7)',
+              border: 'rgba(255, 255, 255, 0.08)',
+              hover: 'rgba(255, 255, 255, 0.03)'
+            },
+            accent: {
+              cyan: '#00f5d4',
+              violet: '#7b2cbf',
+              amber: '#ffb703'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #06070a;
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(123, 44, 191, 0.25), transparent 70%),
+        radial-gradient(circle at 100% 80%, rgba(0, 245, 212, 0.08), transparent 50%);
+      background-attachment: fixed;
+    }
+    .glass {
+      background: rgba(15, 17, 26, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glass-input {
+      background: rgba(8, 9, 14, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-input:focus {
+      border-color: #00f5d4;
+      box-shadow: 0 0 20px rgba(0, 245, 212, 0.15);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Day selector active states */
+    .day-btn.active {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="font-body text-slate-300 min-h-screen antialiased flex flex-col items-center justify-center p-4 sm:p-8">
+
+  <div class="w-full max-w-4xl space-y-6">
+
+    <!-- Top Navigation / Profile Bar -->
+    <header class="glass rounded-2xl p-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-accent-violet to-accent-cyan p-[1px] flex items-center justify-center">
+          <div class="h-full w-full bg-[#090a0f] rounded-[11px] flex items-center justify-center text-accent-cyan font-mono text-sm font-semibold">
+            ⚡
+          </div>
+        </div>
+        <div>
+          <h1 class="font-display font-extrabold text-white text-xl tracking-tight uppercase">Regimen</h1>
+          <p class="font-mono text-xs text-slate-500">DAILY FOCUS // PROTOCOL</p>
+        </div>
+      </div>
+
+      <!-- Auth Action Container -->
+      <div id="authContainer" class="flex items-center gap-3">
+        <button id="signInBtn" class="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium text-sm transition duration-200">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+          </svg>
+          Connect Account
+        </button>
+
+        <div id="userProfile" class="hidden items-center gap-3">
+          <img id="userAvatar" class="w-8 h-8 rounded-full border border-accent-cyan/40" src="" alt="Avatar">
+          <div class="hidden md:block text-left">
+            <div id="userName" class="text-xs font-semibold text-white"></div>
+            <div class="text-[10px] font-mono text-accent-cyan tracking-wider">SYNC ACTIVE</div>
+          </div>
+          <button id="signOutBtn" class="text-xs text-slate-400 hover:text-white ml-2 underline underline-offset-4 decoration-white/20">Sign Out</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Workout Display -->
+      <section class="lg:col-span-5 flex flex-col gap-4">
+        
+        <!-- Day Selector (Optional for quick lookahead) -->
+        <div class="glass p-2 rounded-2xl flex justify-between gap-1 overflow-x-auto custom-scroll" id="daySelector">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Active Day Card -->
+        <div id="workoutCard" class="glass rounded-2xl p-8 flex flex-col flex-1 justify-center border-l-4 transition-all duration-300">
+          <span id="cardDay" class="font-mono text-sm uppercase tracking-widest font-semibold mb-2">Day</span>
+          <div id="cardFocus" class="font-display text-white text-5xl font-extrabold mb-4 leading-tight tracking-tighter">Focus</div>
+          <div>
+            <span id="cardType" class="inline-block font-mono text-xs bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-slate-300">Type</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: Daily Firestore Scratch Pad -->
+      <section class="lg:col-span-7 flex flex-col">
+        <div class="glass rounded-2xl p-6 flex flex-col flex-1 relative overflow-hidden">
+          
+          <div class="flex items-center justify-between mb-4">
+            <div class="space-y-0.5">
+              <h2 id="notepadTitle" class="font-display text-lg font-bold text-white uppercase tracking-tight">Active Scratch Pad</h2>
+              <p class="font-mono text-xs text-slate-400">Session logs, volume, and weights</p>
+            </div>
+            <div id="saveStatus" class="font-mono text-xs text-slate-500 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+              Offline Cache
+            </div>
+          </div>
+
+          <textarea 
+            id="scratchPad" 
+            placeholder="Log sets, current weights, weekly targets, or personal records for today..." 
+            class="glass-input custom-scroll w-full flex-1 min-h-[360px] rounded-xl p-4 font-mono text-sm text-slate-200 placeholder-slate-600 resize-none outline-none transition focus:ring-0 leading-relaxed"></textarea>
+
+          <div class="mt-4 flex items-center justify-between pt-3 border-t border-white/5 text-[11px] font-mono text-slate-500">
+            <span id="charCount">0 CHARS</span>
+            <span>AUTO-SAVES TO CURRENT DAY</span>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    // --- PASTE YOUR FIREBASE PROJECT CONFIG HERE ---
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // Data Structure
+    const schedule = [
+      { day: "Sunday", short: "Su", focus: "Recovery", type: "Rest", color: "border-slate-500", text: "text-slate-500" },
+      { day: "Monday", short: "Mo", focus: "Chest", type: "Push", color: "border-accent-cyan", text: "text-accent-cyan" },
+      { day: "Tuesday", short: "Tu", focus: "Back + Legs", type: "Pull / Lower", color: "border-accent-violet", text: "text-purple-400" },
+      { day: "Wednesday", short: "We", focus: "Arms", type: "Isolation", color: "border-slate-400", text: "text-slate-400" },
+      { day: "Thursday", short: "Th", focus: "Chest", type: "Push", color: "border-accent-cyan", text: "text-accent-cyan" },
+      { day: "Friday", short: "Fr", focus: "Arms + Legs", type: "Compound", color: "border-accent-amber", text: "text-accent-amber" },
+      { day: "Saturday", short: "Sa", focus: "Back + Chest", type: "Torso", color: "border-rose-500", text: "text-rose-400" }
+    ];
+
+    // DOM Elements
+    const signInBtn = document.getElementById("signInBtn");
+    const signOutBtn = document.getElementById("signOutBtn");
+    const userProfile = document.getElementById("userProfile");
+    const userAvatar = document.getElementById("userAvatar");
+    const userName = document.getElementById("userName");
+    
+    const daySelector = document.getElementById("daySelector");
+    const workoutCard = document.getElementById("workoutCard");
+    const cardDay = document.getElementById("cardDay");
+    const cardFocus = document.getElementById("cardFocus");
+    const cardType = document.getElementById("cardType");
+    const notepadTitle = document.getElementById("notepadTitle");
+    
+    const scratchPad = document.getElementById("scratchPad");
+    const saveStatus = document.getElementById("saveStatus");
+    const charCount = document.getElementById("charCount");
+
+    // State
+    let currentUser = null;
+    let saveTimeout = null;
+    let unsubscribeFirestore = null;
+    let activeDayIndex = new Date().getDay(); // Defaults to today (0 = Sunday, 1 = Monday...)
+    let allNotes = {}; // Stores notes for all days { "Monday": "...", "Tuesday": "..." }
+
+    const LOCAL_STORAGE_KEY = "regimen_daily_notes";
+
+    // Initialize UI
+    function initApp() {
+      // Load local cache
+      const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (localData) {
+        try {
+          allNotes = JSON.parse(localData);
+        } catch(e) { console.error(e); }
+      }
+
+      // Build Day Selector
+      schedule.forEach((item, index) => {
+        const btn = document.createElement("button");
+        btn.className = `day-btn flex-1 py-2 px-3 rounded-xl font-mono text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all outline-none border border-transparent`;
+        btn.textContent = item.short;
+        btn.onclick = () => setActiveDay(index);
+        daySelector.appendChild(btn);
+      });
+
+      setActiveDay(activeDayIndex);
+    }
+
+    function setActiveDay(index) {
+      activeDayIndex = index;
+      const data = schedule[index];
+
+      // Update UI Card
+      workoutCard.className = `glass rounded-2xl p-8 flex flex-col flex-1 justify-center border-l-4 transition-all duration-300 ${data.color}`;
+      cardDay.textContent = data.day;
+      cardDay.className = `font-mono text-sm uppercase tracking-widest font-semibold mb-2 ${data.text}`;
+      cardFocus.textContent = data.focus;
+      cardType.textContent = data.type;
+
+      // Update Day Selector visual states
+      Array.from(daySelector.children).forEach((btn, i) => {
+        if (i === index) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+
+      // Update Notepad
+      notepadTitle.textContent = `${data.day} Notes`;
+      scratchPad.value = allNotes[data.day] || "";
+      updateCharCount();
+    }
+
+    // Auth State Observer
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        signInBtn.classList.add("hidden");
+        userProfile.classList.remove("hidden");
+        userProfile.classList.add("flex");
+        userAvatar.src = user.photoURL || "";
+        userName.textContent = user.displayName || user.email;
+
+        setSyncStatus("synced", "Cloud Active");
+        listenToUserNotes(user.uid);
+      } else {
+        currentUser = null;
+        if (unsubscribeFirestore) unsubscribeFirestore();
+        signInBtn.classList.remove("hidden");
+        userProfile.classList.add("hidden");
+        userProfile.classList.remove("flex");
+        setSyncStatus("local", "Offline Cache");
+      }
+    });
+
+    // Google Sign In
+    signInBtn.addEventListener("click", async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        console.error("Sign in failed:", err);
+      }
+    });
+
+    // Sign Out
+    signOutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error("Sign out failed:", err);
+      }
+    });
+
+    // Real-time Firestore Listener
+    function listenToUserNotes(uid) {
+      const docRef = doc(db, "regimen_daily_users", uid);
+      unsubscribeFirestore = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const cloudData = docSnap.data().notes || {};
+          
+          // Only update if we aren't currently typing to avoid overwriting mid-keystroke
+          if (document.activeElement !== scratchPad) {
+            allNotes = { ...allNotes, ...cloudData };
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allNotes));
+            
+            // Refresh current day's text box if changed externally
+            const activeDayName = schedule[activeDayIndex].day;
+            scratchPad.value = allNotes[activeDayName] || "";
+            updateCharCount();
+          }
+        }
+      });
+    }
+
+    // Auto-Save Handler with Debounce
+    scratchPad.addEventListener("input", () => {
+      updateCharCount();
+      
+      const activeDayName = schedule[activeDayIndex].day;
+      const text = scratchPad.value;
+      
+      // Update local state
+      allNotes[activeDayName] = text;
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allNotes));
+
+      if (!currentUser) {
+        setSyncStatus("local", "Local Cache");
+        return;
+      }
+
+      setSyncStatus("saving", "Saving...");
+      clearTimeout(saveTimeout);
+      
+      // Debounce API call
+      saveTimeout = setTimeout(async () => {
+        try {
+          const docRef = doc(db, "regimen_daily_users", currentUser.uid);
+          // Using merge so we only update the 'notes' map without deleting other data
+          await setDoc(docRef, { notes: allNotes, lastUpdated: new Date().toISOString() }, { merge: true });
+          setSyncStatus("synced", "Cloud Saved");
+        } catch (error) {
+          console.error("Error saving note:", error);
+          setSyncStatus("error", "Sync Error");
+        }
+      }, 700);
+    });
+
+    function updateCharCount() {
+      charCount.textContent = `${scratchPad.value.length} CHARS`;
+    }
+
+    function setSyncStatus(state, label) {
+      let colorClass = "bg-slate-600";
+      if (state === "synced") colorClass = "bg-accent-cyan";
+      if (state === "saving") colorClass = "bg-accent-amber animate-pulse";
+      if (state === "error") colorClass = "bg-rose-500";
+
+      saveStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${colorClass}"></span> ${label}`;
+    }
+
+    // Run Initialization
+    initApp();
+  </script>
+</body>
+</html>
