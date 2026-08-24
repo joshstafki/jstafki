@@ -108,9 +108,9 @@
         .summary-title { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
         .summary-value { font-size: 2rem; font-weight: 700; }
         
-        /* Updated ghost-input to prevent iOS styling */
         .ghost-input { border: none; background: transparent; font-size: 2rem; font-weight: 700; color: var(--text-main); width: 100%; outline: none; font-family: inherit; border-bottom: 2px dashed transparent; transition: border-bottom 0.2s; padding: 0; -webkit-appearance: none; border-radius: 0; }
         .ghost-input:focus { border-bottom: 2px dashed var(--border-color); }
+        .scratchpad-area { width: 100%; height: 100px; border: none; resize: none; background: transparent; color: var(--text-main); font-family: inherit; outline: none; font-size: 0.95rem; line-height: 1.5; }
 
         /* ---------- Login / Auth screen ---------- */
         #auth-screen {
@@ -205,7 +205,7 @@
             <h1>Financial Dashboard</h1>
             <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase)</p>
             <button onclick="performHardReset()" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
-                Hard Reset (Wipe All Data)
+                Hard Reset (Wipe Session Data)
             </button>
         </div>
         <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
@@ -222,6 +222,7 @@
     </div>
 
     <div class="dashboard-grid">
+        <!-- Column 1: Expenses & Scratchpad -->
         <div>
             <div class="card">
                 <div class="card-header header-blue">Out of Pocket Expenses</div>
@@ -248,8 +249,16 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card">
+                <div class="card-header header-purple">Pending / Uncleared Scratchpad</div>
+                <div class="card-body" style="padding: 1.5rem;">
+                    <textarea id="scratchpad-input" class="scratchpad-area" onchange="persistScratchpad()" placeholder="Example: Target - $45 (Waiting to clear)&#10;Gas - $30 (Pending)"></textarea>
+                </div>
+            </div>
         </div>
 
+        <!-- Column 2: Revenue, Splits, Chart, Goals -->
         <div style="display: flex; flex-direction: column;">
             <div class="card">
                 <div class="summary-card">
@@ -261,10 +270,65 @@
                 </div>
             </div>
 
-            <div class="card">
+            <!-- Updated Actual Total Revenue Widget -->
+            <div class="card" style="position: relative;">
                 <div class="summary-card">
                     <span class="summary-title">Actual Total Revenue</span>
                     <span class="summary-value" id="actual-revenue">$0.00</span>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 0.25rem;">
+                        <div style="display: flex; align-items: baseline; font-size: 0.75rem; color: #f87171;">
+                            <span>Gas: $</span>
+                            <input type="number" id="est-gas" class="ghost-input" style="font-size: 0.85rem; width: 45px; color: #f87171; border-bottom: 1px dashed rgba(248,113,113,0.5); margin-left: 2px;" value="0" oninput="calculateRevenue()" onchange="persistEstExpenses()">
+                        </div>
+                        <div style="display: flex; align-items: baseline; font-size: 0.75rem; color: #f87171;">
+                            <span>Groc: $</span>
+                            <input type="number" id="est-groceries" class="ghost-input" style="font-size: 0.85rem; width: 45px; color: #f87171; border-bottom: 1px dashed rgba(248,113,113,0.5); margin-left: 2px;" value="0" oninput="calculateRevenue()" onchange="persistEstExpenses()">
+                        </div>
+                    </div>
+                    
+                    <div id="true-net-revenue" style="position: absolute; bottom: 8px; right: 12px; font-size: 8pt; color: #f87171; font-weight: 700;">$0.00</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="summary-card" style="padding: 1rem 1.5rem;">
+                    <span class="summary-title" style="font-size: 0.75rem;">Safe to Spend Split (50/30/20)</span>
+                    <div style="display: flex; justify-content: space-between; margin-top: 0.25rem;">
+                        <div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Savings</div>
+                            <div id="split-savings" style="font-weight: 700; color: var(--success-green); font-size: 1.1rem;">$0.00</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Fun</div>
+                            <div id="split-fun" style="font-weight: 700; color: var(--primary-blue); font-size: 1.1rem;">$0.00</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Invest</div>
+                            <div id="split-invest" style="font-weight: 700; color: var(--text-main); font-size: 1.1rem;">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="summary-card">
+                    <span class="summary-title">
+                        <input type="text" id="goal-name" class="ghost-input" style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;" placeholder="SINKING FUND / GOAL NAME..." onchange="persistGoal()">
+                    </span>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.5rem;">
+                        <div style="display: flex; align-items: baseline;">
+                            <span style="color: var(--text-muted); font-size: 1rem; margin-right: 2px;">$</span>
+                            <input type="number" id="goal-current" class="ghost-input" style="font-size: 1.5rem; width: 100px;" value="0" oninput="updateGoalUI()" onchange="persistGoal()">
+                        </div>
+                        <div style="display: flex; align-items: baseline; color: var(--text-muted);">
+                            <span style="font-size: 0.85rem; margin-right: 4px;">of $</span>
+                            <input type="number" id="goal-target" class="ghost-input" style="font-size: 1rem; width: 80px; color: var(--text-muted);" value="0" oninput="updateGoalUI()" onchange="persistGoal()">
+                        </div>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; margin-top: 0.5rem; overflow: hidden;">
+                        <div id="goal-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--grad-blue), var(--grad-teal)); transition: width 0.3s ease;"></div>
+                    </div>
                 </div>
             </div>
 
@@ -276,6 +340,7 @@
             </div>
         </div>
 
+        <!-- Column 3: Fill Ups, Recon, Grocery Budget, and Ledger Session -->
         <div style="display: flex; flex-direction: column;">
             <div class="card">
                 <div class="card-header header-green">Fill Ups</div>
@@ -288,6 +353,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="card">
                 <div class="card-header header-blue">Bank Reconciliation</div>
                 <div class="card-body">
@@ -298,6 +364,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="card">
                 <div class="card-header header-purple">Grocery Budget</div>
                 <div class="card-body">
@@ -305,6 +372,20 @@
                         <table>
                             <tbody id="grocery-budget-body"></tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="summary-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="summary-title">Ledger Session</span>
+                        <span id="burn-rate-badge" class="badge" style="background: var(--header-blue); color: var(--primary-blue); font-size: 0.7rem;">Burn: --/day</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                        <input type="date" id="session-start" class="inline-input" onchange="persistDates()">
+                        <span style="color: var(--text-muted); font-weight: bold;">to</span>
+                        <input type="date" id="session-end" class="inline-input" onchange="persistDates()">
                     </div>
                 </div>
             </div>
@@ -343,7 +424,22 @@
         let unsubSettings = null;
 
         let liveData = { Out_Of_Pocket: [], Bank_Initiated: [], Fill_Ups: [], Bank_Reconciliation: [], Grocery_Budget: [] };
-        let settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500 };
+        
+        // Expanded settings object
+        let settings = { 
+            spendableIncome: 0, 
+            bankReconStart: 2500, 
+            groceryStart: 500, 
+            sessionStart: '', 
+            sessionEnd: '',
+            scratchpadText: '',
+            goalName: '',
+            goalTarget: 0,
+            goalCurrent: 0,
+            estGas: 0,
+            estGroceries: 0
+        };
+        
         const expenseTotals = { Out_Of_Pocket: 0, Bank_Initiated: 0 };
         const reconBalances = { Bank_Reconciliation: { start: 0, expenses: 0 }, Grocery_Budget: { start: 0, expenses: 0 } };
         let revenueChartInstance = null;
@@ -428,17 +524,120 @@
 
         window.calculateRevenue = () => {
             const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
-            const actualRevenue = spendable - (expenseTotals.Out_Of_Pocket + expenseTotals.Bank_Initiated);
+            const totalExpenses = (expenseTotals.Out_Of_Pocket || 0) + (expenseTotals.Bank_Initiated || 0);
+            const actualRevenue = spendable - totalExpenses;
+            
             const display = document.getElementById('actual-revenue');
             display.innerText = formatMoney(actualRevenue);
             display.style.color = (actualRevenue < 0) ? 'var(--danger-red)' : 'var(--text-main)';
+            
+            // Calculate True Net Revenue (subtracting Gas and Groceries)
+            const estGas = parseFloat(document.getElementById('est-gas').value) || 0;
+            const estGroceries = parseFloat(document.getElementById('est-groceries').value) || 0;
+            const trueNet = actualRevenue - (estGas + estGroceries);
+            
+            document.getElementById('true-net-revenue').innerText = formatMoney(trueNet);
+
             updateChart();
+            updateSafeToSpend(spendable); 
+        };
+
+        window.updateSafeToSpend = (remaining) => {
+            if (remaining <= 0) {
+                document.getElementById('split-savings').innerText = '$0.00';
+                document.getElementById('split-fun').innerText = '$0.00';
+                document.getElementById('split-invest').innerText = '$0.00';
+                return;
+            }
+            document.getElementById('split-savings').innerText = formatMoney(remaining * 0.50);
+            document.getElementById('split-fun').innerText = formatMoney(remaining * 0.30);
+            document.getElementById('split-invest').innerText = formatMoney(remaining * 0.20);
+        };
+
+        window.calculateBurnRate = () => {
+            const start = document.getElementById('session-start').value;
+            const end = document.getElementById('session-end').value;
+            const badge = document.getElementById('burn-rate-badge');
+
+            if (!start || !end) {
+                badge.innerText = "Burn: --/day";
+                return;
+            }
+
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            
+            startDate.setHours(0,0,0,0);
+            endDate.setHours(0,0,0,0);
+
+            const diffTime = Math.abs(endDate - startDate);
+            let totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (totalDays === 0) totalDays = 1; 
+
+            const totalExpenses = (expenseTotals.Out_Of_Pocket || 0) + (expenseTotals.Bank_Initiated || 0);
+            const burnRate = totalExpenses / totalDays;
+
+            badge.innerText = `Burn: ${formatMoney(burnRate)}/day`;
+        };
+
+        window.updateGoalUI = () => {
+            const current = parseFloat(document.getElementById('goal-current').value) || 0;
+            const target = parseFloat(document.getElementById('goal-target').value) || 0;
+            const bar = document.getElementById('goal-progress-bar');
+            
+            if (target <= 0) {
+                bar.style.width = '0%';
+            } else {
+                let percentage = (current / target) * 100;
+                if (percentage > 100) percentage = 100;
+                bar.style.width = `${percentage}%`;
+                
+                if (percentage === 100) {
+                    bar.style.background = 'var(--success-green)';
+                } else {
+                    bar.style.background = 'linear-gradient(90deg, var(--grad-blue), var(--grad-teal))';
+                }
+            }
         };
 
         window.persistSpendableIncome = async () => {
             const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
             try { await setDoc(settingsRef, { spendableIncome: spendable }, { merge: true }); }
             catch (err) { console.error("Couldn't save income:", err); }
+        };
+
+        window.persistDates = async () => {
+            const start = document.getElementById('session-start').value;
+            const end = document.getElementById('session-end').value;
+            try { 
+                await setDoc(settingsRef, { sessionStart: start, sessionEnd: end }, { merge: true }); 
+                calculateBurnRate();
+            }
+            catch (err) { console.error("Couldn't save session dates:", err); }
+        };
+
+        window.persistScratchpad = async () => {
+            const text = document.getElementById('scratchpad-input').value;
+            try { await setDoc(settingsRef, { scratchpadText: text }, { merge: true }); }
+            catch (err) { console.error("Couldn't save scratchpad:", err); }
+        };
+
+        window.persistGoal = async () => {
+            const name = document.getElementById('goal-name').value;
+            const target = parseFloat(document.getElementById('goal-target').value) || 0;
+            const current = parseFloat(document.getElementById('goal-current').value) || 0;
+            try { 
+                await setDoc(settingsRef, { goalName: name, goalTarget: target, goalCurrent: current }, { merge: true }); 
+            }
+            catch (err) { console.error("Couldn't save goal:", err); }
+        };
+        
+        window.persistEstExpenses = async () => {
+            const estGas = parseFloat(document.getElementById('est-gas').value) || 0;
+            const estGroceries = parseFloat(document.getElementById('est-groceries').value) || 0;
+            try { await setDoc(settingsRef, { estGas, estGroceries }, { merge: true }); }
+            catch (err) { console.error("Couldn't save est expenses:", err); }
         };
 
         const formatMoney = (amount) => {
@@ -524,8 +723,8 @@
         };
 
         window.performHardReset = async () => {
-            if (!confirm("⚠️ DANGER: This will delete ALL data. Are you absolutely sure?")) return;
-            if (!confirm("FINAL WARNING: This cannot be undone. Click OK to wipe everything.")) return;
+            if (!confirm("⚠️ DANGER: This will delete session data. Are you sure?")) return;
+            if (!confirm("FINAL WARNING: This cannot be undone. Click OK to wipe session.")) return;
             try {
                 const snap = await getDocs(entriesCol);
                 const batches = [];
@@ -542,11 +741,22 @@
                     }
                 });
 
-                currentBatch.set(settingsRef, { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500 });
+                // Uses merge: true so we DONT overwrite the Sinking Fund goal
+                currentBatch.set(settingsRef, { 
+                    spendableIncome: 0, 
+                    bankReconStart: 2500, 
+                    groceryStart: 500,
+                    sessionStart: '',
+                    sessionEnd: '',
+                    scratchpadText: '',
+                    estGas: 0,
+                    estGroceries: 0
+                }, { merge: true });
+                
                 batches.push(currentBatch.commit());
                 await Promise.all(batches);
 
-                alert("Data reset successfully.");
+                alert("Session data reset successfully. Your sinking fund was preserved.");
             } catch (error) {
                 alert("Failed to reset.");
                 console.error(error);
@@ -631,7 +841,9 @@
             renderFillUps(liveData.Fill_Ups);
             renderReconciliation(liveData.Bank_Reconciliation, 'bank-recon-body', 'Bank_Reconciliation');
             renderReconciliation(liveData.Grocery_Budget, 'grocery-budget-body', 'Grocery_Budget');
+            
             window.calculateRevenue();
+            window.calculateBurnRate();
         }
 
         window.signInWithGoogle = async () => {
@@ -671,9 +883,38 @@
             }, (err) => console.error("Entries listener error:", err));
 
             unsubSettings = onSnapshot(settingsRef, (snap) => {
-                settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500 };
+                settings = { 
+                    spendableIncome: 0, 
+                    bankReconStart: 2500, 
+                    groceryStart: 500, 
+                    sessionStart: '', 
+                    sessionEnd: '',
+                    scratchpadText: '',
+                    goalName: '',
+                    goalTarget: 0,
+                    goalCurrent: 0,
+                    estGas: 0,
+                    estGroceries: 0
+                };
+                
                 if (snap.exists()) settings = { ...settings, ...snap.data() };
+                
                 document.getElementById('spendable-income').value = settings.spendableIncome;
+                document.getElementById('session-start').value = settings.sessionStart || '';
+                document.getElementById('session-end').value = settings.sessionEnd || '';
+                
+                if (document.activeElement.id !== 'scratchpad-input') {
+                    document.getElementById('scratchpad-input').value = settings.scratchpadText || '';
+                }
+                
+                document.getElementById('goal-name').value = settings.goalName || '';
+                document.getElementById('goal-target').value = settings.goalTarget || 0;
+                document.getElementById('goal-current').value = settings.goalCurrent || 0;
+                
+                document.getElementById('est-gas').value = settings.estGas || 0;
+                document.getElementById('est-groceries').value = settings.estGroceries || 0;
+                
+                updateGoalUI();
                 renderAll();
             }, (err) => console.error("Settings listener error:", err));
         };
