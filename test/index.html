@@ -684,7 +684,7 @@
             }
         };
 
-        /* --- 6. DEBOUNCED DATABASE WRITES --- */
+        /* --- 6. DATABASE WRITES --- */
         const persistSpendableIncome = debounce(async () => {
             try { await setDoc(settingsRef, { spendableIncome: parseFloat(DOM.spendableIncome.value) || 0 }, { merge: true }); } catch (err) { console.error(err); }
         }, 500);
@@ -705,21 +705,21 @@
             try { await setDoc(settingsRef, { goalName: DOM.goalName.value, goalTarget: parseFloat(DOM.goalTarget.value) || 0, goalCurrent: parseFloat(DOM.goalCurrent.value) || 0 }, { merge: true }); } catch (err) { console.error(err); }
         }, 500);
 
-        const persistStartingBalance = debounce(async (tbodyId, tabName, value) => {
+        // Removed debounce to prevent race condition when rapidly changing multiple recon inputs
+        const persistStartingBalance = async (tbodyId, tabName, value) => {
             const field = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
             const num = parseFloat(value);
             
-            // Infinity/Range Protection
             if (isNaN(num) || !isFinite(num) || num < 0 || num > 9999999) {
                 alert("Please enter a valid positive starting balance.");
                 const startInput = document.getElementById(`start-input-${tbodyId}`);
                 if (startInput) startInput.value = settings[field] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500);
-                recalcRecon(tbodyId, tabName); // Re-render locally using reverted value
+                recalcRecon(tbodyId, tabName); 
                 return;
             }
 
             try { await setDoc(settingsRef, { [field]: num }, { merge: true }); } catch (err) { console.error(err); }
-        }, 500);
+        };
 
         const handleSave = async (tbodyId, tabName, isRecon, isFillUp) => {
             const nameInput = document.getElementById(`input-name-${tbodyId}`);
@@ -747,7 +747,7 @@
                     amount: isFillUp ? 0 : amount,
                     status: isRecon ? '' : status,
                     createdAt: serverTimestamp(),
-                    localTime: Date.now() // Solves "Jumping Row" by giving client immediate sort key
+                    localTime: Date.now() 
                 });
             } catch (err) {
                 alert("Couldn't save — check your connection.");
@@ -786,7 +786,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             initDOM();
 
-            // Static Buttons
             DOM.btnGoogleSignin.addEventListener('click', async () => {
                 const errorEl = document.getElementById('auth-error');
                 errorEl.style.display = 'none';
@@ -796,7 +795,6 @@
             DOM.btnSavePdf.addEventListener('click', () => window.print());
             DOM.btnHardReset.addEventListener('click', performHardReset);
 
-            // Static Inputs (Debounced)
             DOM.spendableIncome.addEventListener('input', () => { calculateRevenue(); persistSpendableIncome(); });
             DOM.estGas.addEventListener('input', () => { calculateRevenue(); persistEstExpenses(); });
             DOM.estGroceries.addEventListener('input', () => { calculateRevenue(); persistEstExpenses(); });
@@ -807,7 +805,6 @@
             DOM.sessionEnd.addEventListener('change', persistDates);
             DOM.scratchpadInput.addEventListener('input', persistScratchpad);
 
-            // Table Delegation (Clicks)
             DOM.dashboardGrid.addEventListener('click', async (e) => {
                 if (e.target.classList.contains('delete-btn')) {
                     const id = e.target.getAttribute('data-id');
@@ -829,7 +826,6 @@
                 }
             });
 
-            // Table Delegation (Dynamic Inputs)
             DOM.dashboardGrid.addEventListener('input', (e) => {
                 if (e.target.classList.contains('recon-start-input')) recalcRecon(e.target.getAttribute('data-tbody'), e.target.getAttribute('data-tab'));
             });
@@ -850,7 +846,6 @@
                     if (liveData[row.category]) liveData[row.category].push(row);
                 });
                 
-                // Client-side sort to fix the "jumping row" issue for pending writes
                 for (const key in liveData) {
                     liveData[key].sort((a, b) => {
                         const timeA = a.createdAt?.toMillis() ?? a.localTime ?? 0;
@@ -867,7 +862,6 @@
                 settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500, sessionStart: '', sessionEnd: '', scratchpadText: '', goalName: '', goalTarget: 0, goalCurrent: 0, estGas: 0, estGroceries: 0 };
                 if (snap.exists()) settings = { ...settings, ...snap.data() };
                 
-                // Only override inputs if the user isn't actively typing in them (prevents cursor jumping)
                 if (document.activeElement !== DOM.spendableIncome) DOM.spendableIncome.value = settings.spendableIncome;
                 if (document.activeElement !== DOM.sessionStart) DOM.sessionStart.value = settings.sessionStart || '';
                 if (document.activeElement !== DOM.sessionEnd) DOM.sessionEnd.value = settings.sessionEnd || '';
@@ -896,12 +890,10 @@
                 for (const key in liveData) liveData[key] = [];
                 attachListeners(user.uid);
                 
-                // Load check with 10-second timeout
                 let attempts = 0;
                 const checkLoad = setInterval(() => {
                     attempts++;
                     
-                    // Failsafe: if snapshot throws permission error
                     if (entriesLoaded === 'error' || settingsLoaded === 'error') {
                         clearInterval(checkLoad);
                         DOM.loadingSpinner.style.display = 'none';
@@ -909,13 +901,11 @@
                         return;
                     }
                     
-                    // Success
                     if (entriesLoaded === true && settingsLoaded === true) {
                         clearInterval(checkLoad);
                         DOM.loadingScreen.style.display = 'none';
                         DOM.appContent.style.display = 'block';
                     } 
-                    // Timeout
                     else if (attempts >= 100) { 
                         clearInterval(checkLoad);
                         DOM.loadingSpinner.style.display = 'none';
