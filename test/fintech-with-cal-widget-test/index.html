@@ -841,21 +841,15 @@
                         const eventDateStr = ev.start.dateTime || ev.start.date;
                         const formattedDate = new Date(eventDateStr).toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
                         
-                        // Extract numbers from the event title to format as currency
+                        // Keep the exact title as written in Google Calendar
                         const title = escapeHTML(ev.summary);
-                        const amountMatch = title.match(/\d+(?:\.\d{2})?/); 
-                        const amountHtml = amountMatch 
-                            ? `<span class="amount-cell amount-red">-$${parseFloat(amountMatch[0]).toFixed(2)}</span>` 
-                            : '';
-                        const cleanTitle = title.replace(/\d+(?:\.\d{2})?/, '').replace('$', '').trim();
         
                         return `
                             <li style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px dashed var(--border-color);">
                                 <div style="display: flex; gap: 0.75rem;">
                                     <span style="color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${formattedDate}</span> 
-                                    <strong>${cleanTitle}</strong>
+                                    <strong>${title}</strong>
                                 </div>
-                                ${amountHtml}
                             </li>
                         `;
                     }).join('');
