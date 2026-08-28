@@ -817,11 +817,14 @@
         const fetchCalendarEvents = async (accessToken) => {
             DOM.btnConnectCalendar.innerText = "Fetching bills...";
             
+            // Your specific Bill Calendar ID
+            const BILL_CALENDAR_ID = 'e43ef37ba48060420e803f9ae2ab0aa2d6b975990fb67930cac350c4b6c41d9b@group.calendar.google.com';
+            
             try {
                 const timeMin = new Date().toISOString();
                 
-                // Fetch upcoming 5 events from primary calendar, expanding recurring ones
-                const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=5`, {
+                // Fetch upcoming 5 events from your specific bill calendar
+                const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(BILL_CALENDAR_ID)}/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=5`, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 
