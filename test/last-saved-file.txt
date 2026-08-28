@@ -9,9 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
-            /* Light Mode Variables (Default) */
             --bg-color: #f4f7f9;
             --card-bg: #ffffff;
             --text-main: #333333;
@@ -34,7 +34,6 @@
             --row-alt: #f9fafb;
         }
 
-        /* ---------- Dark Mode Overrides ---------- */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg-color: #0f172a;
@@ -77,7 +76,6 @@
         
         .card-body { padding: 0; }
         
-        /* Mobile Table Optimization */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; text-align: left; min-width: 320px; }
         th, td { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color); }
@@ -100,7 +98,7 @@
         .save-btn { background: var(--success-green); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         .save-btn:hover { background: #059669; }
 
-        .action-cell { display: flex; justify-content: space-between; align-items: center; }
+        .action-cell { vertical-align: middle; }
         .delete-btn { color: #d1d5db; font-size: 1.2rem; cursor: pointer; padding-left: 0.75rem; transition: color 0.2s; font-weight: bold; line-height: 1; }
         .delete-btn:hover { color: var(--danger-red); }
 
@@ -108,11 +106,10 @@
         .summary-title { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
         .summary-value { font-size: 2rem; font-weight: 700; }
         
-        /* Ghost-input to prevent iOS styling */
         .ghost-input { border: none; background: transparent; font-size: 2rem; font-weight: 700; color: var(--text-main); width: 100%; outline: none; font-family: inherit; border-bottom: 2px dashed transparent; transition: border-bottom 0.2s; padding: 0; -webkit-appearance: none; border-radius: 0; }
         .ghost-input:focus { border-bottom: 2px dashed var(--border-color); }
+        .scratchpad-area { width: 100%; height: 100px; border: none; resize: none; background: transparent; color: var(--text-main); font-family: inherit; outline: none; font-size: 0.95rem; line-height: 1.5; }
 
-        /* ---------- Login / Auth screen ---------- */
         #auth-screen {
             position: relative; min-height: 100vh; margin: -2rem; padding: 2rem;
             background: linear-gradient(135deg, var(--grad-violet) 0%, var(--grad-blue) 50%, var(--grad-teal) 100%);
@@ -147,24 +144,25 @@
         .google-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
         .login-error { color: #fecaca; font-size: 0.85rem; margin-top: 0.9rem; min-height: 1.2em; }
 
-        /* ---------- Mobile Optimizations ---------- */
+        #loading-screen { text-align: center; margin-top: 5rem; font-family: 'Space Grotesk', sans-serif; color: var(--text-muted); }
+        .spinner { border: 4px solid rgba(0,0,0,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--primary-blue); animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         @media (max-width: 768px) { 
             body { padding: 1rem; } 
             #auth-screen { margin: -1rem; padding: 1rem; } 
             .dashboard-grid { grid-template-columns: 1fr; }
             th, td { padding: 0.75rem 0.75rem; } 
-            
             .dashboard-header { flex-direction: column !important; align-items: stretch !important; gap: 1rem; }
             .header-actions { flex-direction: column; align-items: flex-start !important; width: 100%; }
             .header-button-group { display: flex; width: 100%; gap: 0.5rem; }
             .header-button-group button { flex-grow: 1; justify-content: center; }
         }
         
-        /* ---------- Print / PDF Optimization ---------- */
         @media print {
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             body { background-color: #ffffff; padding: 0; }
-            button, .add-row-btn, .delete-btn, #auth-screen { display: none !important; }
+            button, .add-row-btn, .delete-btn, #auth-screen, #loading-screen { display: none !important; }
             tr[id^="inline-form-"] { display: none !important; }
             .dashboard-header { margin-bottom: 1rem; }
             .dashboard-header p { display: none; }
@@ -178,6 +176,7 @@
 </head>
 <body>
 
+    <!-- Auth Screen -->
     <div id="auth-screen" style="display: flex; align-items: center; justify-content: center;">
         <div class="login-card">
             <div class="login-logo">
@@ -185,7 +184,7 @@
             </div>
             <p class="login-tagline">Personal. Finance. Reimagined.</p>
             <div class="login-status"><span class="status-dot"></span> SECURE&nbsp;CONNECTION&nbsp;&middot;&nbsp;FIRESTORE</div>
-            <button class="google-btn" onclick="signInWithGoogle()">
+            <button class="google-btn" id="btn-google-signin">
                 <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
                     <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.89 2.69-6.64z"/>
                     <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.92-2.27c-.81.54-1.84.87-3.04.87-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/>
@@ -198,148 +197,311 @@
         </div>
     </div>
 
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: none;">
+        <div class="spinner" id="loading-spinner"></div>
+        <p id="loading-text">Loading your data...</p>
+    </div>
+
+    <!-- Main Dashboard -->
     <div id="app-content" style="display: none;">
-
-    <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-            <h1>Financial Dashboard</h1>
-            <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase)</p>
-            <button onclick="performHardReset()" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
-                Hard Reset (Wipe All Data)
-            </button>
-        </div>
-        <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
-            <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
-            <div class="header-button-group" style="display: flex; gap: 0.5rem;">
-                <button onclick="window.print()" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">
-                    Save PDF
-                </button>
-                <button onclick="signOutUser()" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">
-                    Sign Out
+        <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1>Financial Dashboard</h1>
+                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase)</p>
+                <button id="btn-hard-reset" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
+                    Hard Reset (Wipe Session Data)
                 </button>
             </div>
+            <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
+                <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+                <div class="header-button-group" style="display: flex; gap: 0.5rem;">
+                    <button id="btn-save-pdf" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Save PDF</button>
+                    <button id="btn-sign-out" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Sign Out</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid" id="dashboard-grid">
+            <!-- Column 1: Expenses & Scratchpad -->
+            <div>
+                <div class="card">
+                    <div class="card-header header-blue">Out of Pocket Expenses</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
+                                <tbody id="out-of-pocket-body"></tbody>
+                                <tr class="total-row"><td colspan="3">Total: <span id="out-of-pocket-total">$0.00</span></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-red">Bank Initiated Expenses</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
+                                <tbody id="bank-initiated-body"></tbody>
+                                <tr class="total-row"><td colspan="3">Total: <span id="bank-initiated-total">$0.00</span></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-purple">Pending / Uncleared Scratchpad</div>
+                    <div class="card-body" style="padding: 1.5rem;">
+                        <textarea id="scratchpad-input" class="scratchpad-area" placeholder="Example: Target - $45 (Waiting to clear)&#10;Gas - $30 (Pending)"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Revenue, Splits, Chart, Goals -->
+            <div style="display: flex; flex-direction: column;">
+                <div class="card">
+                    <div class="summary-card">
+                        <span class="summary-title">Total Spendable Income</span>
+                        <div style="display: flex; align-items: baseline; font-size: 2rem; font-weight: 700;">
+                            <span style="color: var(--text-muted); margin-right: 4px;">$</span>
+                            <input type="number" id="spendable-income" class="ghost-input" value="0" step="0.01" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="position: relative;">
+                    <div class="summary-card">
+                        <span class="summary-title">Actual Total Revenue</span>
+                        <span class="summary-value" id="actual-revenue">$0.00</span>
+                        
+                        <div style="display: flex; gap: 1rem; margin-top: 0.25rem;">
+                            <div style="display: flex; align-items: baseline; font-size: 0.75rem; color: #f87171;">
+                                <span>Gas: $</span>
+                                <input type="number" id="est-gas" class="ghost-input" style="font-size: 0.85rem; width: 45px; color: #f87171; border-bottom: 1px dashed rgba(248,113,113,0.5); margin-left: 2px;" value="0" min="0">
+                            </div>
+                            <div style="display: flex; align-items: baseline; font-size: 0.75rem; color: #f87171;">
+                                <span>Groc: $</span>
+                                <input type="number" id="est-groceries" class="ghost-input" style="font-size: 0.85rem; width: 45px; color: #f87171; border-bottom: 1px dashed rgba(248,113,113,0.5); margin-left: 2px;" value="0" min="0">
+                            </div>
+                        </div>
+                        <div id="true-net-revenue" style="position: absolute; bottom: 8px; right: 12px; font-size: 8pt; color: #f87171; font-weight: 700;">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="summary-card" style="padding: 1rem 1.5rem;">
+                        <span class="summary-title" style="font-size: 0.75rem;">Safe to Spend Split (50/30/20)</span>
+                        <div style="display: flex; justify-content: space-between; margin-top: 0.25rem;">
+                            <div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Savings</div>
+                                <div id="split-savings" style="font-weight: 700; color: var(--success-green); font-size: 1.1rem;">$0.00</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Fun</div>
+                                <div id="split-fun" style="font-weight: 700; color: var(--primary-blue); font-size: 1.1rem;">$0.00</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Invest</div>
+                                <div id="split-invest" style="font-weight: 700; color: var(--text-main); font-size: 1.1rem;">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="summary-card">
+                        <span class="summary-title">
+                            <input type="text" id="goal-name" class="ghost-input" style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;" placeholder="SINKING FUND / GOAL NAME...">
+                        </span>
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.5rem;">
+                            <div style="display: flex; align-items: baseline;">
+                                <span style="color: var(--text-muted); font-size: 1rem; margin-right: 2px;">$</span>
+                                <input type="number" id="goal-current" class="ghost-input" style="font-size: 1.5rem; width: 100px;" value="0" min="0">
+                            </div>
+                            <div style="display: flex; align-items: baseline; color: var(--text-muted);">
+                                <span style="font-size: 0.85rem; margin-right: 4px;">of $</span>
+                                <input type="number" id="goal-target" class="ghost-input" style="font-size: 1rem; width: 80px; color: var(--text-muted);" value="0" min="0">
+                            </div>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; margin-top: 0.5rem; overflow: hidden;">
+                            <div id="goal-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--grad-blue), var(--grad-teal)); transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-blue">Revenue vs. Expenses</div>
+                    <div class="card-body" style="padding: 1.5rem; height: 320px; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3: Fill Ups, Recon, Grocery Budget, and Ledger Session -->
+            <div style="display: flex; flex-direction: column;">
+                <div class="card">
+                    <div class="card-header header-green">Fill Ups</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Name</th><th>Status</th></tr></thead>
+                                <tbody id="fill-ups-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-blue">Bank Reconciliation</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table>
+                                <tbody id="bank-recon-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-purple">Grocery Budget</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table>
+                                <tbody id="grocery-budget-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="summary-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="summary-title">Ledger Session</span>
+                            <span id="burn-rate-badge" class="badge" style="background: var(--header-blue); color: var(--primary-blue); font-size: 0.7rem;">Burn: --/day</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                            <input type="date" id="session-start" class="inline-input">
+                            <span style="color: var(--text-muted); font-weight: bold;">to</span>
+                            <input type="date" id="session-end" class="inline-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="calendar-widget">
+                    <div class="summary-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="summary-title">Upcoming Bills (G-Cal)</span>
+                            <span id="cal-sync-badge" class="badge" style="background: var(--header-purple); color: #6d28d9; font-size: 0.7rem; cursor: pointer; transition: all 0.2s;">Connect</span>
+                        </div>
+                        
+                        <!-- Unconnected State -->
+                        <div id="cal-unconnected-state" style="margin-top: 1rem; text-align: center; padding-bottom: 0.5rem;">
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">Sync your Google Calendar to automatically pull upcoming payment dates.</p>
+                            <button id="btn-connect-calendar" class="save-btn" style="background: var(--primary-blue); font-size: 0.8rem; width: 100%;">Authorize Google Calendar</button>
+                        </div>
+
+                        <!-- Connected State (Mock Data) -->
+                        <div id="cal-connected-state" style="display: none; margin-top: 0.75rem;">
+                            <ul style="list-style: none; padding: 0; font-size: 0.85rem;">
+                                <!-- Dynamically injected via API -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="dashboard-grid">
-        <!-- Column 1: Expenses -->
-        <div>
-            <div class="card">
-                <div class="card-header header-blue">Out of Pocket Expenses</div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table>
-                            <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
-                            <tbody id="out-of-pocket-body"></tbody>
-                            <tr class="total-row"><td colspan="3">Total: <span id="out-of-pocket-total">$0.00</span></td></tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header header-red">Bank Initiated Expenses</div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table>
-                            <thead><tr><th>Amount</th><th>Name</th><th>Status</th></tr></thead>
-                            <tbody id="bank-initiated-body"></tbody>
-                            <tr class="total-row"><td colspan="3">Total: <span id="bank-initiated-total">$0.00</span></td></tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Column 2: Revenue & Chart -->
-        <div style="display: flex; flex-direction: column;">
-            <div class="card">
-                <div class="summary-card">
-                    <span class="summary-title">Total Spendable Income</span>
-                    <div style="display: flex; align-items: baseline; font-size: 2rem; font-weight: 700;">
-                        <span style="color: var(--text-muted); margin-right: 4px;">$</span>
-                        <input type="number" id="spendable-income" class="ghost-input" value="0" step="0.01" oninput="calculateRevenue()" onchange="persistSpendableIncome()">
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="summary-card">
-                    <span class="summary-title">Actual Total Revenue</span>
-                    <span class="summary-value" id="actual-revenue">$0.00</span>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header header-blue">Revenue vs. Expenses</div>
-                <div class="card-body" style="padding: 1.5rem; height: 320px; display: flex; justify-content: center; align-items: center;">
-                    <canvas id="revenueChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Column 3: Fill Ups, Recon, Grocery Budget, and Ledger Session -->
-        <div style="display: flex; flex-direction: column;">
-            <div class="card">
-                <div class="card-header header-green">Fill Ups</div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table>
-                            <thead><tr><th>Name</th><th>Status</th></tr></thead>
-                            <tbody id="fill-ups-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header header-blue">Bank Reconciliation</div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table>
-                            <tbody id="bank-recon-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header header-purple">Grocery Budget</div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table>
-                            <tbody id="grocery-budget-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ledger Session Date Range Card -->
-            <div class="card">
-                <div class="summary-card">
-                    <span class="summary-title">Ledger Session</span>
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
-                        <input type="date" id="session-start" class="inline-input" onchange="persistDates()">
-                        <span style="color: var(--text-muted); font-weight: bold;">to</span>
-                        <input type="date" id="session-end" class="inline-input" onchange="persistDates()">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    </div>
-
+    <!-- Application Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-        import {
-            getFirestore, collection, doc, addDoc, deleteDoc, setDoc,
-            onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy
-        } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-        import {
-            getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
+        /* --- 1. UTILITIES --- */
+        const debounce = (func, delay) => {
+            let timeoutId;
+            return (...args) => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => func(...args), delay);
+            };
+        };
+
+        const escapeHTML = (str) => {
+            if (!str) return '';
+            return str.toString().replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        };
+
+        const formatMoney = (amount) => {
+            const num = parseFloat(amount);
+            if (isNaN(num)) return '$0.00';
+            if (Math.abs(num) < 0.005) return '$0.00';
+            return (num < 0 ? '-' : '') + '$' + Math.abs(num).toFixed(2);
+        };
+
+        const getBadgeClass = (status) => {
+            if (!status) return '';
+            return (status.toString().toUpperCase() === 'PAID') ? 'badge-paid' : 'badge-unpaid';
+        };
+
+        /* --- 2. GLOBAL STATE & CACHE --- */
+        const DOM = {};
+        let entriesCol = null, settingsRef = null;
+        let unsubEntries = null, unsubSettings = null;
+        let entriesLoaded = false, settingsLoaded = false;
+        let revenueChartInstance = null;
+
+        const liveData = { Out_Of_Pocket: [], Bank_Initiated: [], Fill_Ups: [], Bank_Reconciliation: [], Grocery_Budget: [] };
+        const expenseTotals = { Out_Of_Pocket: 0, Bank_Initiated: 0 };
+        const reconBalances = { Bank_Reconciliation: { start: 0, expenses: 0 }, Grocery_Budget: { start: 0, expenses: 0 } };
+        
+        let settings = { 
+            spendableIncome: 0, bankReconStart: 2500, groceryStart: 500, 
+            sessionStart: '', sessionEnd: '', scratchpadText: '', 
+            goalName: '', goalTarget: 0, goalCurrent: 0, estGas: 0, estGroceries: 0 
+        };
+
+        const initDOM = () => {
+            Object.assign(DOM, {
+                authScreen: document.getElementById('auth-screen'),
+                appContent: document.getElementById('app-content'),
+                loadingScreen: document.getElementById('loading-screen'),
+                loadingSpinner: document.getElementById('loading-spinner'),
+                loadingText: document.getElementById('loading-text'),
+                userEmail: document.getElementById('user-email'),
+                dashboardGrid: document.getElementById('dashboard-grid'),
+                spendableIncome: document.getElementById('spendable-income'),
+                actualRevenue: document.getElementById('actual-revenue'),
+                estGas: document.getElementById('est-gas'),
+                estGroceries: document.getElementById('est-groceries'),
+                trueNetRevenue: document.getElementById('true-net-revenue'),
+                splitSavings: document.getElementById('split-savings'),
+                splitFun: document.getElementById('split-fun'),
+                splitInvest: document.getElementById('split-invest'),
+                goalName: document.getElementById('goal-name'),
+                goalCurrent: document.getElementById('goal-current'),
+                goalTarget: document.getElementById('goal-target'),
+                goalProgressBar: document.getElementById('goal-progress-bar'),
+                scratchpadInput: document.getElementById('scratchpad-input'),
+                sessionStart: document.getElementById('session-start'),
+                sessionEnd: document.getElementById('session-end'),
+                burnRateBadge: document.getElementById('burn-rate-badge'),
+                btnGoogleSignin: document.getElementById('btn-google-signin'),
+                btnSignOut: document.getElementById('btn-sign-out'),
+                btnSavePdf: document.getElementById('btn-save-pdf'),
+                btnHardReset: document.getElementById('btn-hard-reset'),
+                btnConnectCalendar: document.getElementById('btn-connect-calendar'),
+                calUnconnectedState: document.getElementById('cal-unconnected-state'),
+                calConnectedState: document.getElementById('cal-connected-state'),
+                calSyncBadge: document.getElementById('cal-sync-badge')
+            });
+        };
+
+        /* --- 3. FIREBASE SETUP --- */
         const firebaseConfig = {
             apiKey: "AIzaSyCy-TtJUv-lqhNd_aiadEoiLSveYSTatVA",
             authDomain: "fintech-dashboard-ff65f.firebaseapp.com",
@@ -348,152 +510,262 @@
             messagingSenderId: "447875559759",
             appId: "1:447875559759:web:93cd3a61024ed62336953a"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        let entriesCol = null;
-        let settingsRef = null;
-        let unsubEntries = null;
-        let unsubSettings = null;
+        /* --- 4. RENDER ENGINE --- */
+        const buildStandardTable = (rows, tbodyId, totalId, tabName, hasAmount) => {
+            const tbody = document.getElementById(tbodyId);
+            let htmlString = '';
+            let total = 0;
 
-        let liveData = { Out_Of_Pocket: [], Bank_Initiated: [], Fill_Ups: [], Bank_Reconciliation: [], Grocery_Budget: [] };
-        let settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500, sessionStart: '', sessionEnd: '' };
-        const expenseTotals = { Out_Of_Pocket: 0, Bank_Initiated: 0 };
-        const reconBalances = { Bank_Reconciliation: { start: 0, expenses: 0 }, Grocery_Budget: { start: 0, expenses: 0 } };
-        let revenueChartInstance = null;
+            rows.forEach(item => {
+                if (!item.name) return;
+                total += (item.amount || 0);
+                htmlString += `<tr>`;
+                if (hasAmount) htmlString += `<td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td>`;
+                htmlString += `<td>${escapeHTML(item.name)}</td>`;
+                htmlString += `<td class="action-cell"${!hasAmount ? ' style="text-align: right;"' : ''}>
+                    <div style="display: flex; align-items: center; justify-content: ${!hasAmount ? 'flex-end' : 'space-between'}; width: 100%;">
+                        <span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> 
+                        <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span>
+                    </div>
+                </td></tr>`;
+            });
 
-        const escapeHTML = (str) => {
-            if (!str) return '';
-            return str.replace(/[&<>'"]/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-            }[tag]));
+            expenseTotals[tabName] = total;
+
+            htmlString += `<tr class="add-row-btn" data-tbody="${tbodyId}"><td colspan="${hasAmount ? 3 : 2}">+ Add New</td></tr>
+                <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">`;
+            
+            if (hasAmount) htmlString += `<td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01" min="0"></td>`;
+            
+            htmlString += `<td><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="${hasAmount ? 'Name' : 'Name (e.g. Fill Up 1)'}"></td>
+                <td><div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <select id="input-status-${tbodyId}" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select>
+                    <button class="save-btn" data-tbody="${tbodyId}" data-tab="${tabName}" ${!hasAmount ? 'data-fillup="true"' : ''}>Save</button>
+                </div></td></tr>`;
+
+            tbody.innerHTML = htmlString;
+            if (totalId) document.getElementById(totalId).innerText = formatMoney(total);
         };
 
-        const updateChart = () => {
-            const ctx = document.getElementById('revenueChart').getContext('2d');
+        const buildReconTable = (rows, tbodyId, tabName) => {
+            const tbody = document.getElementById(tbodyId);
+            let htmlString = '';
             
+            const startField = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
+            const savedStart = settings[startField] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500);
+
+            htmlString += `<tr class="highlight-row"><td style="font-weight: bold;"><div style="display: flex; align-items: baseline;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input recon-start-input" data-tbody="${tbodyId}" data-tab="${tabName}" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" min="0"></div></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
+
+            let expenseTotal = 0;
+            rows.forEach(item => {
+                if (!item.name) return;
+                const amount = parseFloat(item.amount) || 0;
+                expenseTotal += amount;
+                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right;"><div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span></div></td></tr>`;
+            });
+
+            reconBalances[tabName] = { start: parseFloat(savedStart), expenses: expenseTotal };
+            const currentBalance = parseFloat(savedStart) - expenseTotal;
+            const isReconciled = Math.abs(currentBalance) < 0.005;
+
+            htmlString += `<tr id="total-row-${tbodyId}" class="total-row"><td id="balance-amount-${tbodyId}" class="amount-cell ${currentBalance < -0.005 ? 'amount-red' : (isReconciled ? 'amount-green' : '')}">${formatMoney(currentBalance)}</td><td id="balance-status-${tbodyId}" style="text-align: right; font-size: 0.8rem; color: ${isReconciled ? 'var(--success-green)' : 'var(--danger-red)'};">${isReconciled ? 'RECONCILED' : 'NOT RECONCILED'}</td></tr>`;
+
+            htmlString += `<tr class="add-row-btn" data-tbody="${tbodyId}"><td colspan="2">+ Add New</td></tr>
+                <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
+                    <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01" min="0"></td>
+                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"><button class="save-btn" data-tbody="${tbodyId}" data-tab="${tabName}" data-recon="true">Save</button></div></td>
+                </tr>`;
+
+            tbody.innerHTML = htmlString;
+        };
+
+        const renderChart = () => {
             const outOfPocket = expenseTotals.Out_Of_Pocket || 0;
             const bankInitiated = expenseTotals.Bank_Initiated || 0;
             const totalExpenses = outOfPocket + bankInitiated;
             
-            const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
+            const spendable = parseFloat(DOM.spendableIncome.value) || 0;
             const remaining = Math.max(0, spendable - totalExpenses);
-            
             const cardBgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim() || '#ffffff';
-
-            const data = {
-                labels: ['Remaining Revenue', 'Out of Pocket', 'Bank Initiated'],
-                datasets: [{ 
-                    data: [remaining, outOfPocket, bankInitiated], 
-                    backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], 
-                    borderWidth: 2,
-                    borderColor: cardBgColor, 
-                    hoverOffset: 4,
-                    borderRadius: 4
-                }]
-            };
+            const dataArr = [remaining, outOfPocket, bankInitiated];
 
             if (revenueChartInstance) {
-                revenueChartInstance.data = data;
+                revenueChartInstance.data.datasets[0].data = dataArr;
+                revenueChartInstance.data.datasets[0].borderColor = cardBgColor;
                 revenueChartInstance.update('none'); 
             } else {
+                const ctx = document.getElementById('revenueChart').getContext('2d');
                 revenueChartInstance = new Chart(ctx, { 
                     type: 'doughnut', 
-                    data: data, 
+                    data: {
+                        labels: ['Remaining Revenue', 'Out of Pocket', 'Bank Initiated'],
+                        datasets: [{ data: dataArr, backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 2, borderColor: cardBgColor, hoverOffset: 4, borderRadius: 4 }]
+                    },
                     options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        cutout: '75%', 
+                        responsive: true, maintainAspectRatio: false, cutout: '75%', 
                         plugins: { 
-                            legend: { 
-                                position: 'bottom',
-                                labels: {
-                                    usePointStyle: true, 
-                                    padding: 20,
-                                    font: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                titleFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
-                                bodyFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
-                                padding: 12,
-                                cornerRadius: 8,
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.label || '';
-                                        if (label) { label += ': '; }
-                                        if (context.parsed !== null) {
-                                            label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed);
-                                        }
-                                        return label;
-                                    }
-                                }
-                            }
-                        },
-                        animation: {
-                            animateScale: false,
-                            animateRotate: true
-                        }
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" } } },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }, bodyFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }, padding: 12, cornerRadius: 8, callbacks: { label: function(context) { let label = context.label || ''; if (label) { label += ': '; } if (context.parsed !== null) { label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed); } return label; } } }
+                        }, animation: { animateScale: false, animateRotate: true }
                     } 
                 });
             }
         };
 
-        window.calculateRevenue = () => {
-            const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
-            const actualRevenue = spendable - (expenseTotals.Out_Of_Pocket + expenseTotals.Bank_Initiated);
-            const display = document.getElementById('actual-revenue');
-            display.innerText = formatMoney(actualRevenue);
-            display.style.color = (actualRevenue < 0) ? 'var(--danger-red)' : 'var(--text-main)';
-            updateChart();
+        const renderAll = () => {
+            if (entriesLoaded !== true || settingsLoaded !== true) return; // Wait for both streams
+            try {
+                buildStandardTable(liveData.Out_Of_Pocket, 'out-of-pocket-body', 'out-of-pocket-total', 'Out_Of_Pocket', true);
+                buildStandardTable(liveData.Bank_Initiated, 'bank-initiated-body', 'bank-initiated-total', 'Bank_Initiated', true);
+                buildStandardTable(liveData.Fill_Ups, 'fill-ups-body', null, 'Fill_Ups', false);
+                buildReconTable(liveData.Bank_Reconciliation, 'bank-recon-body', 'Bank_Reconciliation');
+                buildReconTable(liveData.Grocery_Budget, 'grocery-budget-body', 'Grocery_Budget');
+                
+                calculateRevenue();
+                calculateBurnRate();
+            } catch (err) {
+                console.error("Dashboard failed to render:", err);
+            }
         };
 
-        window.persistSpendableIncome = async () => {
-            const spendable = parseFloat(document.getElementById('spendable-income').value) || 0;
-            try { await setDoc(settingsRef, { spendableIncome: spendable }, { merge: true }); }
-            catch (err) { console.error("Couldn't save income:", err); }
+        /* --- 5. CALCULATIONS --- */
+        const updateSafeToSpend = (remaining) => {
+            if (remaining <= 0) {
+                DOM.splitSavings.innerText = '$0.00'; DOM.splitFun.innerText = '$0.00'; DOM.splitInvest.innerText = '$0.00';
+                return;
+            }
+            DOM.splitSavings.innerText = formatMoney(remaining * 0.50);
+            DOM.splitFun.innerText = formatMoney(remaining * 0.30);
+            DOM.splitInvest.innerText = formatMoney(remaining * 0.20);
         };
 
-        window.persistDates = async () => {
-            const start = document.getElementById('session-start').value;
-            const end = document.getElementById('session-end').value;
-            try { await setDoc(settingsRef, { sessionStart: start, sessionEnd: end }, { merge: true }); }
-            catch (err) { console.error("Couldn't save session dates:", err); }
+        const calculateRevenue = () => {
+            const spendable = parseFloat(DOM.spendableIncome.value) || 0;
+            const totalExpenses = (expenseTotals.Out_Of_Pocket || 0) + (expenseTotals.Bank_Initiated || 0);
+            const actualRevenue = spendable - totalExpenses;
+            
+            DOM.actualRevenue.innerText = formatMoney(actualRevenue);
+            DOM.actualRevenue.style.color = (actualRevenue < -0.005) ? 'var(--danger-red)' : 'var(--text-main)';
+            
+            const estGas = parseFloat(DOM.estGas.value) || 0;
+            const estGroceries = parseFloat(DOM.estGroceries.value) || 0;
+            const trueNet = actualRevenue - (estGas + estGroceries);
+            
+            DOM.trueNetRevenue.innerText = formatMoney(trueNet);
+
+            renderChart();
+            updateSafeToSpend(spendable); 
         };
 
-        const formatMoney = (amount) => {
-            const num = parseFloat(amount);
-            return (isNaN(num) ? '$0.00' : (num < 0 ? '-' : '') + '$' + Math.abs(num).toFixed(2));
+        const calculateBurnRate = () => {
+            const start = DOM.sessionStart.value;
+            const end = DOM.sessionEnd.value;
+            if (!start || !end) { DOM.burnRateBadge.innerText = "Burn: --/day"; return; }
+
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            startDate.setHours(0,0,0,0); endDate.setHours(0,0,0,0);
+
+            let totalDays = Math.ceil(Math.abs(endDate - startDate) / (1000 * 60 * 60 * 24));
+            if (totalDays === 0) totalDays = 1; 
+
+            const totalExpenses = (expenseTotals.Out_Of_Pocket || 0) + (expenseTotals.Bank_Initiated || 0);
+            DOM.burnRateBadge.innerText = `Burn: ${formatMoney(totalExpenses / totalDays)}/day`;
         };
 
-        const getBadgeClass = (status) => {
-            if (!status) return '';
-            return (status.toString().toUpperCase() === 'PAID') ? 'badge-paid' : 'badge-unpaid';
+        const updateGoalUI = () => {
+            const current = parseFloat(DOM.goalCurrent.value) || 0;
+            const target = parseFloat(DOM.goalTarget.value) || 0;
+            
+            if (target <= 0) {
+                DOM.goalProgressBar.style.width = '0%';
+            } else {
+                let percentage = Math.min((current / target) * 100, 100);
+                DOM.goalProgressBar.style.width = `${percentage}%`;
+                DOM.goalProgressBar.style.background = (percentage === 100) ? 'var(--success-green)' : 'linear-gradient(90deg, var(--grad-blue), var(--grad-teal))';
+            }
         };
 
-        window.openInlineForm = (tbodyId) => {
-            document.getElementById(`add-btn-${tbodyId}`).style.display = 'none';
-            document.getElementById(`inline-form-${tbodyId}`).style.display = 'table-row';
-            document.getElementById(`input-name-${tbodyId}`).focus();
+        const recalcRecon = (tbodyId, tabName) => {
+            const startInput = document.getElementById(`start-input-${tbodyId}`);
+            if (!startInput) return;
+
+            let startVal = parseFloat(startInput.value);
+            if (isNaN(startVal) || !isFinite(startVal)) startVal = 0; // Guard math before UI revert occurs
+
+            reconBalances[tabName].start = startVal;
+            const currentBalance = startVal - reconBalances[tabName].expenses;
+            const isReconciled = Math.abs(currentBalance) < 0.005;
+
+            const balanceAmountCell = document.getElementById(`balance-amount-${tbodyId}`);
+            const balanceStatusCell = document.getElementById(`balance-status-${tbodyId}`);
+            
+            if (balanceAmountCell && balanceStatusCell) {
+                balanceAmountCell.innerText = formatMoney(currentBalance);
+                balanceAmountCell.className = 'amount-cell ' + (currentBalance < -0.005 ? 'amount-red' : (isReconciled ? 'amount-green' : ''));
+                balanceStatusCell.innerText = isReconciled ? 'RECONCILED' : 'NOT RECONCILED';
+                balanceStatusCell.style.color = isReconciled ? 'var(--success-green)' : 'var(--danger-red)';
+            }
         };
 
-        window.deleteItem = async (id) => {
-            try { await deleteDoc(doc(entriesCol, id)); }
-            catch (err) { alert("Couldn't delete — check your connection."); console.error(err); }
+        /* --- 6. DATABASE WRITES --- */
+        const persistSpendableIncome = debounce(async () => {
+            try { await setDoc(settingsRef, { spendableIncome: parseFloat(DOM.spendableIncome.value) || 0 }, { merge: true }); } catch (err) { console.error(err); }
+        }, 500);
+
+        const persistEstExpenses = debounce(async () => {
+            try { await setDoc(settingsRef, { estGas: parseFloat(DOM.estGas.value) || 0, estGroceries: parseFloat(DOM.estGroceries.value) || 0 }, { merge: true }); } catch (err) { console.error(err); }
+        }, 500);
+
+        const persistDates = debounce(async () => {
+            try { await setDoc(settingsRef, { sessionStart: DOM.sessionStart.value, sessionEnd: DOM.sessionEnd.value }, { merge: true }); calculateBurnRate(); } catch (err) { console.error(err); }
+        }, 500);
+
+        const persistScratchpad = debounce(async () => {
+            try { await setDoc(settingsRef, { scratchpadText: DOM.scratchpadInput.value }, { merge: true }); } catch (err) { console.error(err); }
+        }, 500);
+
+        const persistGoal = debounce(async () => {
+            try { await setDoc(settingsRef, { goalName: DOM.goalName.value, goalTarget: parseFloat(DOM.goalTarget.value) || 0, goalCurrent: parseFloat(DOM.goalCurrent.value) || 0 }, { merge: true }); } catch (err) { console.error(err); }
+        }, 500);
+
+        // Removed debounce to prevent race condition when rapidly changing multiple recon inputs
+        const persistStartingBalance = async (tbodyId, tabName, value) => {
+            const field = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
+            const num = parseFloat(value);
+            
+            if (isNaN(num) || !isFinite(num) || num < 0 || num > 9999999) {
+                alert("Please enter a valid positive starting balance.");
+                const startInput = document.getElementById(`start-input-${tbodyId}`);
+                if (startInput) startInput.value = settings[field] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500);
+                recalcRecon(tbodyId, tabName); 
+                return;
+            }
+
+            try { await setDoc(settingsRef, { [field]: num }, { merge: true }); } catch (err) { console.error(err); }
         };
 
-        window.saveInlineExpense = async (tbodyId, tabName, isFillUp = false) => {
+        const handleSave = async (tbodyId, tabName, isRecon, isFillUp) => {
             const nameInput = document.getElementById(`input-name-${tbodyId}`);
-            const statusInput = document.getElementById(`input-status-${tbodyId}`);
             const amountInput = document.getElementById(`input-amount-${tbodyId}`);
+            const statusInput = document.getElementById(`input-status-${tbodyId}`);
 
             const name = nameInput.value.trim();
-            const status = statusInput.value;
-            const amount = parseFloat(amountInput?.value || 0);
+            const status = statusInput ? statusInput.value : '';
+            let amount = 0;
+
+            if (!isFillUp) {
+                amount = parseFloat(amountInput.value);
+                if (isNaN(amount) || !isFinite(amount) || amount < 0 || amount > 9999999) {
+                    alert("Please enter a valid positive amount.");
+                    return;
+                }
+            }
 
             if (!name) { alert("Please enter a name."); return; }
 
@@ -502,8 +774,9 @@
                     category: tabName,
                     name,
                     amount: isFillUp ? 0 : amount,
-                    status,
-                    createdAt: serverTimestamp()
+                    status: isRecon ? '' : status,
+                    createdAt: serverTimestamp(),
+                    localTime: Date.now() 
                 });
             } catch (err) {
                 alert("Couldn't save — check your connection.");
@@ -511,45 +784,9 @@
             }
         };
 
-        window.recalcRecon = (tbodyId, tabName) => {
-            const startVal = parseFloat(document.getElementById(`start-input-${tbodyId}`).value) || 0;
-            reconBalances[tabName].start = startVal;
-            const currentBalance = startVal - reconBalances[tabName].expenses;
-
-            const balanceAmountCell = document.getElementById(`balance-amount-${tbodyId}`);
-            const balanceStatusCell = document.getElementById(`balance-status-${tbodyId}`);
-            balanceAmountCell.innerText = formatMoney(currentBalance);
-            balanceAmountCell.className = 'amount-cell ' + (currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : ''));
-            balanceStatusCell.innerText = currentBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED';
-            balanceStatusCell.style.color = currentBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)';
-        };
-
-        window.persistStartingBalance = async (tbodyId, tabName) => {
-            const startVal = parseFloat(document.getElementById(`start-input-${tbodyId}`).value) || 0;
-            const field = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
-            try { await setDoc(settingsRef, { [field]: startVal }, { merge: true }); }
-            catch (err) { console.error("Couldn't save starting balance:", err); }
-        };
-
-        window.saveReconciliation = async (tbodyId, tabName) => {
-            const amountInput = document.getElementById(`input-amount-${tbodyId}`);
-            const nameInput = document.getElementById(`input-name-${tbodyId}`);
-            const amount = parseFloat(amountInput.value);
-            const name = nameInput.value.trim();
-
-            if (!name || isNaN(amount)) { alert("Please enter both a name and an amount."); return; }
-
-            try {
-                await addDoc(entriesCol, { category: tabName, name, amount, status: '', createdAt: serverTimestamp() });
-            } catch (err) {
-                alert("Couldn't save — check your connection.");
-                console.error(err);
-            }
-        };
-
-        window.performHardReset = async () => {
-            if (!confirm("⚠️ DANGER: This will delete ALL data. Are you absolutely sure?")) return;
-            if (!confirm("FINAL WARNING: This cannot be undone. Click OK to wipe everything.")) return;
+        const performHardReset = async () => {
+            if (!confirm("⚠️ DANGER: This will delete session data. Are you sure?")) return;
+            if (!confirm("FINAL WARNING: This cannot be undone. Click OK to wipe session.")) return;
             try {
                 const snap = await getDocs(entriesCol);
                 const batches = [];
@@ -566,125 +803,157 @@
                     }
                 });
 
-                currentBatch.set(settingsRef, { 
-                    spendableIncome: 0, 
-                    bankReconStart: 2500, 
-                    groceryStart: 500,
-                    sessionStart: '',
-                    sessionEnd: ''
-                });
+                currentBatch.set(settingsRef, { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500, sessionStart: '', sessionEnd: '', scratchpadText: '', estGas: 0, estGroceries: 0 }, { merge: true });
                 batches.push(currentBatch.commit());
                 await Promise.all(batches);
 
-                alert("Data reset successfully.");
-            } catch (error) {
-                alert("Failed to reset.");
-                console.error(error);
-            }
+                alert("Session data reset successfully. Your sinking fund was preserved.");
+            } catch (error) { alert("Failed to reset."); console.error(error); }
         };
 
-        const renderExpenseTable = (rows, tbodyId, totalId, tabName) => {
-            const tbody = document.getElementById(tbodyId);
-            let htmlString = '';
-            let total = 0;
+        /* --- 7. EVENT DELEGATION & LIFECYCLE --- */
+        // Google Client ID
+        const GOOGLE_CLIENT_ID = '447875559759-3hsh1muu3t3o2as0at0pbu00r6c310mf.apps.googleusercontent.com'; 
+        let tokenClient;
 
-            rows.forEach(item => {
-                if (!item.name) return;
-                total += (item.amount || 0);
-                htmlString += `<tr><td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td><td>${escapeHTML(item.name)}</td><td class="action-cell"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
-            });
-
-            expenseTotals[tabName] = total;
-
-            htmlString += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="3">+ Add New</td></tr>
-                <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
-                    <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01"></td>
-                    <td><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"></td>
-                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><select id="input-status-${tbodyId}" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select><button class="save-btn" onclick="saveInlineExpense('${tbodyId}', '${tabName}')">Save</button></div></td>
-                </tr>`;
-
-            tbody.innerHTML = htmlString;
-            document.getElementById(totalId).innerText = formatMoney(total);
-        };
-
-        const renderFillUps = (rows) => {
-            const tbody = document.getElementById('fill-ups-body');
-            let htmlString = '';
-
-            rows.forEach(item => {
-                if (item.name) htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell" style="text-align: right; justify-content: flex-end;"><span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
-            });
-
-            htmlString += `<tr id="add-btn-fill-ups-body" class="add-row-btn" onclick="openInlineForm('fill-ups-body')"><td colspan="2">+ Add New</td></tr>
-                <tr id="inline-form-fill-ups-body" class="highlight-row" style="display: none;">
-                    <td><input type="text" id="input-name-fill-ups-body" class="inline-input" placeholder="Name (e.g. Fill Up 1)"></td>
-                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><select id="input-status-fill-ups-body" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select><button class="save-btn" onclick="saveInlineExpense('fill-ups-body', 'Fill_Ups', true)">Save</button></div></td>
-                </tr>`;
-
-            tbody.innerHTML = htmlString;
-        };
-
-        const renderReconciliation = (rows, tbodyId, tabName) => {
-            const tbody = document.getElementById(tbodyId);
-            let htmlString = '';
+        const fetchCalendarEvents = async (accessToken) => {
+            DOM.btnConnectCalendar.innerText = "Fetching bills...";
             
-            const startField = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
-            const savedStart = settings[startField] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500);
-
-            htmlString += `<tr class="highlight-row"><td style="font-weight: bold;"><div style="display: flex; align-items: baseline;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" oninput="recalcRecon('${tbodyId}', '${tabName}')" onchange="persistStartingBalance('${tbodyId}', '${tabName}')"></div></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
-
-            let expenseTotal = 0;
-            rows.forEach(item => {
-                if (!item.name) return;
-                const amount = parseFloat(item.amount) || 0;
-                expenseTotal += amount;
-                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right; justify-content: flex-end;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" onclick="deleteItem('${item.id}')">×</span></td></tr>`;
-            });
-
-            reconBalances[tabName] = { start: parseFloat(savedStart), expenses: expenseTotal };
-            const currentBalance = parseFloat(savedStart) - expenseTotal;
-
-            htmlString += `<tr id="total-row-${tbodyId}" class="total-row"><td id="balance-amount-${tbodyId}" class="amount-cell ${currentBalance < 0 ? 'amount-red' : (currentBalance === 0 ? 'amount-green' : '')}">${formatMoney(currentBalance)}</td><td id="balance-status-${tbodyId}" style="text-align: right; font-size: 0.8rem; color: ${currentBalance === 0 ? 'var(--success-green)' : 'var(--danger-red)'};">${currentBalance === 0 ? 'RECONCILED' : 'NOT RECONCILED'}</td></tr>`;
-
-            htmlString += `<tr id="add-btn-${tbodyId}" class="add-row-btn" onclick="openInlineForm('${tbodyId}')"><td colspan="2">+ Add New</td></tr>
-                <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
-                    <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01"></td>
-                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"><button class="save-btn" onclick="saveReconciliation('${tbodyId}', '${tabName}')">Save</button></div></td>
-                </tr>`;
-
-            tbody.innerHTML = htmlString;
-        };
-
-        function renderAll() {
-            renderExpenseTable(liveData.Out_Of_Pocket, 'out-of-pocket-body', 'out-of-pocket-total', 'Out_Of_Pocket');
-            renderExpenseTable(liveData.Bank_Initiated, 'bank-initiated-body', 'bank-initiated-total', 'Bank_Initiated');
-            renderFillUps(liveData.Fill_Ups);
-            renderReconciliation(liveData.Bank_Reconciliation, 'bank-recon-body', 'Bank_Reconciliation');
-            renderReconciliation(liveData.Grocery_Budget, 'grocery-budget-body', 'Grocery_Budget');
-            window.calculateRevenue();
-        }
-
-        window.signInWithGoogle = async () => {
-            const errorEl = document.getElementById('auth-error');
-            errorEl.style.display = 'none';
+            // Your specific Bill Calendar ID
+            const BILL_CALENDAR_ID = 'e43ef37ba48060420e803f9ae2ab0aa2d6b975990fb67930cac350c4b6c41d9b@group.calendar.google.com';
+            
             try {
-                await signInWithPopup(auth, provider);
+                const timeMin = new Date().toISOString();
+                
+                // Fetch upcoming 5 events from your specific bill calendar
+                const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(BILL_CALENDAR_ID)}/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=5`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                
+                const data = await response.json();
+                
+                DOM.calUnconnectedState.style.display = 'none';
+                DOM.calConnectedState.style.display = 'block';
+                
+                const ul = DOM.calConnectedState.querySelector('ul');
+                
+                if (data.items && data.items.length > 0) {
+                    ul.innerHTML = data.items.map(ev => {
+                        // Handle both specific times (dateTime) and all-day events (date)
+                        const eventDateStr = ev.start.dateTime || ev.start.date;
+                        const formattedDate = new Date(eventDateStr).toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
+                        
+                        // Keep the exact title as written in Google Calendar
+                        const title = escapeHTML(ev.summary);
+        
+                        return `
+                            <li style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px dashed var(--border-color);">
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <span style="color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${formattedDate}</span> 
+                                    <strong>${title}</strong>
+                                </div>
+                            </li>
+                        `;
+                    }).join('');
+                } else {
+                    ul.innerHTML = '<li style="text-align:center; font-size:0.8rem; color:var(--text-muted);">No upcoming bills found</li>';
+                }
+        
+                DOM.calSyncBadge.innerText = 'Synced';
+                DOM.calSyncBadge.style.background = 'var(--header-green)';
+                DOM.calSyncBadge.style.color = '#047857';
+        
             } catch (err) {
-                errorEl.innerText = "Sign-in failed — check your connection and try again.";
-                errorEl.style.display = 'block';
-                console.error(err);
+                console.error('Calendar Fetch Error:', err);
+                DOM.btnConnectCalendar.innerText = "Error - Try Again";
             }
         };
 
-        window.signOutUser = async () => {
-            try { await signOut(auth); }
-            catch (err) { console.error(err); }
-        };
+        document.addEventListener('DOMContentLoaded', () => {
+            initDOM();
 
-        const detachListeners = () => {
-            if (unsubEntries) { unsubEntries(); unsubEntries = null; }
-            if (unsubSettings) { unsubSettings(); unsubSettings = null; }
-        };
+            // Initialize Google Calendar Token Client
+            try {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: GOOGLE_CLIENT_ID,
+                    scope: 'https://www.googleapis.com/auth/calendar.events.readonly',
+                    callback: (tokenResponse) => {
+                        if (tokenResponse && tokenResponse.access_token) {
+                            fetchCalendarEvents(tokenResponse.access_token);
+                        }
+                    },
+                });
+            } catch(e) {
+                console.error("GSI library not loaded yet or invalid client ID.", e);
+            }
+
+            DOM.btnGoogleSignin.addEventListener('click', async () => {
+                const errorEl = document.getElementById('auth-error');
+                errorEl.style.display = 'none';
+                try { await signInWithPopup(auth, provider); } catch (err) { errorEl.innerText = "Sign-in failed."; errorEl.style.display = 'block'; }
+            });
+            DOM.btnSignOut.addEventListener('click', () => signOut(auth));
+            DOM.btnSavePdf.addEventListener('click', () => window.print());
+            DOM.btnHardReset.addEventListener('click', performHardReset);
+
+            DOM.spendableIncome.addEventListener('input', () => { calculateRevenue(); persistSpendableIncome(); });
+            DOM.estGas.addEventListener('input', () => { calculateRevenue(); persistEstExpenses(); });
+            DOM.estGroceries.addEventListener('input', () => { calculateRevenue(); persistEstExpenses(); });
+            DOM.goalName.addEventListener('input', persistGoal);
+            DOM.goalCurrent.addEventListener('input', () => { updateGoalUI(); persistGoal(); });
+            DOM.goalTarget.addEventListener('input', () => { updateGoalUI(); persistGoal(); });
+            DOM.sessionStart.addEventListener('change', persistDates);
+            DOM.sessionEnd.addEventListener('change', persistDates);
+            DOM.scratchpadInput.addEventListener('input', persistScratchpad);
+
+            DOM.btnConnectCalendar.addEventListener('click', () => {
+                if (tokenClient) {
+                    DOM.btnConnectCalendar.innerText = "Waiting for authorization...";
+                    tokenClient.requestAccessToken({ prompt: 'consent' });
+                } else {
+                    alert("Calendar client failed to load. Please refresh and check your Client ID.");
+                }
+            });
+
+            DOM.calSyncBadge.addEventListener('click', () => {
+                if (DOM.calSyncBadge.innerText === 'Synced') {
+                    DOM.calConnectedState.style.display = 'none';
+                    DOM.calUnconnectedState.style.display = 'block';
+                    DOM.btnConnectCalendar.innerText = "Authorize Google Calendar";
+                    DOM.calSyncBadge.innerText = 'Connect';
+                    DOM.calSyncBadge.style.background = 'var(--header-purple)';
+                    DOM.calSyncBadge.style.color = '#6d28d9';
+                }
+            });
+
+            DOM.dashboardGrid.addEventListener('click', async (e) => {
+                if (e.target.classList.contains('delete-btn')) {
+                    const id = e.target.getAttribute('data-id');
+                    try { await deleteDoc(doc(entriesCol, id)); } catch(err) { console.error(err); alert("Couldn't delete item."); }
+                }
+                if (e.target.closest('.add-row-btn')) {
+                    const tr = e.target.closest('.add-row-btn');
+                    const tbodyId = tr.getAttribute('data-tbody');
+                    tr.style.display = 'none';
+                    document.getElementById(`inline-form-${tbodyId}`).style.display = 'table-row';
+                    document.getElementById(`input-name-${tbodyId}`).focus();
+                }
+                if (e.target.classList.contains('save-btn') && !e.target.id.includes('connect-calendar')) {
+                    const tbodyId = e.target.getAttribute('data-tbody');
+                    const tabName = e.target.getAttribute('data-tab');
+                    const isRecon = e.target.hasAttribute('data-recon');
+                    const isFillUp = e.target.hasAttribute('data-fillup');
+                    handleSave(tbodyId, tabName, isRecon, isFillUp);
+                }
+            });
+
+            DOM.dashboardGrid.addEventListener('input', (e) => {
+                if (e.target.classList.contains('recon-start-input')) recalcRecon(e.target.getAttribute('data-tbody'), e.target.getAttribute('data-tab'));
+            });
+            DOM.dashboardGrid.addEventListener('change', (e) => {
+                if (e.target.classList.contains('recon-start-input')) persistStartingBalance(e.target.getAttribute('data-tbody'), e.target.getAttribute('data-tab'), e.target.value);
+            });
+        });
 
         const attachListeners = (uid) => {
             entriesCol = collection(db, "users", uid, "entries");
@@ -697,32 +966,78 @@
                     const row = { id: docSnap.id, ...docSnap.data() };
                     if (liveData[row.category]) liveData[row.category].push(row);
                 });
+                
+                for (const key in liveData) {
+                    liveData[key].sort((a, b) => {
+                        const timeA = a.createdAt?.toMillis() ?? a.localTime ?? 0;
+                        const timeB = b.createdAt?.toMillis() ?? b.localTime ?? 0;
+                        return timeA - timeB;
+                    });
+                }
+
+                entriesLoaded = true;
                 renderAll();
-            }, (err) => console.error("Entries listener error:", err));
+            }, (err) => { console.error("Entries error:", err); entriesLoaded = 'error'; });
 
             unsubSettings = onSnapshot(settingsRef, (snap) => {
-                settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500, sessionStart: '', sessionEnd: '' };
+                settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500, sessionStart: '', sessionEnd: '', scratchpadText: '', goalName: '', goalTarget: 0, goalCurrent: 0, estGas: 0, estGroceries: 0 };
                 if (snap.exists()) settings = { ...settings, ...snap.data() };
                 
-                document.getElementById('spendable-income').value = settings.spendableIncome;
-                document.getElementById('session-start').value = settings.sessionStart || '';
-                document.getElementById('session-end').value = settings.sessionEnd || '';
+                if (document.activeElement !== DOM.spendableIncome) DOM.spendableIncome.value = settings.spendableIncome;
+                if (document.activeElement !== DOM.sessionStart) DOM.sessionStart.value = settings.sessionStart || '';
+                if (document.activeElement !== DOM.sessionEnd) DOM.sessionEnd.value = settings.sessionEnd || '';
+                if (document.activeElement !== DOM.scratchpadInput) DOM.scratchpadInput.value = settings.scratchpadText || '';
+                if (document.activeElement !== DOM.goalName) DOM.goalName.value = settings.goalName || '';
+                if (document.activeElement !== DOM.goalTarget) DOM.goalTarget.value = settings.goalTarget || 0;
+                if (document.activeElement !== DOM.goalCurrent) DOM.goalCurrent.value = settings.goalCurrent || 0;
+                if (document.activeElement !== DOM.estGas) DOM.estGas.value = settings.estGas || 0;
+                if (document.activeElement !== DOM.estGroceries) DOM.estGroceries.value = settings.estGroceries || 0;
                 
+                updateGoalUI();
+                settingsLoaded = true;
                 renderAll();
-            }, (err) => console.error("Settings listener error:", err));
+            }, (err) => { console.error("Settings error:", err); settingsLoaded = 'error'; });
         };
 
         onAuthStateChanged(auth, (user) => {
-            detachListeners();
+            if (unsubEntries) { unsubEntries(); unsubEntries = null; }
+            if (unsubSettings) { unsubSettings(); unsubSettings = null; }
+            entriesLoaded = false; settingsLoaded = false;
+
             if (user) {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                document.getElementById('user-email').innerText = user.email;
-                liveData = { Out_Of_Pocket: [], Bank_Initiated: [], Fill_Ups: [], Bank_Reconciliation: [], Grocery_Budget: [] };
+                DOM.authScreen.style.display = 'none';
+                DOM.loadingScreen.style.display = 'block';
+                DOM.userEmail.innerText = user.email;
+                for (const key in liveData) liveData[key] = [];
                 attachListeners(user.uid);
+                
+                let attempts = 0;
+                const checkLoad = setInterval(() => {
+                    attempts++;
+                    
+                    if (entriesLoaded === 'error' || settingsLoaded === 'error') {
+                        clearInterval(checkLoad);
+                        DOM.loadingSpinner.style.display = 'none';
+                        DOM.loadingText.innerHTML = '<span style="color: var(--danger-red);">Error loading data. Please check connection.</span>';
+                        return;
+                    }
+                    
+                    if (entriesLoaded === true && settingsLoaded === true) {
+                        clearInterval(checkLoad);
+                        DOM.loadingScreen.style.display = 'none';
+                        DOM.appContent.style.display = 'block';
+                    } 
+                    else if (attempts >= 100) { 
+                        clearInterval(checkLoad);
+                        DOM.loadingSpinner.style.display = 'none';
+                        DOM.loadingText.innerHTML = '<span style="color: var(--danger-red);">Loading timed out. Please refresh the page.</span>';
+                    }
+                }, 100);
+
             } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('app-content').style.display = 'none';
+                if(DOM.authScreen) DOM.authScreen.style.display = 'flex';
+                if(DOM.appContent) DOM.appContent.style.display = 'none';
+                if(DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
             }
         });
     </script>
