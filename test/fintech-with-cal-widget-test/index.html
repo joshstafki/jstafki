@@ -98,7 +98,7 @@
         .save-btn { background: var(--success-green); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         .save-btn:hover { background: #059669; }
 
-        .action-cell { display: flex; justify-content: space-between; align-items: center; }
+        .action-cell { vertical-align: middle; }
         .delete-btn { color: #d1d5db; font-size: 1.2rem; cursor: pointer; padding-left: 0.75rem; transition: color 0.2s; font-weight: bold; line-height: 1; }
         .delete-btn:hover { color: var(--danger-red); }
 
@@ -527,9 +527,11 @@
                 htmlString += `<tr>`;
                 if (hasAmount) htmlString += `<td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td>`;
                 htmlString += `<td>${escapeHTML(item.name)}</td>`;
-                htmlString += `<td class="action-cell" ${!hasAmount ? 'style="text-align: right; justify-content: flex-end;"' : ''}>
-                    <span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> 
-                    <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span>
+                htmlString += `<td class="action-cell"${!hasAmount ? ' style="text-align: right;"' : ''}>
+                    <div style="display: flex; align-items: center; justify-content: ${!hasAmount ? 'flex-end' : 'space-between'}; width: 100%;">
+                        <span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> 
+                        <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span>
+                    </div>
                 </td></tr>`;
             });
 
@@ -564,7 +566,7 @@
                 if (!item.name) return;
                 const amount = parseFloat(item.amount) || 0;
                 expenseTotal += amount;
-                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right; justify-content: flex-end;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span></td></tr>`;
+                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right;"><div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span></div></td></tr>`;
             });
 
             reconBalances[tabName] = { start: parseFloat(savedStart), expenses: expenseTotal };
