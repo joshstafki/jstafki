@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --bg-color: #f4f7f9;
@@ -404,18 +405,7 @@
                         <!-- Connected State (Mock Data) -->
                         <div id="cal-connected-state" style="display: none; margin-top: 0.75rem;">
                             <ul style="list-style: none; padding: 0; font-size: 0.85rem;">
-                                <li style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px dashed var(--border-color);">
-                                    <div style="display: flex; gap: 0.75rem;"><span style="color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">SEP 01</span> <strong>Rent</strong></div>
-                                    <span class="amount-cell amount-red">-$1,200.00</span>
-                                </li>
-                                <li style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px dashed var(--border-color);">
-                                    <div style="display: flex; gap: 0.75rem;"><span style="color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">SEP 05</span> <strong>Car Insurance</strong></div>
-                                    <span class="amount-cell amount-red">-$145.00</span>
-                                </li>
-                                <li style="display: flex; justify-content: space-between; padding: 0.4rem 0;">
-                                    <div style="display: flex; gap: 0.75rem;"><span style="color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">SEP 12</span> <strong>Internet</strong></div>
-                                    <span class="amount-cell amount-red">-$80.00</span>
-                                </li>
+                                <!-- Dynamically injected via API -->
                             </ul>
                         </div>
                     </div>
@@ -820,8 +810,83 @@
         };
 
         /* --- 7. EVENT DELEGATION & LIFECYCLE --- */
+        // Google Client ID
+        const GOOGLE_CLIENT_ID = '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'; 
+        let tokenClient;
+
+        const fetchCalendarEvents = async (accessToken) => {
+            DOM.btnConnectCalendar.innerText = "Fetching bills...";
+            
+            try {
+                const timeMin = new Date().toISOString();
+                
+                // Fetch upcoming 5 events from primary calendar, expanding recurring ones
+                const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&singleEvents=true&orderBy=startTime&maxResults=5`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                
+                const data = await response.json();
+                
+                DOM.calUnconnectedState.style.display = 'none';
+                DOM.calConnectedState.style.display = 'block';
+                
+                const ul = DOM.calConnectedState.querySelector('ul');
+                
+                if (data.items && data.items.length > 0) {
+                    ul.innerHTML = data.items.map(ev => {
+                        // Handle both specific times (dateTime) and all-day events (date)
+                        const eventDateStr = ev.start.dateTime || ev.start.date;
+                        const formattedDate = new Date(eventDateStr).toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
+                        
+                        // Extract numbers from the event title to format as currency
+                        const title = escapeHTML(ev.summary);
+                        const amountMatch = title.match(/\d+(?:\.\d{2})?/); 
+                        const amountHtml = amountMatch 
+                            ? `<span class="amount-cell amount-red">-$${parseFloat(amountMatch[0]).toFixed(2)}</span>` 
+                            : '';
+                        const cleanTitle = title.replace(/\d+(?:\.\d{2})?/, '').replace('$', '').trim();
+        
+                        return `
+                            <li style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px dashed var(--border-color);">
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <span style="color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${formattedDate}</span> 
+                                    <strong>${cleanTitle}</strong>
+                                </div>
+                                ${amountHtml}
+                            </li>
+                        `;
+                    }).join('');
+                } else {
+                    ul.innerHTML = '<li style="text-align:center; font-size:0.8rem; color:var(--text-muted);">No upcoming bills found</li>';
+                }
+        
+                DOM.calSyncBadge.innerText = 'Synced';
+                DOM.calSyncBadge.style.background = 'var(--header-green)';
+                DOM.calSyncBadge.style.color = '#047857';
+        
+            } catch (err) {
+                console.error('Calendar Fetch Error:', err);
+                DOM.btnConnectCalendar.innerText = "Error - Try Again";
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             initDOM();
+
+            // Initialize Google Calendar Token Client
+            try {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: GOOGLE_CLIENT_ID,
+                    scope: 'https://www.googleapis.com/auth/calendar.events.readonly',
+                    callback: (tokenResponse) => {
+                        if (tokenResponse && tokenResponse.access_token) {
+                            fetchCalendarEvents(tokenResponse.access_token);
+                        }
+                    },
+                });
+            } catch(e) {
+                console.error("GSI library not loaded yet or invalid client ID.", e);
+            }
 
             DOM.btnGoogleSignin.addEventListener('click', async () => {
                 const errorEl = document.getElementById('auth-error');
@@ -843,32 +908,19 @@
             DOM.scratchpadInput.addEventListener('input', persistScratchpad);
 
             DOM.btnConnectCalendar.addEventListener('click', () => {
-                // Simulate API authorization delay
-                const originalText = DOM.btnConnectCalendar.innerText;
-                DOM.btnConnectCalendar.innerText = "Connecting...";
-                DOM.btnConnectCalendar.style.opacity = "0.7";
-                
-                setTimeout(() => {
-                    // Toggle view states
-                    DOM.calUnconnectedState.style.display = 'none';
-                    DOM.calConnectedState.style.display = 'block';
-                    
-                    // Update the badge
-                    DOM.calSyncBadge.innerText = 'Synced';
-                    DOM.calSyncBadge.style.background = 'var(--header-green)';
-                    DOM.calSyncBadge.style.color = '#047857';
-                    
-                    // Reset button in case of future disconnect logic
-                    DOM.btnConnectCalendar.innerText = originalText;
-                    DOM.btnConnectCalendar.style.opacity = "1";
-                }, 1200);
+                if (tokenClient) {
+                    DOM.btnConnectCalendar.innerText = "Waiting for authorization...";
+                    tokenClient.requestAccessToken({ prompt: 'consent' });
+                } else {
+                    alert("Calendar client failed to load. Please refresh and check your Client ID.");
+                }
             });
 
             DOM.calSyncBadge.addEventListener('click', () => {
                 if (DOM.calSyncBadge.innerText === 'Synced') {
                     DOM.calConnectedState.style.display = 'none';
                     DOM.calUnconnectedState.style.display = 'block';
-                    
+                    DOM.btnConnectCalendar.innerText = "Authorize Google Calendar";
                     DOM.calSyncBadge.innerText = 'Connect';
                     DOM.calSyncBadge.style.background = 'var(--header-purple)';
                     DOM.calSyncBadge.style.color = '#6d28d9';
