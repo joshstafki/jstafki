@@ -97,7 +97,8 @@
         .save-btn { background: var(--success-green); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         .save-btn:hover { background: #059669; }
 
-        .action-cell { display: flex; justify-content: space-between; align-items: center; }
+        .action-cell { vertical-align: middle; }
+        
         .delete-btn { color: #d1d5db; font-size: 1.2rem; cursor: pointer; padding-left: 0.75rem; transition: color 0.2s; font-weight: bold; line-height: 1; }
         .delete-btn:hover { color: var(--danger-red); }
 
@@ -154,7 +155,7 @@
             th, td { padding: 0.75rem 0.75rem; } 
             .dashboard-header { flex-direction: column !important; align-items: stretch !important; gap: 1rem; }
             .header-actions { flex-direction: column; align-items: flex-start !important; width: 100%; }
-            .header-button-group { display: flex; width: 100%; gap: 0.5rem; }
+            .header-button-group { display: flex; width: 100%; gap: 0.5rem; flex-wrap: wrap; }
             .header-button-group button { flex-grow: 1; justify-content: center; }
         }
         
@@ -207,7 +208,7 @@
         <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <h1>Financial Dashboard</h1>
-                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase)</p>
+                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) v1.00.22</p>
                 <button id="btn-hard-reset" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
                     Hard Reset (Wipe Session Data)
                 </button>
@@ -215,6 +216,9 @@
             <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
                 <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
                 <div class="header-button-group" style="display: flex; gap: 0.5rem;">
+                    <input type="file" id="csv-upload-input" accept=".csv" style="display: none;">
+                    <button id="btn-import-csv" style="background: #f97316; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Import CSV</button>
+                    <button id="btn-export-csv" style="background: var(--success-green); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Export CSV</button>
                     <button id="btn-save-pdf" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Save PDF</button>
                     <button id="btn-sign-out" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Sign Out</button>
                 </div>
@@ -425,6 +429,353 @@
             return (status.toString().toUpperCase() === 'PAID') ? 'badge-paid' : 'badge-unpaid';
         };
 
+        /* --- CSV IMPORT / EXPORT ---
+           IMPORT (strict, inputs only): the CSV template carries raw user inputs
+           only — Out of Pocket / Bank Initiated transactions plus the seven
+           editable settings. Anything the app computes or manages internally
+           (Fill Ups, both reconciliation tables, starting balances, session
+           dates) is rejected on import.
+           EXPORT (readable report): a full-session record for the user's own
+           recordkeeping, mirroring the dashboard including computed values.
+           Deliberately NOT importable. */
+        const CSV_HEADER = ['Data_Type', 'Category', 'Name', 'Amount', 'Status', 'Date'];
+        const IMPORT_CATEGORIES = ['Out_Of_Pocket', 'Bank_Initiated'];
+        const APP_MANAGED_CATEGORIES = ['Fill_Ups', 'Bank_Reconciliation', 'Grocery_Budget'];
+        const IMPORT_NUMERIC_SETTINGS = ['spendableIncome', 'estGas', 'estGroceries', 'goalTarget', 'goalCurrent'];
+        const IMPORT_TEXT_SETTINGS = ['scratchpadText', 'goalName'];
+        const APP_MANAGED_SETTINGS = ['bankReconStart', 'groceryStart', 'sessionStart', 'sessionEnd'];
+        const MAX_CSV_BYTES = 1024 * 1024; // 1 MB
+        const MAX_CSV_ROWS = 2000;
+        const MAX_AMOUNT = 9999999;
+        const MAX_NAME_LENGTH = 200;
+
+        // RFC-4180 parser: handles quoted commas, escaped quotes (""), and newlines inside quotes.
+        const parseCSV = (text) => {
+            const rows = [];
+            let row = [], field = '', inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (inQuotes) {
+                    if (ch === '"') {
+                        if (text[i + 1] === '"') { field += '"'; i++; }
+                        else inQuotes = false;
+                    } else field += ch;
+                } else if (ch === '"') {
+                    inQuotes = true;
+                } else if (ch === ',') {
+                    row.push(field); field = '';
+                } else if (ch === '\n' || ch === '\r') {
+                    if (ch === '\r' && text[i + 1] === '\n') i++;
+                    row.push(field); field = '';
+                    rows.push(row); row = [];
+                } else {
+                    field += ch;
+                }
+            }
+            if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+            return {
+                rows: rows.filter(r => !(r.length === 1 && r[0].trim() === '')),
+                unterminated: inQuotes
+            };
+        };
+
+        // Accepts YYYY-MM-DD or M/D/YYYY. Returns { iso, date } or null. Rejects impossible dates like 2/30.
+        const parseCsvDate = (raw) => {
+            const t = raw.trim();
+            let y, m, d, match;
+            if ((match = t.match(/^(\d{4})-(\d{2})-(\d{2})$/))) {
+                y = +match[1]; m = +match[2]; d = +match[3];
+            } else if ((match = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) {
+                m = +match[1]; d = +match[2]; y = +match[3];
+            } else return null;
+            const dt = new Date(y, m - 1, d, 12, 0, 0);
+            if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+            return { iso: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, date: dt };
+        };
+
+        // Non-negative number within sanity bounds. Returns the number or null.
+        const parseCsvAmount = (raw) => {
+            const t = raw.trim();
+            if (!/^\d+(\.\d+)?$/.test(t)) return null;
+            const n = parseFloat(t);
+            if (!isFinite(n) || n < 0 || n > MAX_AMOUNT) return null;
+            return n;
+        };
+
+        // Leading =, +, -, @, tab, or CR is how spreadsheet apps trigger formula/DDE
+        // evaluation on open. Prefixing with a literal apostrophe forces text mode.
+        const CSV_FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+
+        const csvField = (value) => {
+            let s = (value ?? '').toString();
+            if (CSV_FORMULA_TRIGGER.test(s)) s = "'" + s;
+            return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        };
+
+        // Full-session report for the user's recordkeeping. Reads the same live
+        // sources the dashboard renders from, so the report always matches the
+        // screen — including every computed value.
+        const exportToCSV = () => {
+            const spendable = parseFloat(DOM.spendableIncome.value) || 0;
+            const estGas = parseFloat(DOM.estGas.value) || 0;
+            const estGroceries = parseFloat(DOM.estGroceries.value) || 0;
+            const outOfPocket = expenseTotals.Out_Of_Pocket || 0;
+            const bankInitiated = expenseTotals.Bank_Initiated || 0;
+            const totalExpenses = outOfPocket + bankInitiated;
+            const actualRevenue = spendable - totalExpenses;
+            const trueNet = actualRevenue - (estGas + estGroceries);
+
+            const sessionStart = DOM.sessionStart.value;
+            const sessionEnd = DOM.sessionEnd.value;
+            let burnText = '--/day';
+            if (sessionStart && sessionEnd) {
+                const startDate = new Date(sessionStart);
+                const endDate = new Date(sessionEnd);
+                startDate.setHours(0, 0, 0, 0); endDate.setHours(0, 0, 0, 0);
+                let totalDays = Math.ceil(Math.abs(endDate - startDate) / 86400000);
+                if (totalDays === 0) totalDays = 1;
+                burnText = `${formatMoney(totalExpenses / totalDays)}/day`;
+            }
+
+            const itemDate = (item) => {
+                if (item.createdAt && item.createdAt.toDate) return item.createdAt.toDate().toISOString().split('T')[0];
+                if (item.localTime) return new Date(item.localTime).toISOString().split('T')[0];
+                return '';
+            };
+
+            const L = [];
+            L.push('FINTECH LEDGER SESSION REPORT');
+            L.push(`Exported,${csvField(new Date().toLocaleString())}`);
+            if (auth.currentUser?.email) L.push(`Account,${csvField(auth.currentUser.email)}`);
+            L.push(`Session,${sessionStart || 'not set'} to ${sessionEnd || 'not set'}`);
+            L.push('');
+
+            L.push('SUMMARY');
+            L.push(`Total Spendable Income,${formatMoney(spendable)}`);
+            L.push(`Out of Pocket Expenses,${formatMoney(outOfPocket)}`);
+            L.push(`Bank Initiated Expenses,${formatMoney(bankInitiated)}`);
+            L.push(`Total Expenses,${formatMoney(totalExpenses)}`);
+            L.push(`Actual Total Revenue,${formatMoney(actualRevenue)}`);
+            L.push(`Est. Gas,${formatMoney(estGas)}`);
+            L.push(`Est. Groceries,${formatMoney(estGroceries)}`);
+            L.push(`True Net Revenue,${formatMoney(trueNet)}`);
+            L.push(`Burn Rate,${burnText}`);
+            L.push('');
+
+            L.push('SAFE TO SPEND SPLIT (50/30/20)');
+            L.push(`Savings (50%),${formatMoney(spendable > 0 ? spendable * 0.50 : 0)}`);
+            L.push(`Fun (30%),${formatMoney(spendable > 0 ? spendable * 0.30 : 0)}`);
+            L.push(`Invest (20%),${formatMoney(spendable > 0 ? spendable * 0.20 : 0)}`);
+            L.push('');
+
+            const goalName = DOM.goalName.value.trim();
+            const goalCurrent = parseFloat(DOM.goalCurrent.value) || 0;
+            const goalTarget = parseFloat(DOM.goalTarget.value) || 0;
+            const pct = goalTarget > 0 ? Math.min((goalCurrent / goalTarget) * 100, 100) : 0;
+            L.push('SINKING FUND / GOAL');
+            L.push(`Goal,${csvField(goalName || '(unnamed)')}`);
+            L.push(`Progress,${formatMoney(goalCurrent)} of ${formatMoney(goalTarget)} (${pct.toFixed(0)}%)`);
+            L.push('');
+
+            const expenseSection = (title, items) => {
+                L.push(title);
+                L.push('Date,Name,Amount,Status');
+                if (!items.length) L.push('(none)');
+                items.forEach(item => {
+                    L.push(`${itemDate(item)},${csvField(item.name || '')},${formatMoney(item.amount || 0)},${item.status || ''}`);
+                });
+                const total = items.reduce((sum, it) => sum + (it.amount || 0), 0);
+                L.push(`TOTAL,,${formatMoney(total)},`);
+                L.push('');
+            };
+            expenseSection('OUT OF POCKET EXPENSES', liveData.Out_Of_Pocket || []);
+            expenseSection('BANK INITIATED EXPENSES', liveData.Bank_Initiated || []);
+
+            L.push('FILL UPS');
+            L.push('Date,Name,Status');
+            const fillUps = liveData.Fill_Ups || [];
+            if (!fillUps.length) L.push('(none)');
+            fillUps.forEach(item => L.push(`${itemDate(item)},${csvField(item.name || '')},${item.status || ''}`));
+            L.push('');
+
+            const reconSection = (title, tabName, items) => {
+                const start = reconBalances[tabName]?.start || 0;
+                const deducted = items.reduce((sum, it) => sum + (parseFloat(it.amount) || 0), 0);
+                const balance = start - deducted;
+                const reconciled = Math.abs(balance) < 0.005;
+                L.push(title);
+                L.push(`Starting Balance,${formatMoney(start)}`);
+                L.push('Date,Name,Deducted');
+                if (!items.length) L.push('(none)');
+                items.forEach(item => L.push(`${itemDate(item)},${csvField(item.name || '')},${formatMoney(item.amount || 0)}`));
+                L.push(`ENDING BALANCE,${formatMoney(balance)},${reconciled ? 'RECONCILED' : 'NOT RECONCILED'}`);
+                L.push('');
+            };
+            reconSection('BANK RECONCILIATION', 'Bank_Reconciliation', liveData.Bank_Reconciliation || []);
+            reconSection('GROCERY BUDGET', 'Grocery_Budget', liveData.Grocery_Budget || []);
+
+            L.push('PENDING / UNCLEARED SCRATCHPAD');
+            const scratch = DOM.scratchpadInput.value;
+            if (!scratch.trim()) L.push('(empty)');
+            else scratch.split(/\r?\n/).forEach(line => L.push(csvField(line)));
+
+            const csvContent = L.join('\n') + '\n';
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            const stamp = new Date().toISOString().split('T')[0];
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Fintech Ledger Session Report ${stamp}.csv`);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        };
+
+        const importFromCSV = (file) => {
+            if (!file) return;
+
+            if (!/\.csv$/i.test(file.name)) { alert('Import Aborted: Only .csv files are accepted.'); return; }
+            if (file.size > MAX_CSV_BYTES) { alert('Import Aborted: File exceeds the 1 MB limit.'); return; }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const { rows, unterminated } = parseCSV(e.target.result);
+
+                if (unterminated) { alert('Import Aborted: Malformed CSV (unclosed quote).'); return; }
+                if (rows.length === 0) { alert('Import Aborted: File is empty.'); return; }
+
+                const header = rows[0].map(f => f.trim());
+                if (header.length !== 6 || !CSV_HEADER.every((h, idx) => header[idx] === h)) {
+                    alert('Import Aborted: Invalid template. The first line must be exactly:\n' + CSV_HEADER.join(',') + '\n\n(Note: exported Session Reports are for recordkeeping and cannot be imported — use the import template instead.)');
+                    return;
+                }
+                if (rows.length - 1 > MAX_CSV_ROWS) {
+                    alert(`Import Aborted: File has more than ${MAX_CSV_ROWS} data rows.`);
+                    return;
+                }
+
+                const uid = auth.currentUser?.uid;
+                if (!uid) { alert('Authentication error.'); return; }
+
+                const errors = [];
+                const settingsUpdates = {};
+                const newEntries = [];
+                const seenVariables = new Set();
+                let skippedBlank = 0;
+
+                for (let i = 1; i < rows.length; i++) {
+                    const rowNum = i + 1;
+                    const cols = rows[i].map(c => c.trim());
+                    const fail = (msg) => errors.push(`Row ${rowNum}: ${msg}`);
+
+                    if (cols.length !== 6) { fail(`expected 6 columns, found ${cols.length}.`); continue; }
+                    const [dataType, category, name, amountStr, status, dateStr] = cols;
+
+                    if (dataType === 'Variable') {
+                        if (category !== 'Global') { fail(`Variable rows must use Category 'Global'.`); continue; }
+                        if (APP_MANAGED_SETTINGS.includes(name)) { fail(`'${name}' is managed inside the app and can't be imported.`); continue; }
+                        if (seenVariables.has(name)) { fail(`duplicate Variable '${name}'.`); continue; }
+                        seenVariables.add(name);
+
+                        if (IMPORT_TEXT_SETTINGS.includes(name)) {
+                            if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
+                            const rawText = rows[i][3]; // untrimmed: preserve multi-line scratchpad text
+                            if (rawText.trim() === '') { skippedBlank++; continue; } // blank = leave current value unchanged
+                            settingsUpdates[name] = rawText;
+                        } else if (IMPORT_NUMERIC_SETTINGS.includes(name)) {
+                            if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
+                            if (amountStr === '') { skippedBlank++; continue; } // blank = leave current value unchanged
+                            const num = parseCsvAmount(amountStr);
+                            if (num === null) { fail(`invalid amount '${amountStr}' (must be 0 to ${MAX_AMOUNT}).`); continue; }
+                            settingsUpdates[name] = num;
+                        } else {
+                            fail(`unknown Variable '${name}'.`);
+                        }
+
+                    } else if (dataType === 'Transaction') {
+                        if (APP_MANAGED_CATEGORIES.includes(category)) { fail(`${category} entries are managed inside the app and can't be imported.`); continue; }
+                        if (!IMPORT_CATEGORIES.includes(category)) { fail(`unknown Category '${category}'.`); continue; }
+                        if (!name) { fail('Name is required.'); continue; }
+                        if (name.length > MAX_NAME_LENGTH) { fail(`Name exceeds ${MAX_NAME_LENGTH} characters.`); continue; }
+
+                        const amount = parseCsvAmount(amountStr);
+                        if (amount === null) { fail(`invalid amount '${amountStr}' (must be 0 to ${MAX_AMOUNT}).`); continue; }
+
+                        if (status !== 'PAID' && status !== 'UNPAID') { fail('Status must be PAID or UNPAID.'); continue; }
+
+                        let createdDate = null;
+                        if (dateStr !== '') {
+                            const parsed = parseCsvDate(dateStr);
+                            if (!parsed) { fail(`invalid date '${dateStr}' (use YYYY-MM-DD or M/D/YYYY).`); continue; }
+                            createdDate = parsed.date;
+                        }
+
+                        newEntries.push({
+                            category, name, amount, status,
+                            createdAt: createdDate || serverTimestamp(),
+                            localTime: createdDate ? createdDate.getTime() : Date.now()
+                        });
+
+                    } else {
+                        fail(`unrecognized Data_Type '${dataType}'. Only Variable and Transaction rows are allowed.`);
+                    }
+                }
+
+                if (errors.length > 0) {
+                    const shown = errors.slice(0, 10).join('\n');
+                    const extra = errors.length > 10 ? `\n...and ${errors.length - 10} more issue(s).` : '';
+                    alert(`Import Aborted — nothing was saved.\n\n${shown}${extra}`);
+                    return;
+                }
+                if (newEntries.length === 0 && Object.keys(settingsUpdates).length === 0) {
+                    alert(skippedBlank > 0
+                        ? 'Nothing to import: every value in the file was left blank, so no changes would be made.'
+                        : 'Import Aborted: No data rows found below the header.');
+                    return;
+                }
+
+                const settingNames = Object.keys(settingsUpdates);
+                let summary = `Import ${newEntries.length} transaction(s)`;
+                summary += settingNames.length > 0
+                    ? ` and update ${settingNames.length} setting(s): ${settingNames.join(', ')}.`
+                    : '. No settings will change.';
+                if (skippedBlank > 0) summary += `\n${skippedBlank} blank value(s) will be left unchanged.`;
+                summary += `\n\nTransactions will be ADDED to your current session (existing entries are kept).`;
+                if (!confirm(summary)) return;
+
+                try {
+                    const entriesColRef = collection(db, 'users', uid, 'entries');
+                    const settingsDocRef = doc(db, 'users', uid, 'settings', 'budget');
+                    const commits = [];
+                    let batch = writeBatch(db);
+                    let ops = 0;
+
+                    newEntries.forEach(entry => {
+                        batch.set(doc(entriesColRef), entry);
+                        ops++;
+                        if (ops === 450) { commits.push(batch.commit()); batch = writeBatch(db); ops = 0; }
+                    });
+                    if (Object.keys(settingsUpdates).length > 0) {
+                        batch.set(settingsDocRef, settingsUpdates, { merge: true });
+                        ops++;
+                    }
+                    if (ops > 0) commits.push(batch.commit());
+                    await Promise.all(commits);
+
+                    alert('Ledger session successfully imported!');
+                } catch (err) {
+                    console.error(err);
+                    alert('Import failed during database commit.');
+                }
+            };
+
+            reader.readAsText(file);
+        };
+
         /* --- 2. GLOBAL STATE & CACHE --- */
         const DOM = {};
         let entriesCol = null, settingsRef = null;
@@ -470,6 +821,9 @@
                 btnGoogleSignin: document.getElementById('btn-google-signin'),
                 btnSignOut: document.getElementById('btn-sign-out'),
                 btnSavePdf: document.getElementById('btn-save-pdf'),
+                btnExportCsv: document.getElementById('btn-export-csv'),
+                btnImportCsv: document.getElementById('btn-import-csv'),
+                csvUploadInput: document.getElementById('csv-upload-input'),
                 btnHardReset: document.getElementById('btn-hard-reset')
             });
         };
@@ -500,9 +854,12 @@
                 htmlString += `<tr>`;
                 if (hasAmount) htmlString += `<td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td>`;
                 htmlString += `<td>${escapeHTML(item.name)}</td>`;
-                htmlString += `<td class="action-cell" ${!hasAmount ? 'style="text-align: right; justify-content: flex-end;"' : ''}>
-                    <span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> 
-                    <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span>
+                
+                htmlString += `<td class="action-cell">
+                    <div style="display: flex; align-items: center; justify-content: ${!hasAmount ? 'flex-end' : 'space-between'}; width: 100%;">
+                        <span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> 
+                        <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span>
+                    </div>
                 </td></tr>`;
             });
 
@@ -537,7 +894,12 @@
                 if (!item.name) return;
                 const amount = parseFloat(item.amount) || 0;
                 expenseTotal += amount;
-                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right; justify-content: flex-end;">-${formatMoney(amount)} <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span></td></tr>`;
+                
+                htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right;">
+                    <div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
+                        -${formatMoney(amount)} <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span>
+                    </div>
+                </td></tr>`;
             });
 
             reconBalances[tabName] = { start: parseFloat(savedStart), expenses: expenseTotal };
@@ -589,7 +951,7 @@
         };
 
         const renderAll = () => {
-            if (entriesLoaded !== true || settingsLoaded !== true) return; // Wait for both streams
+            if (entriesLoaded !== true || settingsLoaded !== true) return; 
             try {
                 buildStandardTable(liveData.Out_Of_Pocket, 'out-of-pocket-body', 'out-of-pocket-total', 'Out_Of_Pocket', true);
                 buildStandardTable(liveData.Bank_Initiated, 'bank-initiated-body', 'bank-initiated-total', 'Bank_Initiated', true);
@@ -667,7 +1029,7 @@
             if (!startInput) return;
 
             let startVal = parseFloat(startInput.value);
-            if (isNaN(startVal) || !isFinite(startVal)) startVal = 0; // Guard math before UI revert occurs
+            if (isNaN(startVal) || !isFinite(startVal)) startVal = 0;
 
             reconBalances[tabName].start = startVal;
             const currentBalance = startVal - reconBalances[tabName].expenses;
@@ -705,7 +1067,6 @@
             try { await setDoc(settingsRef, { goalName: DOM.goalName.value, goalTarget: parseFloat(DOM.goalTarget.value) || 0, goalCurrent: parseFloat(DOM.goalCurrent.value) || 0 }, { merge: true }); } catch (err) { console.error(err); }
         }, 500);
 
-        // Removed debounce to prevent race condition when rapidly changing multiple recon inputs
         const persistStartingBalance = async (tbodyId, tabName, value) => {
             const field = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
             const num = parseFloat(value);
@@ -793,6 +1154,15 @@
             });
             DOM.btnSignOut.addEventListener('click', () => signOut(auth));
             DOM.btnSavePdf.addEventListener('click', () => window.print());
+            DOM.btnExportCsv.addEventListener('click', exportToCSV);
+            DOM.btnImportCsv.addEventListener('click', () => DOM.csvUploadInput.click());
+            DOM.csvUploadInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    importFromCSV(file);
+                    e.target.value = '';
+                }
+            });
             DOM.btnHardReset.addEventListener('click', performHardReset);
 
             DOM.spendableIncome.addEventListener('input', () => { calculateRevenue(); persistSpendableIncome(); });
