@@ -97,7 +97,6 @@
         .save-btn { background: var(--success-green); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         .save-btn:hover { background: #059669; }
 
-        /* Fix applied here: Removed 'display: flex' to prevent table rendering glitches */
         .action-cell { vertical-align: middle; }
         
         .delete-btn { color: #d1d5db; font-size: 1.2rem; cursor: pointer; padding-left: 0.75rem; transition: color 0.2s; font-weight: bold; line-height: 1; }
@@ -156,7 +155,7 @@
             th, td { padding: 0.75rem 0.75rem; } 
             .dashboard-header { flex-direction: column !important; align-items: stretch !important; gap: 1rem; }
             .header-actions { flex-direction: column; align-items: flex-start !important; width: 100%; }
-            .header-button-group { display: flex; width: 100%; gap: 0.5rem; }
+            .header-button-group { display: flex; width: 100%; gap: 0.5rem; flex-wrap: wrap; }
             .header-button-group button { flex-grow: 1; justify-content: center; }
         }
         
@@ -217,6 +216,7 @@
             <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
                 <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
                 <div class="header-button-group" style="display: flex; gap: 0.5rem;">
+                    <button id="btn-export-csv" style="background: var(--success-green); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Export CSV</button>
                     <button id="btn-save-pdf" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Save PDF</button>
                     <button id="btn-sign-out" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Sign Out</button>
                 </div>
@@ -427,6 +427,44 @@
             return (status.toString().toUpperCase() === 'PAID') ? 'badge-paid' : 'badge-unpaid';
         };
 
+        const exportToCSV = () => {
+            let csvContent = "Data_Type,Category,Name,Amount,Status,Date\n";
+            
+            for (const [key, value] of Object.entries(settings)) {
+                const safeValue = typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+                csvContent += `Variable,Global,${key},${safeValue},,\n`;
+            }
+
+            for (const [category, items] of Object.entries(liveData)) {
+                items.forEach(item => {
+                    const safeName = item.name ? `"${item.name.toString().replace(/"/g, '""')}"` : '""';
+                    const amount = item.amount || 0;
+                    const status = item.status || "";
+                    
+                    let dateStr = "";
+                    if (item.createdAt && item.createdAt.toDate) {
+                        dateStr = item.createdAt.toDate().toISOString().split('T')[0];
+                    } else if (item.localTime) {
+                        dateStr = new Date(item.localTime).toISOString().split('T')[0];
+                    }
+
+                    csvContent += `Transaction,${category},${safeName},${amount},${status},${dateStr}\n`;
+                });
+            }
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Fintech Ledger Session Capture (CSV).csv"); 
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
         /* --- 2. GLOBAL STATE & CACHE --- */
         const DOM = {};
         let entriesCol = null, settingsRef = null;
@@ -472,6 +510,7 @@
                 btnGoogleSignin: document.getElementById('btn-google-signin'),
                 btnSignOut: document.getElementById('btn-sign-out'),
                 btnSavePdf: document.getElementById('btn-save-pdf'),
+                btnExportCsv: document.getElementById('btn-export-csv'),
                 btnHardReset: document.getElementById('btn-hard-reset')
             });
         };
@@ -503,7 +542,6 @@
                 if (hasAmount) htmlString += `<td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td>`;
                 htmlString += `<td>${escapeHTML(item.name)}</td>`;
                 
-                // Fix applied here: Wrapped content in a flex div to preserve td native rendering and border styling
                 htmlString += `<td class="action-cell">
                     <div style="display: flex; align-items: center; justify-content: ${!hasAmount ? 'flex-end' : 'space-between'}; width: 100%;">
                         <span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> 
@@ -544,7 +582,6 @@
                 const amount = parseFloat(item.amount) || 0;
                 expenseTotal += amount;
                 
-                // Fix applied here: Wrapped content in a flex div to preserve td native rendering and border styling
                 htmlString += `<tr><td>${escapeHTML(item.name)}</td><td class="action-cell amount-cell amount-red" style="text-align: right;">
                     <div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
                         -${formatMoney(amount)} <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span>
@@ -804,6 +841,7 @@
             });
             DOM.btnSignOut.addEventListener('click', () => signOut(auth));
             DOM.btnSavePdf.addEventListener('click', () => window.print());
+            DOM.btnExportCsv.addEventListener('click', exportToCSV);
             DOM.btnHardReset.addEventListener('click', performHardReset);
 
             DOM.spendableIncome.addEventListener('input', () => { calculateRevenue(); persistSpendableIncome(); });
