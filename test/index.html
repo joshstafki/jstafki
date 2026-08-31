@@ -429,117 +429,257 @@
             return (status.toString().toUpperCase() === 'PAID') ? 'badge-paid' : 'badge-unpaid';
         };
 
-        const exportToCSV = () => {
-            let csvContent = "Data_Type,Category,Name,Amount,Status,Date\n";
-            
-            for (const [key, value] of Object.entries(settings)) {
-                const safeValue = typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
-                csvContent += `Variable,Global,${key},${safeValue},,\n`;
+        /* --- CSV IMPORT / EXPORT (STRICT LEDGER SCHEMA) --- */
+        const CSV_HEADER = ['Data_Type', 'Category', 'Name', 'Amount', 'Status', 'Date'];
+        const CSV_CATEGORIES = ['Out_Of_Pocket', 'Bank_Initiated', 'Fill_Ups', 'Bank_Reconciliation', 'Grocery_Budget'];
+        const STATUS_CATEGORIES = ['Out_Of_Pocket', 'Bank_Initiated', 'Fill_Ups'];
+        const NUMERIC_SETTINGS = ['spendableIncome', 'bankReconStart', 'groceryStart', 'goalTarget', 'goalCurrent', 'estGas', 'estGroceries'];
+        const TEXT_SETTINGS = ['scratchpadText', 'goalName'];
+        const DATE_SETTINGS = ['sessionStart', 'sessionEnd'];
+        const SETTINGS_EXPORT_ORDER = ['spendableIncome', 'bankReconStart', 'groceryStart', 'sessionStart', 'sessionEnd', 'scratchpadText', 'goalName', 'goalTarget', 'goalCurrent', 'estGas', 'estGroceries'];
+        const MAX_CSV_BYTES = 1024 * 1024; // 1 MB
+        const MAX_CSV_ROWS = 2000;
+        const MAX_AMOUNT = 9999999;
+        const MAX_NAME_LENGTH = 200;
+
+        // RFC-4180 parser: handles quoted commas, escaped quotes (""), and newlines inside quotes.
+        const parseCSV = (text) => {
+            const rows = [];
+            let row = [], field = '', inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (inQuotes) {
+                    if (ch === '"') {
+                        if (text[i + 1] === '"') { field += '"'; i++; }
+                        else inQuotes = false;
+                    } else field += ch;
+                } else if (ch === '"') {
+                    inQuotes = true;
+                } else if (ch === ',') {
+                    row.push(field); field = '';
+                } else if (ch === '\n' || ch === '\r') {
+                    if (ch === '\r' && text[i + 1] === '\n') i++;
+                    row.push(field); field = '';
+                    rows.push(row); row = [];
+                } else {
+                    field += ch;
+                }
             }
+            if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+            return {
+                rows: rows.filter(r => !(r.length === 1 && r[0].trim() === '')),
+                unterminated: inQuotes
+            };
+        };
+
+        // Accepts YYYY-MM-DD or M/D/YYYY. Returns { iso, date } or null. Rejects impossible dates like 2/30.
+        const parseCsvDate = (raw) => {
+            const t = raw.trim();
+            let y, m, d, match;
+            if ((match = t.match(/^(\d{4})-(\d{2})-(\d{2})$/))) {
+                y = +match[1]; m = +match[2]; d = +match[3];
+            } else if ((match = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) {
+                m = +match[1]; d = +match[2]; y = +match[3];
+            } else return null;
+            const dt = new Date(y, m - 1, d, 12, 0, 0);
+            if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+            return { iso: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, date: dt };
+        };
+
+        // Non-negative number, max 2 sanity bounds. Returns the number or null.
+        const parseCsvAmount = (raw) => {
+            const t = raw.trim();
+            if (!/^\d+(\.\d+)?$/.test(t)) return null;
+            const n = parseFloat(t);
+            if (!isFinite(n) || n < 0 || n > MAX_AMOUNT) return null;
+            return n;
+        };
+
+        const csvField = (value) => {
+            const s = (value ?? '').toString();
+            return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        };
+
+        const exportToCSV = () => {
+            let csvContent = CSV_HEADER.join(',') + '\n';
+
+            SETTINGS_EXPORT_ORDER.forEach(key => {
+                const value = settings[key];
+                if (DATE_SETTINGS.includes(key)) {
+                    csvContent += `Variable,Global,${key},,,${csvField(value || '')}\n`;
+                } else {
+                    const fallback = TEXT_SETTINGS.includes(key) ? '' : 0;
+                    csvContent += `Variable,Global,${key},${csvField(value ?? fallback)},,\n`;
+                }
+            });
 
             for (const [category, items] of Object.entries(liveData)) {
                 items.forEach(item => {
-                    const safeName = item.name ? `"${item.name.toString().replace(/"/g, '""')}"` : '""';
-                    const amount = item.amount || 0;
-                    const status = item.status || "";
-                    
-                    let dateStr = "";
+                    let dateStr = '';
                     if (item.createdAt && item.createdAt.toDate) {
                         dateStr = item.createdAt.toDate().toISOString().split('T')[0];
                     } else if (item.localTime) {
                         dateStr = new Date(item.localTime).toISOString().split('T')[0];
                     }
-
-                    csvContent += `Transaction,${category},${safeName},${amount},${status},${dateStr}\n`;
+                    csvContent += [
+                        'Transaction', category, csvField(item.name || ''),
+                        item.amount || 0, item.status || '', dateStr
+                    ].join(',') + '\n';
                 });
             }
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
-            
-            link.setAttribute("href", url);
-            link.setAttribute("download", "Fintech Ledger Session Capture (CSV).csv"); 
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'Fintech Ledger Session Capture (CSV).csv');
             link.style.visibility = 'hidden';
-            
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         };
 
-        const importFromCSV = async (file) => {
+        const importFromCSV = (file) => {
             if (!file) return;
-            const reader = new FileReader();
-            
-            reader.onload = async (e) => {
-                const text = e.target.result;
-                const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
 
-                const expectedHeader = "Data_Type,Category,Name,Amount,Status,Date";
-                if (lines[0].trim() !== expectedHeader) {
-                    alert("Import Aborted: Invalid template. The file must match the exact Fintech Ledger schema.");
+            if (!/\.csv$/i.test(file.name)) { alert('Import Aborted: Only .csv files are accepted.'); return; }
+            if (file.size > MAX_CSV_BYTES) { alert('Import Aborted: File exceeds the 1 MB limit.'); return; }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const { rows, unterminated } = parseCSV(e.target.result);
+
+                if (unterminated) { alert('Import Aborted: Malformed CSV (unclosed quote).'); return; }
+                if (rows.length === 0) { alert('Import Aborted: File is empty.'); return; }
+
+                const header = rows[0].map(f => f.trim());
+                if (header.length !== 6 || !CSV_HEADER.every((h, idx) => header[idx] === h)) {
+                    alert('Import Aborted: Invalid template. The first line must be exactly:\n' + CSV_HEADER.join(','));
+                    return;
+                }
+                if (rows.length - 1 > MAX_CSV_ROWS) {
+                    alert(`Import Aborted: File has more than ${MAX_CSV_ROWS} data rows.`);
                     return;
                 }
 
                 const uid = auth.currentUser?.uid;
-                if (!uid) { alert("Authentication error."); return; }
+                if (!uid) { alert('Authentication error.'); return; }
 
-                const batch = writeBatch(db);
-                const settingsDocRef = doc(db, "users", uid, "settings", "budget");
-                const entriesColRef = collection(db, "users", uid, "entries");
-                let settingsUpdates = {};
+                const errors = [];
+                const settingsUpdates = {};
+                const newEntries = [];
 
-                for (let i = 1; i < lines.length; i++) {
-                    const rowText = lines[i];
-                    const cols = rowText.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
+                for (let i = 1; i < rows.length; i++) {
+                    const rowNum = i + 1;
+                    const cols = rows[i].map(c => c.trim());
+                    const fail = (msg) => errors.push(`Row ${rowNum}: ${msg}`);
 
-                    if (cols.length !== 6) {
-                        alert(`Import Aborted: Row ${i + 1} is corrupted or missing columns.\n${rowText}`);
-                        return;
-                    }
-
+                    if (cols.length !== 6) { fail(`expected 6 columns, found ${cols.length}.`); continue; }
                     const [dataType, category, name, amountStr, status, dateStr] = cols;
 
-                    if (dataType === "Variable") {
-                        let parsedVal;
-                        if (name === "sessionStart" || name === "sessionEnd") {
-                            parsedVal = dateStr;
-                        } else if (name === "scratchpadText" || name === "goalName") {
-                            parsedVal = amountStr; 
+                    if (dataType === 'Variable') {
+                        if (category !== 'Global') { fail(`Variable rows must use Category 'Global'.`); continue; }
+                        if (Object.prototype.hasOwnProperty.call(settingsUpdates, name)) { fail(`duplicate Variable '${name}'.`); continue; }
+
+                        if (DATE_SETTINGS.includes(name)) {
+                            if (amountStr !== '' || status !== '') { fail(`'${name}' must leave Amount and Status blank.`); continue; }
+                            if (dateStr === '') { settingsUpdates[name] = ''; continue; }
+                            const parsed = parseCsvDate(dateStr);
+                            if (!parsed) { fail(`invalid date '${dateStr}' (use YYYY-MM-DD or M/D/YYYY).`); continue; }
+                            settingsUpdates[name] = parsed.iso;
+                        } else if (TEXT_SETTINGS.includes(name)) {
+                            if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
+                            settingsUpdates[name] = rows[i][3]; // untrimmed: preserve multi-line scratchpad text
+                        } else if (NUMERIC_SETTINGS.includes(name)) {
+                            if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
+                            const num = parseCsvAmount(amountStr);
+                            if (num === null) { fail(`invalid amount '${amountStr}' (must be 0 to ${MAX_AMOUNT}).`); continue; }
+                            settingsUpdates[name] = num;
                         } else {
-                            parsedVal = parseFloat(amountStr) || 0;
+                            fail(`unknown Variable '${name}'.`);
                         }
-                        settingsUpdates[name] = parsedVal;
-                        
-                    } else if (dataType === "Transaction") {
-                        batch.set(doc(entriesColRef), {
-                            category: category,
-                            name: name,
-                            amount: parseFloat(amountStr) || 0,
-                            status: status,
-                            createdAt: dateStr ? new Date(dateStr + 'T12:00:00') : serverTimestamp(),
-                            localTime: dateStr ? new Date(dateStr + 'T12:00:00').getTime() : Date.now()
+
+                    } else if (dataType === 'Transaction') {
+                        if (!CSV_CATEGORIES.includes(category)) { fail(`unknown Category '${category}'.`); continue; }
+                        if (!name) { fail('Name is required.'); continue; }
+                        if (name.length > MAX_NAME_LENGTH) { fail(`Name exceeds ${MAX_NAME_LENGTH} characters.`); continue; }
+
+                        let amount = 0;
+                        if (category === 'Fill_Ups') {
+                            if (amountStr !== '' && amountStr !== '0') { fail('Fill_Ups amount must be 0 or blank.'); continue; }
+                        } else {
+                            amount = parseCsvAmount(amountStr);
+                            if (amount === null) { fail(`invalid amount '${amountStr}' (must be 0 to ${MAX_AMOUNT}).`); continue; }
+                        }
+
+                        if (STATUS_CATEGORIES.includes(category)) {
+                            if (status !== 'PAID' && status !== 'UNPAID') { fail('Status must be PAID or UNPAID.'); continue; }
+                        } else if (status !== '') {
+                            fail(`${category} rows must leave Status blank.`); continue;
+                        }
+
+                        let createdDate = null;
+                        if (dateStr !== '') {
+                            const parsed = parseCsvDate(dateStr);
+                            if (!parsed) { fail(`invalid date '${dateStr}' (use YYYY-MM-DD or M/D/YYYY).`); continue; }
+                            createdDate = parsed.date;
+                        }
+
+                        newEntries.push({
+                            category, name, amount,
+                            status: STATUS_CATEGORIES.includes(category) ? status : '',
+                            createdAt: createdDate || serverTimestamp(),
+                            localTime: createdDate ? createdDate.getTime() : Date.now()
                         });
-                        
+
                     } else {
-                        alert(`Import Aborted: Unrecognized Data_Type '${dataType}' on row ${i + 1}.`);
-                        return;
+                        fail(`unrecognized Data_Type '${dataType}'. Only Variable and Transaction rows are allowed.`);
                     }
                 }
 
-                if (Object.keys(settingsUpdates).length > 0) {
-                    batch.set(settingsDocRef, settingsUpdates, { merge: true });
+                if (errors.length > 0) {
+                    const shown = errors.slice(0, 10).join('\n');
+                    const extra = errors.length > 10 ? `\n...and ${errors.length - 10} more issue(s).` : '';
+                    alert(`Import Aborted — nothing was saved.\n\n${shown}${extra}`);
+                    return;
+                }
+                if (newEntries.length === 0 && Object.keys(settingsUpdates).length === 0) {
+                    alert('Import Aborted: No data rows found below the header.');
+                    return;
                 }
 
+                const summary = `Import ${newEntries.length} transaction(s) and update ${Object.keys(settingsUpdates).length} setting(s)?\n\nTransactions will be ADDED to your current session (existing entries are kept).`;
+                if (!confirm(summary)) return;
+
                 try {
-                    await batch.commit();
-                    alert("Ledger session successfully imported!");
+                    const entriesColRef = collection(db, 'users', uid, 'entries');
+                    const settingsDocRef = doc(db, 'users', uid, 'settings', 'budget');
+                    const commits = [];
+                    let batch = writeBatch(db);
+                    let ops = 0;
+
+                    newEntries.forEach(entry => {
+                        batch.set(doc(entriesColRef), entry);
+                        ops++;
+                        if (ops === 450) { commits.push(batch.commit()); batch = writeBatch(db); ops = 0; }
+                    });
+                    if (Object.keys(settingsUpdates).length > 0) {
+                        batch.set(settingsDocRef, settingsUpdates, { merge: true });
+                        ops++;
+                    }
+                    if (ops > 0) commits.push(batch.commit());
+                    await Promise.all(commits);
+
+                    alert('Ledger session successfully imported!');
                 } catch (err) {
                     console.error(err);
-                    alert("Import failed during database commit. No data was saved.");
+                    alert('Import failed during database commit.');
                 }
             };
-            
+
             reader.readAsText(file);
         };
 
