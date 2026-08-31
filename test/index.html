@@ -208,7 +208,7 @@
         <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <h1>Financial Dashboard</h1>
-                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) v1.00.20</p>
+                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase)</p>
                 <button id="btn-hard-reset" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
                     Hard Reset (Wipe Session Data)
                 </button>
@@ -217,7 +217,7 @@
                 <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
                 <div class="header-button-group" style="display: flex; gap: 0.5rem;">
                     <input type="file" id="csv-upload-input" accept=".csv" style="display: none;">
-                    <button id="btn-import-csv" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Import CSV</button>
+                    <button id="btn-import-csv" style="background: #f97316; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Import CSV</button>
                     <button id="btn-export-csv" style="background: var(--success-green); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Export CSV</button>
                     <button id="btn-save-pdf" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Save PDF</button>
                     <button id="btn-sign-out" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Sign Out</button>
@@ -429,17 +429,21 @@
             return (status.toString().toUpperCase() === 'PAID') ? 'badge-paid' : 'badge-unpaid';
         };
 
-        /* --- CSV IMPORT / EXPORT (STRICT LEDGER SCHEMA — INPUTS ONLY) ---
-           The CSV carries raw user inputs only. Anything the app computes or
-           manages internally (Fill Ups, both reconciliation tables, starting
-           balances, session dates) is rejected on import and omitted from export. */
+        /* --- CSV IMPORT / EXPORT ---
+           IMPORT (strict, inputs only): the CSV template carries raw user inputs
+           only — Out of Pocket / Bank Initiated transactions plus the seven
+           editable settings. Anything the app computes or manages internally
+           (Fill Ups, both reconciliation tables, starting balances, session
+           dates) is rejected on import.
+           EXPORT (readable report): a full-session record for the user's own
+           recordkeeping, mirroring the dashboard including computed values.
+           Deliberately NOT importable. */
         const CSV_HEADER = ['Data_Type', 'Category', 'Name', 'Amount', 'Status', 'Date'];
         const IMPORT_CATEGORIES = ['Out_Of_Pocket', 'Bank_Initiated'];
         const APP_MANAGED_CATEGORIES = ['Fill_Ups', 'Bank_Reconciliation', 'Grocery_Budget'];
         const IMPORT_NUMERIC_SETTINGS = ['spendableIncome', 'estGas', 'estGroceries', 'goalTarget', 'goalCurrent'];
         const IMPORT_TEXT_SETTINGS = ['scratchpadText', 'goalName'];
         const APP_MANAGED_SETTINGS = ['bankReconStart', 'groceryStart', 'sessionStart', 'sessionEnd'];
-        const SETTINGS_EXPORT_ORDER = ['spendableIncome', 'estGas', 'estGroceries', 'scratchpadText', 'goalName', 'goalTarget', 'goalCurrent'];
         const MAX_CSV_BYTES = 1024 * 1024; // 1 MB
         const MAX_CSV_ROWS = 2000;
         const MAX_AMOUNT = 9999999;
@@ -508,36 +512,121 @@
             return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
         };
 
+        // Full-session report for the user's recordkeeping. Reads the same live
+        // sources the dashboard renders from, so the report always matches the
+        // screen — including every computed value.
         const exportToCSV = () => {
-            let csvContent = CSV_HEADER.join(',') + '\n';
+            const spendable = parseFloat(DOM.spendableIncome.value) || 0;
+            const estGas = parseFloat(DOM.estGas.value) || 0;
+            const estGroceries = parseFloat(DOM.estGroceries.value) || 0;
+            const outOfPocket = expenseTotals.Out_Of_Pocket || 0;
+            const bankInitiated = expenseTotals.Bank_Initiated || 0;
+            const totalExpenses = outOfPocket + bankInitiated;
+            const actualRevenue = spendable - totalExpenses;
+            const trueNet = actualRevenue - (estGas + estGroceries);
 
-            SETTINGS_EXPORT_ORDER.forEach(key => {
-                const fallback = IMPORT_TEXT_SETTINGS.includes(key) ? '' : 0;
-                csvContent += `Variable,Global,${key},${csvField(settings[key] ?? fallback)},,\n`;
-            });
+            const sessionStart = DOM.sessionStart.value;
+            const sessionEnd = DOM.sessionEnd.value;
+            let burnText = '--/day';
+            if (sessionStart && sessionEnd) {
+                const startDate = new Date(sessionStart);
+                const endDate = new Date(sessionEnd);
+                startDate.setHours(0, 0, 0, 0); endDate.setHours(0, 0, 0, 0);
+                let totalDays = Math.ceil(Math.abs(endDate - startDate) / 86400000);
+                if (totalDays === 0) totalDays = 1;
+                burnText = `${formatMoney(totalExpenses / totalDays)}/day`;
+            }
 
-            // Export exactly what import accepts — app-managed categories stay out of the CSV.
-            IMPORT_CATEGORIES.forEach(category => {
-                (liveData[category] || []).forEach(item => {
-                    let dateStr = '';
-                    if (item.createdAt && item.createdAt.toDate) {
-                        dateStr = item.createdAt.toDate().toISOString().split('T')[0];
-                    } else if (item.localTime) {
-                        dateStr = new Date(item.localTime).toISOString().split('T')[0];
-                    }
-                    csvContent += [
-                        'Transaction', category, csvField(item.name || ''),
-                        item.amount || 0, item.status || '', dateStr
-                    ].join(',') + '\n';
+            const itemDate = (item) => {
+                if (item.createdAt && item.createdAt.toDate) return item.createdAt.toDate().toISOString().split('T')[0];
+                if (item.localTime) return new Date(item.localTime).toISOString().split('T')[0];
+                return '';
+            };
+
+            const L = [];
+            L.push('FINTECH LEDGER SESSION REPORT');
+            L.push(`Exported,${csvField(new Date().toLocaleString())}`);
+            if (auth.currentUser?.email) L.push(`Account,${csvField(auth.currentUser.email)}`);
+            L.push(`Session,${sessionStart || 'not set'} to ${sessionEnd || 'not set'}`);
+            L.push('');
+
+            L.push('SUMMARY');
+            L.push(`Total Spendable Income,${formatMoney(spendable)}`);
+            L.push(`Out of Pocket Expenses,${formatMoney(outOfPocket)}`);
+            L.push(`Bank Initiated Expenses,${formatMoney(bankInitiated)}`);
+            L.push(`Total Expenses,${formatMoney(totalExpenses)}`);
+            L.push(`Actual Total Revenue,${formatMoney(actualRevenue)}`);
+            L.push(`Est. Gas,${formatMoney(estGas)}`);
+            L.push(`Est. Groceries,${formatMoney(estGroceries)}`);
+            L.push(`True Net Revenue,${formatMoney(trueNet)}`);
+            L.push(`Burn Rate,${burnText}`);
+            L.push('');
+
+            L.push('SAFE TO SPEND SPLIT (50/30/20)');
+            L.push(`Savings (50%),${formatMoney(spendable > 0 ? spendable * 0.50 : 0)}`);
+            L.push(`Fun (30%),${formatMoney(spendable > 0 ? spendable * 0.30 : 0)}`);
+            L.push(`Invest (20%),${formatMoney(spendable > 0 ? spendable * 0.20 : 0)}`);
+            L.push('');
+
+            const goalName = DOM.goalName.value.trim();
+            const goalCurrent = parseFloat(DOM.goalCurrent.value) || 0;
+            const goalTarget = parseFloat(DOM.goalTarget.value) || 0;
+            const pct = goalTarget > 0 ? Math.min((goalCurrent / goalTarget) * 100, 100) : 0;
+            L.push('SINKING FUND / GOAL');
+            L.push(`Goal,${csvField(goalName || '(unnamed)')}`);
+            L.push(`Progress,${formatMoney(goalCurrent)} of ${formatMoney(goalTarget)} (${pct.toFixed(0)}%)`);
+            L.push('');
+
+            const expenseSection = (title, items) => {
+                L.push(title);
+                L.push('Date,Name,Amount,Status');
+                if (!items.length) L.push('(none)');
+                items.forEach(item => {
+                    L.push(`${itemDate(item)},${csvField(item.name || '')},${formatMoney(item.amount || 0)},${item.status || ''}`);
                 });
-            });
+                const total = items.reduce((sum, it) => sum + (it.amount || 0), 0);
+                L.push(`TOTAL,,${formatMoney(total)},`);
+                L.push('');
+            };
+            expenseSection('OUT OF POCKET EXPENSES', liveData.Out_Of_Pocket || []);
+            expenseSection('BANK INITIATED EXPENSES', liveData.Bank_Initiated || []);
 
+            L.push('FILL UPS');
+            L.push('Date,Name,Status');
+            const fillUps = liveData.Fill_Ups || [];
+            if (!fillUps.length) L.push('(none)');
+            fillUps.forEach(item => L.push(`${itemDate(item)},${csvField(item.name || '')},${item.status || ''}`));
+            L.push('');
+
+            const reconSection = (title, tabName, items) => {
+                const start = reconBalances[tabName]?.start || 0;
+                const deducted = items.reduce((sum, it) => sum + (parseFloat(it.amount) || 0), 0);
+                const balance = start - deducted;
+                const reconciled = Math.abs(balance) < 0.005;
+                L.push(title);
+                L.push(`Starting Balance,${formatMoney(start)}`);
+                L.push('Date,Name,Deducted');
+                if (!items.length) L.push('(none)');
+                items.forEach(item => L.push(`${itemDate(item)},${csvField(item.name || '')},${formatMoney(item.amount || 0)}`));
+                L.push(`ENDING BALANCE,${formatMoney(balance)},${reconciled ? 'RECONCILED' : 'NOT RECONCILED'}`);
+                L.push('');
+            };
+            reconSection('BANK RECONCILIATION', 'Bank_Reconciliation', liveData.Bank_Reconciliation || []);
+            reconSection('GROCERY BUDGET', 'Grocery_Budget', liveData.Grocery_Budget || []);
+
+            L.push('PENDING / UNCLEARED SCRATCHPAD');
+            const scratch = DOM.scratchpadInput.value;
+            if (!scratch.trim()) L.push('(empty)');
+            else scratch.split(/\r?\n/).forEach(line => L.push(csvField(line)));
+
+            const csvContent = L.join('\n') + '\n';
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
 
+            const stamp = new Date().toISOString().split('T')[0];
             link.setAttribute('href', url);
-            link.setAttribute('download', 'Fintech Ledger Session Capture (CSV).csv');
+            link.setAttribute('download', `Fintech Ledger Session Report ${stamp}.csv`);
             link.style.visibility = 'hidden';
 
             document.body.appendChild(link);
@@ -561,7 +650,7 @@
 
                 const header = rows[0].map(f => f.trim());
                 if (header.length !== 6 || !CSV_HEADER.every((h, idx) => header[idx] === h)) {
-                    alert('Import Aborted: Invalid template. The first line must be exactly:\n' + CSV_HEADER.join(','));
+                    alert('Import Aborted: Invalid template. The first line must be exactly:\n' + CSV_HEADER.join(',') + '\n\n(Note: exported Session Reports are for recordkeeping and cannot be imported — use the import template instead.)');
                     return;
                 }
                 if (rows.length - 1 > MAX_CSV_ROWS) {
