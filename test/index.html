@@ -664,6 +664,8 @@
                 const errors = [];
                 const settingsUpdates = {};
                 const newEntries = [];
+                const seenVariables = new Set();
+                let skippedBlank = 0;
 
                 for (let i = 1; i < rows.length; i++) {
                     const rowNum = i + 1;
@@ -676,13 +678,17 @@
                     if (dataType === 'Variable') {
                         if (category !== 'Global') { fail(`Variable rows must use Category 'Global'.`); continue; }
                         if (APP_MANAGED_SETTINGS.includes(name)) { fail(`'${name}' is managed inside the app and can't be imported.`); continue; }
-                        if (Object.prototype.hasOwnProperty.call(settingsUpdates, name)) { fail(`duplicate Variable '${name}'.`); continue; }
+                        if (seenVariables.has(name)) { fail(`duplicate Variable '${name}'.`); continue; }
+                        seenVariables.add(name);
 
                         if (IMPORT_TEXT_SETTINGS.includes(name)) {
                             if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
-                            settingsUpdates[name] = rows[i][3]; // untrimmed: preserve multi-line scratchpad text
+                            const rawText = rows[i][3]; // untrimmed: preserve multi-line scratchpad text
+                            if (rawText.trim() === '') { skippedBlank++; continue; } // blank = leave current value unchanged
+                            settingsUpdates[name] = rawText;
                         } else if (IMPORT_NUMERIC_SETTINGS.includes(name)) {
                             if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
+                            if (amountStr === '') { skippedBlank++; continue; } // blank = leave current value unchanged
                             const num = parseCsvAmount(amountStr);
                             if (num === null) { fail(`invalid amount '${amountStr}' (must be 0 to ${MAX_AMOUNT}).`); continue; }
                             settingsUpdates[name] = num;
@@ -726,11 +732,19 @@
                     return;
                 }
                 if (newEntries.length === 0 && Object.keys(settingsUpdates).length === 0) {
-                    alert('Import Aborted: No data rows found below the header.');
+                    alert(skippedBlank > 0
+                        ? 'Nothing to import: every value in the file was left blank, so no changes would be made.'
+                        : 'Import Aborted: No data rows found below the header.');
                     return;
                 }
 
-                const summary = `Import ${newEntries.length} transaction(s) and update ${Object.keys(settingsUpdates).length} setting(s)?\n\nTransactions will be ADDED to your current session (existing entries are kept).`;
+                const settingNames = Object.keys(settingsUpdates);
+                let summary = `Import ${newEntries.length} transaction(s)`;
+                summary += settingNames.length > 0
+                    ? ` and update ${settingNames.length} setting(s): ${settingNames.join(', ')}.`
+                    : '. No settings will change.';
+                if (skippedBlank > 0) summary += `\n${skippedBlank} blank value(s) will be left unchanged.`;
+                summary += `\n\nTransactions will be ADDED to your current session (existing entries are kept).`;
                 if (!confirm(summary)) return;
 
                 try {
