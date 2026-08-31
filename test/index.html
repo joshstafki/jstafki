@@ -208,7 +208,7 @@
         <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <h1>Financial Dashboard</h1>
-                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) v1.00.11</p>
+                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase)</p>
                 <button id="btn-hard-reset" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
                     Hard Reset (Wipe Session Data)
                 </button>
@@ -429,14 +429,17 @@
             return (status.toString().toUpperCase() === 'PAID') ? 'badge-paid' : 'badge-unpaid';
         };
 
-        /* --- CSV IMPORT / EXPORT (STRICT LEDGER SCHEMA) --- */
+        /* --- CSV IMPORT / EXPORT (STRICT LEDGER SCHEMA — INPUTS ONLY) ---
+           The CSV carries raw user inputs only. Anything the app computes or
+           manages internally (Fill Ups, both reconciliation tables, starting
+           balances, session dates) is rejected on import and omitted from export. */
         const CSV_HEADER = ['Data_Type', 'Category', 'Name', 'Amount', 'Status', 'Date'];
-        const CSV_CATEGORIES = ['Out_Of_Pocket', 'Bank_Initiated', 'Fill_Ups', 'Bank_Reconciliation', 'Grocery_Budget'];
-        const STATUS_CATEGORIES = ['Out_Of_Pocket', 'Bank_Initiated', 'Fill_Ups'];
-        const NUMERIC_SETTINGS = ['spendableIncome', 'bankReconStart', 'groceryStart', 'goalTarget', 'goalCurrent', 'estGas', 'estGroceries'];
-        const TEXT_SETTINGS = ['scratchpadText', 'goalName'];
-        const DATE_SETTINGS = ['sessionStart', 'sessionEnd'];
-        const SETTINGS_EXPORT_ORDER = ['spendableIncome', 'bankReconStart', 'groceryStart', 'sessionStart', 'sessionEnd', 'scratchpadText', 'goalName', 'goalTarget', 'goalCurrent', 'estGas', 'estGroceries'];
+        const IMPORT_CATEGORIES = ['Out_Of_Pocket', 'Bank_Initiated'];
+        const APP_MANAGED_CATEGORIES = ['Fill_Ups', 'Bank_Reconciliation', 'Grocery_Budget'];
+        const IMPORT_NUMERIC_SETTINGS = ['spendableIncome', 'estGas', 'estGroceries', 'goalTarget', 'goalCurrent'];
+        const IMPORT_TEXT_SETTINGS = ['scratchpadText', 'goalName'];
+        const APP_MANAGED_SETTINGS = ['bankReconStart', 'groceryStart', 'sessionStart', 'sessionEnd'];
+        const SETTINGS_EXPORT_ORDER = ['spendableIncome', 'estGas', 'estGroceries', 'scratchpadText', 'goalName', 'goalTarget', 'goalCurrent'];
         const MAX_CSV_BYTES = 1024 * 1024; // 1 MB
         const MAX_CSV_ROWS = 2000;
         const MAX_AMOUNT = 9999999;
@@ -486,7 +489,7 @@
             return { iso: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, date: dt };
         };
 
-        // Non-negative number, max 2 sanity bounds. Returns the number or null.
+        // Non-negative number within sanity bounds. Returns the number or null.
         const parseCsvAmount = (raw) => {
             const t = raw.trim();
             if (!/^\d+(\.\d+)?$/.test(t)) return null;
@@ -509,17 +512,13 @@
             let csvContent = CSV_HEADER.join(',') + '\n';
 
             SETTINGS_EXPORT_ORDER.forEach(key => {
-                const value = settings[key];
-                if (DATE_SETTINGS.includes(key)) {
-                    csvContent += `Variable,Global,${key},,,${csvField(value || '')}\n`;
-                } else {
-                    const fallback = TEXT_SETTINGS.includes(key) ? '' : 0;
-                    csvContent += `Variable,Global,${key},${csvField(value ?? fallback)},,\n`;
-                }
+                const fallback = IMPORT_TEXT_SETTINGS.includes(key) ? '' : 0;
+                csvContent += `Variable,Global,${key},${csvField(settings[key] ?? fallback)},,\n`;
             });
 
-            for (const [category, items] of Object.entries(liveData)) {
-                items.forEach(item => {
+            // Export exactly what import accepts — app-managed categories stay out of the CSV.
+            IMPORT_CATEGORIES.forEach(category => {
+                (liveData[category] || []).forEach(item => {
                     let dateStr = '';
                     if (item.createdAt && item.createdAt.toDate) {
                         dateStr = item.createdAt.toDate().toISOString().split('T')[0];
@@ -531,7 +530,7 @@
                         item.amount || 0, item.status || '', dateStr
                     ].join(',') + '\n';
                 });
-            }
+            });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
@@ -587,18 +586,13 @@
 
                     if (dataType === 'Variable') {
                         if (category !== 'Global') { fail(`Variable rows must use Category 'Global'.`); continue; }
+                        if (APP_MANAGED_SETTINGS.includes(name)) { fail(`'${name}' is managed inside the app and can't be imported.`); continue; }
                         if (Object.prototype.hasOwnProperty.call(settingsUpdates, name)) { fail(`duplicate Variable '${name}'.`); continue; }
 
-                        if (DATE_SETTINGS.includes(name)) {
-                            if (amountStr !== '' || status !== '') { fail(`'${name}' must leave Amount and Status blank.`); continue; }
-                            if (dateStr === '') { settingsUpdates[name] = ''; continue; }
-                            const parsed = parseCsvDate(dateStr);
-                            if (!parsed) { fail(`invalid date '${dateStr}' (use YYYY-MM-DD or M/D/YYYY).`); continue; }
-                            settingsUpdates[name] = parsed.iso;
-                        } else if (TEXT_SETTINGS.includes(name)) {
+                        if (IMPORT_TEXT_SETTINGS.includes(name)) {
                             if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
                             settingsUpdates[name] = rows[i][3]; // untrimmed: preserve multi-line scratchpad text
-                        } else if (NUMERIC_SETTINGS.includes(name)) {
+                        } else if (IMPORT_NUMERIC_SETTINGS.includes(name)) {
                             if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
                             const num = parseCsvAmount(amountStr);
                             if (num === null) { fail(`invalid amount '${amountStr}' (must be 0 to ${MAX_AMOUNT}).`); continue; }
@@ -608,23 +602,15 @@
                         }
 
                     } else if (dataType === 'Transaction') {
-                        if (!CSV_CATEGORIES.includes(category)) { fail(`unknown Category '${category}'.`); continue; }
+                        if (APP_MANAGED_CATEGORIES.includes(category)) { fail(`${category} entries are managed inside the app and can't be imported.`); continue; }
+                        if (!IMPORT_CATEGORIES.includes(category)) { fail(`unknown Category '${category}'.`); continue; }
                         if (!name) { fail('Name is required.'); continue; }
                         if (name.length > MAX_NAME_LENGTH) { fail(`Name exceeds ${MAX_NAME_LENGTH} characters.`); continue; }
 
-                        let amount = 0;
-                        if (category === 'Fill_Ups') {
-                            if (amountStr !== '' && amountStr !== '0') { fail('Fill_Ups amount must be 0 or blank.'); continue; }
-                        } else {
-                            amount = parseCsvAmount(amountStr);
-                            if (amount === null) { fail(`invalid amount '${amountStr}' (must be 0 to ${MAX_AMOUNT}).`); continue; }
-                        }
+                        const amount = parseCsvAmount(amountStr);
+                        if (amount === null) { fail(`invalid amount '${amountStr}' (must be 0 to ${MAX_AMOUNT}).`); continue; }
 
-                        if (STATUS_CATEGORIES.includes(category)) {
-                            if (status !== 'PAID' && status !== 'UNPAID') { fail('Status must be PAID or UNPAID.'); continue; }
-                        } else if (status !== '') {
-                            fail(`${category} rows must leave Status blank.`); continue;
-                        }
+                        if (status !== 'PAID' && status !== 'UNPAID') { fail('Status must be PAID or UNPAID.'); continue; }
 
                         let createdDate = null;
                         if (dateStr !== '') {
@@ -634,8 +620,7 @@
                         }
 
                         newEntries.push({
-                            category, name, amount,
-                            status: STATUS_CATEGORIES.includes(category) ? status : '',
+                            category, name, amount, status,
                             createdAt: createdDate || serverTimestamp(),
                             localTime: createdDate ? createdDate.getTime() : Date.now()
                         });
