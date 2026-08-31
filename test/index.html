@@ -216,6 +216,8 @@
             <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
                 <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
                 <div class="header-button-group" style="display: flex; gap: 0.5rem;">
+                    <input type="file" id="csv-upload-input" accept=".csv" style="display: none;">
+                    <button id="btn-import-csv" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Import CSV</button>
                     <button id="btn-export-csv" style="background: var(--success-green); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Export CSV</button>
                     <button id="btn-save-pdf" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Save PDF</button>
                     <button id="btn-sign-out" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Sign Out</button>
@@ -465,6 +467,82 @@
             document.body.removeChild(link);
         };
 
+        const importFromCSV = async (file) => {
+            if (!file) return;
+            const reader = new FileReader();
+            
+            reader.onload = async (e) => {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+
+                const expectedHeader = "Data_Type,Category,Name,Amount,Status,Date";
+                if (lines[0].trim() !== expectedHeader) {
+                    alert("Import Aborted: Invalid template. The file must match the exact Fintech Ledger schema.");
+                    return;
+                }
+
+                const uid = auth.currentUser?.uid;
+                if (!uid) { alert("Authentication error."); return; }
+
+                const batch = writeBatch(db);
+                const settingsDocRef = doc(db, "users", uid, "settings", "budget");
+                const entriesColRef = collection(db, "users", uid, "entries");
+                let settingsUpdates = {};
+
+                for (let i = 1; i < lines.length; i++) {
+                    const rowText = lines[i];
+                    const cols = rowText.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
+
+                    if (cols.length !== 6) {
+                        alert(`Import Aborted: Row ${i + 1} is corrupted or missing columns.\n${rowText}`);
+                        return;
+                    }
+
+                    const [dataType, category, name, amountStr, status, dateStr] = cols;
+
+                    if (dataType === "Variable") {
+                        let parsedVal;
+                        if (name === "sessionStart" || name === "sessionEnd") {
+                            parsedVal = dateStr;
+                        } else if (name === "scratchpadText" || name === "goalName") {
+                            parsedVal = amountStr; 
+                        } else {
+                            parsedVal = parseFloat(amountStr) || 0;
+                        }
+                        settingsUpdates[name] = parsedVal;
+                        
+                    } else if (dataType === "Transaction") {
+                        batch.set(doc(entriesColRef), {
+                            category: category,
+                            name: name,
+                            amount: parseFloat(amountStr) || 0,
+                            status: status,
+                            createdAt: dateStr ? new Date(dateStr + 'T12:00:00') : serverTimestamp(),
+                            localTime: dateStr ? new Date(dateStr + 'T12:00:00').getTime() : Date.now()
+                        });
+                        
+                    } else {
+                        alert(`Import Aborted: Unrecognized Data_Type '${dataType}' on row ${i + 1}.`);
+                        return;
+                    }
+                }
+
+                if (Object.keys(settingsUpdates).length > 0) {
+                    batch.set(settingsDocRef, settingsUpdates, { merge: true });
+                }
+
+                try {
+                    await batch.commit();
+                    alert("Ledger session successfully imported!");
+                } catch (err) {
+                    console.error(err);
+                    alert("Import failed during database commit. No data was saved.");
+                }
+            };
+            
+            reader.readAsText(file);
+        };
+
         /* --- 2. GLOBAL STATE & CACHE --- */
         const DOM = {};
         let entriesCol = null, settingsRef = null;
@@ -511,6 +589,8 @@
                 btnSignOut: document.getElementById('btn-sign-out'),
                 btnSavePdf: document.getElementById('btn-save-pdf'),
                 btnExportCsv: document.getElementById('btn-export-csv'),
+                btnImportCsv: document.getElementById('btn-import-csv'),
+                csvUploadInput: document.getElementById('csv-upload-input'),
                 btnHardReset: document.getElementById('btn-hard-reset')
             });
         };
@@ -842,6 +922,14 @@
             DOM.btnSignOut.addEventListener('click', () => signOut(auth));
             DOM.btnSavePdf.addEventListener('click', () => window.print());
             DOM.btnExportCsv.addEventListener('click', exportToCSV);
+            DOM.btnImportCsv.addEventListener('click', () => DOM.csvUploadInput.click());
+            DOM.csvUploadInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    importFromCSV(file);
+                    e.target.value = '';
+                }
+            });
             DOM.btnHardReset.addEventListener('click', performHardReset);
 
             DOM.spendableIncome.addEventListener('input', () => { calculateRevenue(); persistSpendableIncome(); });
