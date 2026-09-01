@@ -47,6 +47,11 @@
 
     * { box-sizing: border-box; }
     html, body { height: 100%; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      html { scroll-behavior: smooth; }
+    }
+
     body {
       margin: 0;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -126,6 +131,14 @@
     .nav a {
       color: inherit;
       text-decoration: none;
+    }
+
+    .btn:focus-visible,
+    .nav a:focus-visible,
+    .brand:focus-visible {
+      outline: 2px solid var(--grad-teal);
+      outline-offset: 3px;
+      border-radius: 8px;
     }
 
     .hero {
@@ -219,6 +232,8 @@
 
     .dashboard {
       padding: 20px;
+      transition: transform 220ms ease-out;
+      will-change: transform;
     }
 
     .mini-header {
@@ -281,6 +296,10 @@
       font-weight: 700;
     }
 
+    .balance #balanceValue {
+      font-variant-numeric: tabular-nums;
+    }
+
     .chart {
       height: 180px;
       margin: 18px 0 18px;
@@ -292,6 +311,7 @@
       overflow: hidden;
     }
 
+    /* Graph-paper grid behind the SVG line */
     .chart::before {
       content: "";
       position: absolute;
@@ -299,10 +319,34 @@
       border-radius: 18px;
       background:
         linear-gradient(to right, rgba(255,255,255,0.10) 1px, transparent 1px) 0 0 / 20% 100%,
-        linear-gradient(to top, rgba(255,255,255,0.10) 1px, transparent 1px) 0 0 / 100% 20%,
-        linear-gradient(135deg, transparent 0 18%, rgba(124,58,237,0.9) 18% 38%, rgba(59,130,246,0.95) 38% 60%, rgba(45,212,191,0.95) 60% 78%, transparent 78% 100%);
-      clip-path: polygon(0 75%, 12% 67%, 24% 72%, 39% 55%, 52% 60%, 66% 38%, 80% 44%, 100% 18%, 100% 100%, 0 100%);
-      opacity: 0.95;
+        linear-gradient(to top, rgba(255,255,255,0.10) 1px, transparent 1px) 0 0 / 100% 20%;
+      opacity: 0.9;
+    }
+
+    .chart svg {
+      position: absolute;
+      inset: 18px;
+      width: calc(100% - 36px);
+      height: calc(100% - 36px);
+    }
+
+    .chart-line {
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+      animation: drawLine 1.6s ease-out 300ms forwards;
+    }
+
+    .chart-fill {
+      opacity: 0;
+      animation: fadeIn 800ms ease-out 1100ms forwards;
+    }
+
+    @keyframes drawLine {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
 
     .cards {
@@ -347,6 +391,12 @@
       border-radius: 20px;
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.10);
+      transition: transform 200ms ease, border-color 200ms ease;
+    }
+
+    .feature:hover {
+      transform: translateY(-3px);
+      border-color: rgba(45, 212, 191, 0.35);
     }
 
     .feature .icon {
@@ -373,6 +423,18 @@
       color: var(--muted);
       line-height: 1.65;
       font-size: 0.96rem;
+    }
+
+    /* Scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 600ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .reveal.in {
+      opacity: 1;
+      transform: none;
     }
 
     .section {
@@ -419,6 +481,24 @@
       font-size: 0.72rem;
       margin-top: 6px;
       opacity: 0.8;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+      .chart-line {
+        animation: none;
+        stroke-dashoffset: 0;
+      }
+      .chart-fill {
+        animation: none;
+        opacity: 1;
+      }
+      .pill-dot { animation: none; }
+      .btn, .feature, .dashboard { transition: none; }
     }
 
     @media (max-width: 980px) {
@@ -489,10 +569,31 @@
 
         <div class="balance">
           <span class="balance-label">Accumulate</span>
-          $48,920.14
+          <span id="balanceValue">$48,920.14</span>
         </div>
 
-        <div class="chart" aria-hidden="true"></div>
+        <div class="chart" aria-hidden="true">
+          <svg viewBox="0 0 400 160" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#7c3aed"/>
+                <stop offset="50%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#2dd4bf"/>
+              </linearGradient>
+              <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(59,130,246,0.25)"/>
+                <stop offset="100%" stop-color="rgba(59,130,246,0)"/>
+              </linearGradient>
+            </defs>
+            <path class="chart-fill"
+                  d="M0,120 L48,107 96,115 156,88 208,96 264,61 320,70 400,29 L400,160 0,160 Z"
+                  fill="url(#fillGrad)"/>
+            <path class="chart-line"
+                  d="M0,120 L48,107 96,115 156,88 208,96 264,61 320,70 400,29"
+                  fill="none" stroke="url(#lineGrad)" stroke-width="3"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
 
         <div class="cards">
           <div class="stat">
@@ -548,5 +649,74 @@
       <div class="footer-tagline">Personal. Finance. Reimagined.</div>
     </footer>
   </div>
+
+  <script>
+    (() => {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* ---------- Scroll reveal (features + CTA) ---------- */
+      const revealEls = document.querySelectorAll('.feature, .cta');
+      revealEls.forEach((el, i) => {
+        el.classList.add('reveal');
+        el.dataset.i = i % 3;
+      });
+
+      if (reduceMotion || !('IntersectionObserver' in window)) {
+        revealEls.forEach(el => el.classList.add('in'));
+      } else {
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              e.target.style.transitionDelay = `${(e.target.dataset.i || 0) * 90}ms`;
+              e.target.classList.add('in');
+              io.unobserve(e.target);
+            }
+          });
+        }, { threshold: 0.15 });
+        revealEls.forEach(el => io.observe(el));
+      }
+
+      /* ---------- Balance count-up ---------- */
+      const balanceEl = document.getElementById('balanceValue');
+      if (balanceEl) {
+        const target = 48920.14;
+        const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+        if (reduceMotion) {
+          balanceEl.textContent = fmt.format(target);
+        } else {
+          const dur = 1400;
+          const start = performance.now();
+          const tick = (now) => {
+            const p = Math.min((now - start) / dur, 1);
+            const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+            balanceEl.textContent = fmt.format(target * eased);
+            if (p < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }
+      }
+
+      /* ---------- Dashboard tilt (pointer devices only) ---------- */
+      const panel = document.querySelector('.dashboard');
+      const canTilt = panel
+        && !reduceMotion
+        && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+      if (canTilt) {
+        const MAX_DEG = 3;
+        panel.addEventListener('pointermove', (e) => {
+          const r = panel.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width - 0.5;
+          const y = (e.clientY - r.top) / r.height - 0.5;
+          panel.style.transform =
+            `perspective(900px) rotateX(${(-y * MAX_DEG).toFixed(2)}deg) rotateY(${(x * MAX_DEG).toFixed(2)}deg)`;
+        });
+        panel.addEventListener('pointerleave', () => {
+          panel.style.transform = '';
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
