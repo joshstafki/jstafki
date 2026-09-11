@@ -1,0 +1,10 @@
+Data_Type,Category,Name,Amount,Status,Date
+Variable,Global,spendableIncome,,,
+Variable,Global,estGas,,,
+Variable,Global,estGroceries,,,
+Variable,Global,scratchpadText,,,
+Variable,Global,goalName,,,
+Variable,Global,goalTarget,,,
+Variable,Global,goalCurrent,,,
+Transaction,Out_Of_Pocket,Value,53,PAID,8/1/2026
+Transaction,Bank_Initiated,Value,50,UNPAID,8/2/2026
