@@ -66,7 +66,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.6rem;
+    gap: 0.15rem;
     margin-bottom: 1.25rem;
 }
 
@@ -185,6 +185,25 @@ button {
 .primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); }
 
 .left-actions { display: flex; gap: 0.5rem; }
+
+/* ---------- Mobile fixes ---------- */
+button { white-space: nowrap; }
+
+@media (max-width: 480px) {
+    body {
+        padding: 1rem;
+        min-height: 100dvh;
+        overflow-y: auto;
+    }
+    .card { padding: 2rem 1.5rem; }
+
+    .actions {
+        flex-direction: column-reverse; /* primary button on top */
+        align-items: stretch;
+    }
+    .left-actions { justify-content: space-between; }
+    .actions button { min-height: 44px; }
+}
 </style>
 </head>
 <body>
