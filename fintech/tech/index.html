@@ -3,6 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f4f7f9">
+    <script>
+        /* Apply the saved theme before first paint so there is no flash of the wrong theme.
+           The app script below keeps it in sync (localStorage on this device, Firestore across devices). */
+        (function () {
+            var modes = ['auto', 'light', 'dark'], accents = ['blue', 'violet', 'teal', 'orange', 'graphite'];
+            var t = { mode: 'auto', accent: 'blue' };
+            try {
+                var s = JSON.parse(localStorage.getItem('fintech.theme.v1') || 'null');
+                if (s && modes.indexOf(s.mode) > -1) t.mode = s.mode;
+                if (s && accents.indexOf(s.accent) > -1) t.accent = s.accent;
+            } catch (e) {}
+            var dark = t.mode === 'dark' || (t.mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            var root = document.documentElement;
+            root.setAttribute('data-theme', dark ? 'dark' : 'light');
+            root.setAttribute('data-accent', t.accent);
+            var m = document.querySelector('meta[name="theme-color"]');
+            if (m) m.setAttribute('content', dark ? '#0f172a' : '#f4f7f9');
+        })();
+    </script>
     <title>Financial Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="https://www.jstafki.com/assets/fintech/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,11 +31,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
+            color-scheme: light;
             --bg-color: #f4f7f9;
             --card-bg: #ffffff;
             --text-main: #333333;
             --text-muted: #6b7280;
-            --primary-blue: #3b82f6;
             --success-green: #10b981;
             --danger-red: #ef4444;
             --border-color: #e5e7eb;
@@ -31,34 +51,48 @@
             --ink: #0f172a;
             
             --row-alt: #f9fafb;
+
+            /* Derived from the chosen accent (see the accent swatches below). */
+            --accent-text: var(--accent);
+            --accent-soft: rgba(var(--accent-rgb), 0.10);
+            --goal-gradient: linear-gradient(90deg, var(--accent-text), var(--accent-end));
         }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #0f172a;
-                --card-bg: #1e293b;
-                --text-main: #f8fafc;
-                --text-muted: #94a3b8;
-                --border-color: #334155;
-                
-                --header-blue: rgba(59, 130, 246, 0.15);
-                --header-red: rgba(239, 68, 68, 0.15);
-                --header-green: rgba(16, 185, 129, 0.15);
-                --header-purple: rgba(139, 92, 246, 0.15);
+        /* Accent swatches. The swatch buttons in the Personalize dialog reuse these same rules through their data-accent attribute.
+           Fill colors are checked against white button text; only Blue (the original default) is below 4.5:1. */
+        :root, [data-accent="blue"] { --accent: #3b82f6; --accent-rgb: 59, 130, 246; --accent-end: #2dd4bf; --accent-text-dark: #60a5fa; }
+        [data-accent="violet"]   { --accent: #7c3aed; --accent-rgb: 124, 58, 237; --accent-end: #a78bfa; --accent-text-dark: #a78bfa; }
+        [data-accent="teal"]     { --accent: #0f766e; --accent-rgb: 15, 118, 110; --accent-end: #5eead4; --accent-text-dark: #2dd4bf; }
+        [data-accent="orange"]   { --accent: #c2410c; --accent-rgb: 194, 65, 12;  --accent-end: #fb923c; --accent-text-dark: #fb923c; }
+        [data-accent="graphite"] { --accent: #475569; --accent-rgb: 71, 85, 105;  --accent-end: #94a3b8; --accent-text-dark: #94a3b8; }
 
-                --row-alt: #0f172a;
-            }
-            .add-row-btn { background-color: var(--card-bg) !important; color: #60a5fa !important; }
-            .add-row-btn:hover { background-color: #334155 !important; }
-            .badge-paid { background-color: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important; }
-            .badge-unpaid { background-color: rgba(239, 68, 68, 0.2) !important; color: #f87171 !important; }
-            .inline-input { background-color: #0f172a; color: var(--text-main); }
-            .inline-input option { background-color: #0f172a; }
-            .header-blue { color: #60a5fa !important; }
-            .header-red { color: #f87171 !important; }
-            .header-green { color: #34d399 !important; }
-            .header-purple { color: #a78bfa !important; }
+        /* Dark theme. Set by script: Auto resolves to light or dark from the device setting, or the user picks one. */
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            
+            --header-blue: rgba(59, 130, 246, 0.15);
+            --header-red: rgba(239, 68, 68, 0.15);
+            --header-green: rgba(16, 185, 129, 0.15);
+            --header-purple: rgba(139, 92, 246, 0.15);
+
+            --row-alt: #0f172a;
+
+            --accent-text: var(--accent-text-dark);
+            --accent-soft: rgba(var(--accent-rgb), 0.18);
         }
+        :root[data-theme="dark"] .badge-paid { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+        :root[data-theme="dark"] .badge-unpaid { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
+        :root[data-theme="dark"] .inline-input { background-color: #0f172a; color: var(--text-main); }
+        :root[data-theme="dark"] .inline-input option { background-color: #0f172a; }
+        :root[data-theme="dark"] .header-blue { color: #60a5fa; }
+        :root[data-theme="dark"] .header-red { color: #f87171; }
+        :root[data-theme="dark"] .header-green { color: #34d399; }
+        :root[data-theme="dark"] .header-purple { color: #a78bfa; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem; transition: background-color 0.3s, color 0.3s; }
@@ -91,8 +125,8 @@
         .amount-red { color: var(--danger-red); }
         .amount-green { color: var(--success-green); }
 
-        .add-row-btn { cursor: pointer; color: var(--primary-blue); font-weight: 600; text-align: center; background-color: #ffffff; transition: background-color 0.2s; }
-        .add-row-btn:hover { background-color: #eff6ff; }
+        .add-row-btn { cursor: pointer; color: var(--accent-text); font-weight: 600; text-align: center; background-color: var(--card-bg); transition: background-color 0.2s; }
+        .add-row-btn:hover { background-color: var(--accent-soft); }
         .inline-input { width: 100%; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; font-family: inherit; }
         .save-btn { background: var(--success-green); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         .save-btn:hover { background: #059669; }
@@ -109,6 +143,46 @@
         .ghost-input { border: none; background: transparent; font-size: 2rem; font-weight: 700; color: var(--text-main); width: 100%; outline: none; font-family: inherit; border-bottom: 2px dashed transparent; transition: border-bottom 0.2s; padding: 0; -webkit-appearance: none; border-radius: 0; }
         .ghost-input:focus { border-bottom: 2px dashed var(--border-color); }
         .scratchpad-area { width: 100%; height: 100px; border: none; resize: none; background: transparent; color: var(--text-main); font-family: inherit; outline: none; font-size: 0.95rem; line-height: 1.5; }
+
+        /* --- Personalize: theme picker (bottom sheet on phones, centered dialog on desktop) --- */
+        /* Pen icon in the top-right of the Out of Pocket header. The 44px tap target uses negative margins so the header keeps its normal height. */
+        .card-header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+        .header-icon-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -12px -13px -12px 0; border: none; border-radius: 10px; background: transparent; color: inherit; cursor: pointer; }
+        .header-icon-btn:active { background: var(--accent-soft); }
+        @media (hover: hover) { .header-icon-btn:hover { background: var(--accent-soft); } }
+
+        .theme-dialog { width: 100%; max-width: 100%; margin: auto 0 0 0; padding: 0; overflow: hidden; border: 1px solid var(--border-color); border-bottom: 0; border-radius: 16px 16px 0 0; background: var(--card-bg); color: var(--text-main); }
+        .theme-dialog::backdrop { background: rgba(15, 23, 42, 0.4); }
+        .theme-panel { max-height: 85vh; max-height: 85dvh; overflow-y: auto; padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
+        .theme-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .theme-head h2 { font-size: 1.15rem; }
+        .theme-close { width: 44px; height: 44px; margin-right: -0.5rem; border: none; border-radius: 8px; background: transparent; color: var(--text-muted); font-size: 1.6rem; line-height: 1; cursor: pointer; }
+        .theme-group { min-width: 0; margin-bottom: 1.25rem; border: 0; }
+        .theme-group legend { padding: 0; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
+        .theme-hint { margin-top: 0.5rem; color: var(--text-muted); font-size: 0.8rem; }
+
+        .theme-segmented { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--row-alt); }
+        .theme-segmented label, .swatch { position: relative; cursor: pointer; }
+        .theme-segmented input, .swatch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .theme-segmented span { display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 8px; color: var(--text-muted); font-size: 0.95rem; font-weight: 600; }
+        .theme-segmented input:checked + span { background: var(--card-bg); color: var(--text-main); box-shadow: inset 0 0 0 2px var(--accent-text); }
+
+        .theme-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); gap: 0.5rem; }
+        .swatch { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; min-height: 44px; padding: 0.35rem 0; }
+        .swatch-dot { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); }
+        .swatch-dot::after { content: ''; width: 7px; height: 14px; border: solid #ffffff; border-width: 0 3px 3px 0; transform: rotate(45deg) translate(-1px, -1px); opacity: 0; }
+        .swatch input:checked + .swatch-dot { box-shadow: 0 0 0 3px var(--card-bg), 0 0 0 5px var(--accent); }
+        .swatch input:checked + .swatch-dot::after { opacity: 1; }
+        .swatch-name { color: var(--text-muted); font-size: 0.75rem; }
+        .swatch input:checked ~ .swatch-name { color: var(--text-main); font-weight: 600; }
+        .theme-segmented input:focus-visible + span, .swatch input:focus-visible + .swatch-dot { outline: 2px solid var(--text-main); outline-offset: 2px; }
+
+        .theme-actions { display: flex; justify-content: flex-end; }
+        .theme-reset { min-height: 44px; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: transparent; color: var(--text-main); font-weight: 600; cursor: pointer; }
+        body:has(dialog[open]) { overflow: hidden; }
+        @media (min-width: 769px) {
+            .theme-dialog { width: 420px; margin: auto; border-bottom: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35); }
+        }
 
         #auth-screen {
             position: relative; min-height: 100vh; margin: -2rem; padding: 2rem;
@@ -145,13 +219,14 @@
         .login-error { color: #fecaca; font-size: 0.85rem; margin-top: 0.9rem; min-height: 1.2em; }
 
         #loading-screen { text-align: center; margin-top: 5rem; font-family: 'Space Grotesk', sans-serif; color: var(--text-muted); }
-        .spinner { border: 4px solid rgba(0,0,0,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--primary-blue); animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+        .spinner { border: 4px solid rgba(0,0,0,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent); animation: spin 1s linear infinite; margin: 0 auto 1rem; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         @media (max-width: 768px) { 
             body { padding: 1rem; } 
             #auth-screen { margin: -1rem; padding: 1rem; } 
             .dashboard-grid { grid-template-columns: 1fr; }
+            .dashboard-grid > div { min-width: 0; } /* lets wide tables scroll inside their card instead of stretching the page on 320-360px phones */
             th, td { padding: 0.75rem 0.75rem; } 
             .dashboard-header { flex-direction: column !important; align-items: stretch !important; gap: 1rem; }
             .header-actions { flex-direction: column; align-items: flex-start !important; width: 100%; }
@@ -162,7 +237,7 @@
         @media print {
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             body { background-color: #ffffff; padding: 0; }
-            button, .add-row-btn, .delete-btn, #auth-screen, #loading-screen { display: none !important; }
+            button, .add-row-btn, .delete-btn, #auth-screen, #loading-screen, dialog { display: none !important; }
             tr[id^="inline-form-"] { display: none !important; }
             .dashboard-header { margin-bottom: 1rem; }
             .dashboard-header p { display: none; }
@@ -208,7 +283,7 @@
         <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <h1>Financial Dashboard</h1>
-                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) v1.00.22</p>
+                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) v1.00.32</p>
                 <button id="btn-hard-reset" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
                     Hard Reset (Wipe Session Data)
                 </button>
@@ -219,7 +294,7 @@
                     <input type="file" id="csv-upload-input" accept=".csv" style="display: none;">
                     <button id="btn-import-csv" style="background: #f97316; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Import CSV</button>
                     <button id="btn-export-csv" style="background: var(--success-green); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Export CSV</button>
-                    <button id="btn-save-pdf" style="background: var(--primary-blue); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Save PDF</button>
+                    <button id="btn-save-pdf" style="background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Save PDF</button>
                     <button id="btn-sign-out" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Sign Out</button>
                 </div>
             </div>
@@ -229,7 +304,12 @@
             <!-- Column 1: Expenses & Scratchpad -->
             <div>
                 <div class="card">
-                    <div class="card-header header-blue">Out of Pocket Expenses</div>
+                    <div class="card-header header-blue card-header-row">
+                        Out of Pocket Expenses
+                        <button type="button" id="btn-personalize" class="header-icon-btn" aria-label="Personalize" title="Personalize" aria-haspopup="dialog" aria-controls="theme-dialog">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                        </button>
+                    </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table>
@@ -303,7 +383,7 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Fun</div>
-                                <div id="split-fun" style="font-weight: 700; color: var(--primary-blue); font-size: 1.1rem;">$0.00</div>
+                                <div id="split-fun" style="font-weight: 700; color: var(--accent-text); font-size: 1.1rem;">$0.00</div>
                             </div>
                             <div>
                                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Invest</div>
@@ -329,7 +409,7 @@
                             </div>
                         </div>
                         <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; margin-top: 0.5rem; overflow: hidden;">
-                            <div id="goal-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--grad-blue), var(--grad-teal)); transition: width 0.3s ease;"></div>
+                            <div id="goal-progress-bar" style="height: 100%; width: 0%; background: var(--goal-gradient); transition: width 0.3s ease;"></div>
                         </div>
                     </div>
                 </div>
@@ -382,7 +462,7 @@
                     <div class="summary-card">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span class="summary-title">Ledger Session</span>
-                            <span id="burn-rate-badge" class="badge" style="background: var(--header-blue); color: var(--primary-blue); font-size: 0.7rem;">Burn: --/day</span>
+                            <span id="burn-rate-badge" class="badge" style="background: var(--accent-soft); color: var(--accent-text); font-size: 0.7rem;">Burn: --/day</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
                             <input type="date" id="session-start" class="inline-input">
@@ -394,6 +474,41 @@
             </div>
         </div>
     </div>
+
+    <!-- Personalize (theme) dialog: bottom sheet on phones, centered dialog on desktop -->
+    <dialog id="theme-dialog" class="theme-dialog" aria-labelledby="theme-title">
+        <div class="theme-panel">
+            <div class="theme-head">
+                <h2 id="theme-title">Personalize</h2>
+                <button type="button" id="btn-theme-close" class="theme-close" aria-label="Close">&times;</button>
+            </div>
+
+            <fieldset class="theme-group">
+                <legend>Appearance</legend>
+                <div class="theme-segmented">
+                    <label><input type="radio" name="theme-mode" value="auto"><span>Auto</span></label>
+                    <label><input type="radio" name="theme-mode" value="light"><span>Light</span></label>
+                    <label><input type="radio" name="theme-mode" value="dark"><span>Dark</span></label>
+                </div>
+                <p class="theme-hint">Auto matches your device's light or dark setting.</p>
+            </fieldset>
+
+            <fieldset class="theme-group">
+                <legend>Accent color</legend>
+                <div class="theme-swatches">
+                    <label class="swatch" data-accent="blue"><input type="radio" name="theme-accent" value="blue"><span class="swatch-dot"></span><span class="swatch-name">Blue</span></label>
+                    <label class="swatch" data-accent="violet"><input type="radio" name="theme-accent" value="violet"><span class="swatch-dot"></span><span class="swatch-name">Violet</span></label>
+                    <label class="swatch" data-accent="teal"><input type="radio" name="theme-accent" value="teal"><span class="swatch-dot"></span><span class="swatch-name">Teal</span></label>
+                    <label class="swatch" data-accent="orange"><input type="radio" name="theme-accent" value="orange"><span class="swatch-dot"></span><span class="swatch-name">Orange</span></label>
+                    <label class="swatch" data-accent="graphite"><input type="radio" name="theme-accent" value="graphite"><span class="swatch-dot"></span><span class="swatch-name">Graphite</span></label>
+                </div>
+            </fieldset>
+
+            <div class="theme-actions">
+                <button type="button" id="btn-theme-reset" class="theme-reset">Reset to default</button>
+            </div>
+        </div>
+    </dialog>
 
     <!-- Application Logic -->
     <script type="module">
@@ -443,7 +558,7 @@
         const APP_MANAGED_CATEGORIES = ['Fill_Ups', 'Bank_Reconciliation', 'Grocery_Budget'];
         const IMPORT_NUMERIC_SETTINGS = ['spendableIncome', 'estGas', 'estGroceries', 'goalTarget', 'goalCurrent'];
         const IMPORT_TEXT_SETTINGS = ['scratchpadText', 'goalName'];
-        const APP_MANAGED_SETTINGS = ['bankReconStart', 'groceryStart', 'sessionStart', 'sessionEnd'];
+        const APP_MANAGED_SETTINGS = ['bankReconStart', 'groceryStart', 'sessionStart', 'sessionEnd', 'themeMode', 'themeAccent'];
         const MAX_CSV_BYTES = 1024 * 1024; // 1 MB
         const MAX_CSV_ROWS = 2000;
         const MAX_AMOUNT = 9999999;
@@ -824,7 +939,11 @@
                 btnExportCsv: document.getElementById('btn-export-csv'),
                 btnImportCsv: document.getElementById('btn-import-csv'),
                 csvUploadInput: document.getElementById('csv-upload-input'),
-                btnHardReset: document.getElementById('btn-hard-reset')
+                btnHardReset: document.getElementById('btn-hard-reset'),
+                btnPersonalize: document.getElementById('btn-personalize'),
+                themeDialog: document.getElementById('theme-dialog'),
+                btnThemeClose: document.getElementById('btn-theme-close'),
+                btnThemeReset: document.getElementById('btn-theme-reset')
             });
         };
 
@@ -841,6 +960,86 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
+
+        /* --- 3b. THEME (Auto / Light / Dark + accent color) ---
+           The <head> script applies the saved theme before first paint. This section keeps it in sync:
+           localStorage = instant on this device (no flash), Firestore settings doc = follows the account across devices. */
+        const THEME_KEY = 'fintech.theme.v1';
+        const THEME_MODES = ['auto', 'light', 'dark'];
+        const THEME_ACCENTS = ['blue', 'violet', 'teal', 'orange', 'graphite'];
+        const THEME_DEFAULT = { mode: 'auto', accent: 'blue' };
+        const THEME_BAR = { light: '#f4f7f9', dark: '#0f172a' };
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+        // Unknown or missing values fall back, so bad data can never reach the page.
+        const sanitizeTheme = (t, fallback) => ({
+            mode: THEME_MODES.includes(t?.mode) ? t.mode : fallback.mode,
+            accent: THEME_ACCENTS.includes(t?.accent) ? t.accent : fallback.accent
+        });
+        const resolveMode = (mode) => (mode === 'auto' ? (systemDark.matches ? 'dark' : 'light') : mode);
+
+        let theme = { ...THEME_DEFAULT };
+        try { theme = sanitizeTheme(JSON.parse(localStorage.getItem(THEME_KEY) || 'null'), THEME_DEFAULT); } catch (e) { /* storage blocked: use defaults */ }
+
+        const syncThemeControls = () => {
+            const mode = document.querySelector(`input[name="theme-mode"][value="${theme.mode}"]`);
+            const accent = document.querySelector(`input[name="theme-accent"][value="${theme.accent}"]`);
+            if (mode) mode.checked = true;
+            if (accent) accent.checked = true;
+        };
+
+        const applyTheme = (next) => {
+            theme = sanitizeTheme(next, theme);
+            const resolved = resolveMode(theme.mode);
+            const root = document.documentElement;
+            root.setAttribute('data-theme', resolved);
+            root.setAttribute('data-accent', theme.accent);
+            document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_BAR[resolved]);
+            try { localStorage.setItem(THEME_KEY, JSON.stringify(theme)); } catch (e) { /* storage blocked: still applied for this session */ }
+            syncThemeControls();
+            if (revenueChartInstance) renderChart();
+        };
+
+        // Written straight away (not debounced): a theme change is one tap, and an immediate write means a
+        // stray settings snapshot can never bounce the screen back to the previous choice.
+        const persistTheme = async () => {
+            if (!settingsRef) return;
+            try { await setDoc(settingsRef, { themeMode: theme.mode, themeAccent: theme.accent }, { merge: true }); } catch (err) { console.error(err); }
+        };
+
+        // Called from the settings snapshot: follow the account's saved theme (e.g. changed on another device).
+        // If the account has nothing saved yet, keep whatever this device is showing.
+        const applyCloudTheme = (data) => {
+            const next = sanitizeTheme({ mode: data.themeMode, accent: data.themeAccent }, theme);
+            if (next.mode !== theme.mode || next.accent !== theme.accent) applyTheme(next);
+        };
+
+        // Auto follows the device live (e.g. sunset dark mode).
+        systemDark.addEventListener('change', () => { if (theme.mode === 'auto') applyTheme(theme); });
+
+        // Always print in the light theme so Save PDF stays readable and ink-friendly whatever is on screen.
+        window.addEventListener('beforeprint', () => {
+            document.documentElement.setAttribute('data-theme', 'light');
+            if (revenueChartInstance) renderChart();
+        });
+        window.addEventListener('afterprint', () => {
+            document.documentElement.setAttribute('data-theme', resolveMode(theme.mode));
+            if (revenueChartInstance) renderChart();
+        });
+
+        const initThemeUI = () => {
+            DOM.btnPersonalize.addEventListener('click', () => { syncThemeControls(); DOM.themeDialog.showModal(); });
+            DOM.btnThemeClose.addEventListener('click', () => DOM.themeDialog.close());
+            // A tap on the dimmed area outside the sheet lands on the dialog element itself.
+            DOM.themeDialog.addEventListener('click', (e) => { if (e.target === DOM.themeDialog) DOM.themeDialog.close(); });
+            DOM.themeDialog.addEventListener('change', (e) => {
+                if (e.target.name === 'theme-mode') applyTheme({ ...theme, mode: e.target.value });
+                else if (e.target.name === 'theme-accent') applyTheme({ ...theme, accent: e.target.value });
+                else return;
+                persistTheme();
+            });
+            DOM.btnThemeReset.addEventListener('click', () => { applyTheme(THEME_DEFAULT); persistTheme(); });
+        };
 
         /* --- 4. RENDER ENGINE --- */
         const buildStandardTable = (rows, tbodyId, totalId, tabName, hasAmount) => {
@@ -924,12 +1123,15 @@
             
             const spendable = parseFloat(DOM.spendableIncome.value) || 0;
             const remaining = Math.max(0, spendable - totalExpenses);
-            const cardBgColor = getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim() || '#ffffff';
+            const rootStyle = getComputedStyle(document.documentElement);
+            const cardBgColor = rootStyle.getPropertyValue('--card-bg').trim() || '#ffffff';
+            const legendColor = rootStyle.getPropertyValue('--text-muted').trim() || '#666666';
             const dataArr = [remaining, outOfPocket, bankInitiated];
 
             if (revenueChartInstance) {
                 revenueChartInstance.data.datasets[0].data = dataArr;
                 revenueChartInstance.data.datasets[0].borderColor = cardBgColor;
+                revenueChartInstance.options.plugins.legend.labels.color = legendColor;
                 revenueChartInstance.update('none'); 
             } else {
                 const ctx = document.getElementById('revenueChart').getContext('2d');
@@ -942,7 +1144,7 @@
                     options: { 
                         responsive: true, maintainAspectRatio: false, cutout: '75%', 
                         plugins: { 
-                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" } } },
+                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, color: legendColor, font: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" } } },
                             tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }, bodyFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }, padding: 12, cornerRadius: 8, callbacks: { label: function(context) { let label = context.label || ''; if (label) { label += ': '; } if (context.parsed !== null) { label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed); } return label; } } }
                         }, animation: { animateScale: false, animateRotate: true }
                     } 
@@ -1020,7 +1222,7 @@
             } else {
                 let percentage = Math.min((current / target) * 100, 100);
                 DOM.goalProgressBar.style.width = `${percentage}%`;
-                DOM.goalProgressBar.style.background = (percentage === 100) ? 'var(--success-green)' : 'linear-gradient(90deg, var(--grad-blue), var(--grad-teal))';
+                DOM.goalProgressBar.style.background = (percentage === 100) ? 'var(--success-green)' : 'var(--goal-gradient)';
             }
         };
 
@@ -1164,6 +1366,7 @@
                 }
             });
             DOM.btnHardReset.addEventListener('click', performHardReset);
+            initThemeUI();
 
             DOM.spendableIncome.addEventListener('input', () => { calculateRevenue(); persistSpendableIncome(); });
             DOM.estGas.addEventListener('input', () => { calculateRevenue(); persistEstExpenses(); });
@@ -1230,7 +1433,10 @@
 
             unsubSettings = onSnapshot(settingsRef, (snap) => {
                 settings = { spendableIncome: 0, bankReconStart: 2500, groceryStart: 500, sessionStart: '', sessionEnd: '', scratchpadText: '', goalName: '', goalTarget: 0, goalCurrent: 0, estGas: 0, estGroceries: 0 };
-                if (snap.exists()) settings = { ...settings, ...snap.data() };
+                if (snap.exists()) {
+                    settings = { ...settings, ...snap.data() };
+                    applyCloudTheme(snap.data());
+                }
                 
                 if (document.activeElement !== DOM.spendableIncome) DOM.spendableIncome.value = settings.spendableIncome;
                 if (document.activeElement !== DOM.sessionStart) DOM.sessionStart.value = settings.sessionStart || '';
