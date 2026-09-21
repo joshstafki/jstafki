@@ -145,9 +145,11 @@
         .scratchpad-area { width: 100%; height: 100px; border: none; resize: none; background: transparent; color: var(--text-main); font-family: inherit; outline: none; font-size: 0.95rem; line-height: 1.5; }
 
         /* --- Personalize: theme picker (bottom sheet on phones, centered dialog on desktop) --- */
-        .user-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
-        .personalize-btn { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 40px; padding: 0.4rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-main); font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-        .personalize-btn:hover { background: var(--accent-soft); }
+        /* Pen icon in the top-right of the Out of Pocket header. The 44px tap target uses negative margins so the header keeps its normal height. */
+        .card-header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+        .header-icon-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -12px -13px -12px 0; border: none; border-radius: 10px; background: transparent; color: inherit; cursor: pointer; }
+        .header-icon-btn:active { background: var(--accent-soft); }
+        @media (hover: hover) { .header-icon-btn:hover { background: var(--accent-soft); } }
 
         .theme-dialog { width: 100%; max-width: 100%; margin: auto 0 0 0; padding: 0; overflow: hidden; border: 1px solid var(--border-color); border-bottom: 0; border-radius: 16px 16px 0 0; background: var(--card-bg); color: var(--text-main); }
         .theme-dialog::backdrop { background: rgba(15, 23, 42, 0.4); }
@@ -287,13 +289,7 @@
                 </button>
             </div>
             <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
-                <div class="user-row">
-                    <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
-                    <button type="button" id="btn-personalize" class="personalize-btn" aria-haspopup="dialog" aria-controls="theme-dialog">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.5-.7 1.5-1.5 0-.4-.1-.7-.4-1-.3-.3-.4-.6-.4-1 0-.8.7-1.5 1.5-1.5H16c3.3 0 6-2.7 6-6 0-4.9-4.5-9-10-9z"/></svg>
-                        Personalize
-                    </button>
-                </div>
+                <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
                 <div class="header-button-group" style="display: flex; gap: 0.5rem;">
                     <input type="file" id="csv-upload-input" accept=".csv" style="display: none;">
                     <button id="btn-import-csv" style="background: #f97316; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Import CSV</button>
@@ -308,7 +304,12 @@
             <!-- Column 1: Expenses & Scratchpad -->
             <div>
                 <div class="card">
-                    <div class="card-header header-blue">Out of Pocket Expenses</div>
+                    <div class="card-header header-blue card-header-row">
+                        Out of Pocket Expenses
+                        <button type="button" id="btn-personalize" class="header-icon-btn" aria-label="Personalize" title="Personalize" aria-haspopup="dialog" aria-controls="theme-dialog">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                        </button>
+                    </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table>
