@@ -3,9 +3,10 @@
 <head>
     <meta http-equiv="Content-Security-Policy" 
       content="default-src 'self'; 
-               script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; 
+               script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://www.gstatic.com; 
                style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
-               font-src 'self' data: https://fonts.gstatic.com;">
+               font-src 'self' data: https://fonts.gstatic.com; 
+               connect-src 'self' https://cdn.jsdelivr.net https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f4f7f9">
