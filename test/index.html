@@ -28,7 +28,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Pinned to an exact version with an integrity hash: if the file on the CDN ever changes, the browser refuses to run it.
+         To upgrade, change the version and replace the hash with the new one from jsdelivr's page for that version. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
     <style>
         :root {
             color-scheme: light;
@@ -303,6 +305,12 @@
         html.income-masked .mask-toggle .icon-eye { display: none; }
         html.income-masked .mask-toggle .icon-eye-off { display: block; }
 
+        /* Values worked out from the income are hidden too; otherwise Savings x 2, or Actual Revenue plus the
+           expense totals, would give the hidden amount away. Each keeps its own color and size while masked. */
+        .derived-mask { display: none; color: inherit; letter-spacing: 0.02em; }
+        html.income-masked .income-derived { display: none; }
+        html.income-masked .derived-mask { display: inline; }
+
         /* ===== Header menu (hamburger) =====
            Holds Privacy Mode, Import CSV, Export CSV, Save PDF and Sign Out. The buttons keep their original IDs. */
         .account-bar { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
@@ -405,7 +413,7 @@
         <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <h1>Financial Dashboard</h1>
-                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) v1.00.32</p>
+                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) v1.00.33</p>
                 <button id="btn-hard-reset" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
                     Hard Reset (Wipe Session Data)
                 </button>
@@ -482,7 +490,7 @@
                 <div class="card">
                     <div class="card-header header-purple">Pending / Uncleared Scratchpad</div>
                     <div class="card-body" style="padding: 1.5rem;">
-                        <textarea id="scratchpad-input" class="scratchpad-area" placeholder="Example: Target - $45 (Waiting to clear)&#10;Gas - $30 (Pending)"></textarea>
+                        <textarea id="scratchpad-input" class="scratchpad-area" maxlength="20000" placeholder="Example: Target - $45 (Waiting to clear)&#10;Gas - $30 (Pending)"></textarea>
                     </div>
                 </div>
             </div>
@@ -509,7 +517,7 @@
                 <div class="card" style="position: relative;">
                     <div class="summary-card">
                         <span class="summary-title">Actual Total Revenue</span>
-                        <span class="summary-value" id="actual-revenue">$0.00</span>
+                        <span class="summary-value"><span id="actual-revenue" class="income-derived">$0.00</span><span class="derived-mask" role="img" aria-label="Amount hidden">$XXXX.XX</span></span>
                         
                         <div style="display: flex; gap: 1rem; margin-top: 0.25rem;">
                             <div style="display: flex; align-items: baseline; font-size: 0.75rem; color: #f87171;">
@@ -521,7 +529,7 @@
                                 <input type="number" id="est-groceries" class="ghost-input" style="font-size: 0.85rem; width: 45px; color: #f87171; border-bottom: 1px dashed rgba(248,113,113,0.5); margin-left: 2px;" value="0" min="0">
                             </div>
                         </div>
-                        <div id="true-net-revenue" style="position: absolute; bottom: 8px; right: 12px; font-size: 8pt; color: #f87171; font-weight: 700;">$0.00</div>
+                        <div style="position: absolute; bottom: 8px; right: 12px; font-size: 8pt; color: #f87171; font-weight: 700;"><span id="true-net-revenue" class="income-derived">$0.00</span><span class="derived-mask" role="img" aria-label="Amount hidden">$XXXX.XX</span></div>
                     </div>
                 </div>
 
@@ -531,15 +539,15 @@
                         <div style="display: flex; justify-content: space-between; margin-top: 0.25rem;">
                             <div>
                                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Savings</div>
-                                <div id="split-savings" style="font-weight: 700; color: var(--success-green); font-size: 1.1rem;">$0.00</div>
+                                <div style="font-weight: 700; color: var(--success-green); font-size: 1.1rem;"><span id="split-savings" class="income-derived">$0.00</span><span class="derived-mask" role="img" aria-label="Amount hidden">$XXXX.XX</span></div>
                             </div>
                             <div>
                                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Fun</div>
-                                <div id="split-fun" style="font-weight: 700; color: var(--accent-text); font-size: 1.1rem;">$0.00</div>
+                                <div style="font-weight: 700; color: var(--accent-text); font-size: 1.1rem;"><span id="split-fun" class="income-derived">$0.00</span><span class="derived-mask" role="img" aria-label="Amount hidden">$XXXX.XX</span></div>
                             </div>
                             <div>
                                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Invest</div>
-                                <div id="split-invest" style="font-weight: 700; color: var(--text-main); font-size: 1.1rem;">$0.00</div>
+                                <div style="font-weight: 700; color: var(--text-main); font-size: 1.1rem;"><span id="split-invest" class="income-derived">$0.00</span><span class="derived-mask" role="img" aria-label="Amount hidden">$XXXX.XX</span></div>
                             </div>
                         </div>
                     </div>
@@ -548,7 +556,7 @@
                 <div class="card">
                     <div class="summary-card">
                         <span class="summary-title">
-                            <input type="text" id="goal-name" class="ghost-input" style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;" placeholder="SINKING FUND / GOAL NAME...">
+                            <input type="text" id="goal-name" class="ghost-input" maxlength="200" style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;" placeholder="SINKING FUND / GOAL NAME...">
                         </span>
                         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.5rem;">
                             <div style="display: flex; align-items: baseline;">
@@ -822,7 +830,8 @@
     <script>
     /* ===== Privacy: hide Total Spendable Income =====
        Display-only. The input's value is never read or written here, so the calculations, chart,
-       Firestore sync and CSV export behave exactly as before. The choice is remembered on this device. */
+       Firestore sync and CSV export behave exactly as before. The choice is remembered on this device.
+       The CSS covers the values derived from the income as well (.income-derived / .derived-mask). */
     (function () {
         'use strict';
 
@@ -949,6 +958,9 @@
         const MAX_CSV_ROWS = 2000;
         const MAX_AMOUNT = 9999999;
         const MAX_NAME_LENGTH = 200;
+        // Same caps as the maxlength on the scratchpad and goal name inputs (and the Firestore rules).
+        // Keeps the settings doc well under Firestore's 1 MiB document limit.
+        const MAX_TEXT_LENGTH = { scratchpadText: 20000, goalName: 200 };
 
         // RFC-4180 parser: handles quoted commas, escaped quotes (""), and newlines inside quotes.
         const parseCSV = (text) => {
@@ -1083,9 +1095,9 @@
                 L.push('Date,Name,Amount,Status');
                 if (!items.length) L.push('(none)');
                 items.forEach(item => {
-                    L.push(`${itemDate(item)},${csvField(item.name || '')},${formatMoney(item.amount || 0)},${item.status || ''}`);
+                    L.push(`${itemDate(item)},${csvField(item.name || '')},${formatMoney(item.amount || 0)},${csvField(item.status || '')}`);
                 });
-                const total = items.reduce((sum, it) => sum + (it.amount || 0), 0);
+                const total = items.reduce((sum, it) => sum + (Number(it.amount) || 0), 0);
                 L.push(`TOTAL,,${formatMoney(total)},`);
                 L.push('');
             };
@@ -1096,7 +1108,7 @@
             L.push('Date,Name,Status');
             const fillUps = liveData.Fill_Ups || [];
             if (!fillUps.length) L.push('(none)');
-            fillUps.forEach(item => L.push(`${itemDate(item)},${csvField(item.name || '')},${item.status || ''}`));
+            fillUps.forEach(item => L.push(`${itemDate(item)},${csvField(item.name || '')},${csvField(item.status || '')}`));
             L.push('');
 
             const reconSection = (title, tabName, items) => {
@@ -1186,6 +1198,8 @@
                             if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
                             const rawText = rows[i][3]; // untrimmed: preserve multi-line scratchpad text
                             if (rawText.trim() === '') { skippedBlank++; continue; } // blank = leave current value unchanged
+                            const maxLen = MAX_TEXT_LENGTH[name];
+                            if (rawText.length > maxLen) { fail(`'${name}' exceeds ${maxLen} characters.`); continue; }
                             settingsUpdates[name] = rawText;
                         } else if (IMPORT_NUMERIC_SETTINGS.includes(name)) {
                             if (status !== '' || dateStr !== '') { fail(`'${name}' must leave Status and Date blank.`); continue; }
@@ -1248,29 +1262,34 @@
                 summary += `\n\nTransactions will be ADDED to your current session (existing entries are kept).`;
                 if (!confirm(summary)) return;
 
+                // Batches commit one at a time, so a failure can report exactly what was already saved.
+                // Up to 450 transactions plus the settings go in a single batch, which saves all-or-nothing.
+                const entriesColRef = collection(db, 'users', uid, 'entries');
+                const settingsDocRef = doc(db, 'users', uid, 'settings', 'budget');
+                const hasSettings = settingNames.length > 0;
+                const chunks = [];
+                for (let start = 0; start < newEntries.length; start += 450) chunks.push(newEntries.slice(start, start + 450));
+                if (chunks.length === 0) chunks.push([]); // settings-only import
+
+                let savedCount = 0;
                 try {
-                    const entriesColRef = collection(db, 'users', uid, 'entries');
-                    const settingsDocRef = doc(db, 'users', uid, 'settings', 'budget');
-                    const commits = [];
-                    let batch = writeBatch(db);
-                    let ops = 0;
-
-                    newEntries.forEach(entry => {
-                        batch.set(doc(entriesColRef), entry);
-                        ops++;
-                        if (ops === 450) { commits.push(batch.commit()); batch = writeBatch(db); ops = 0; }
-                    });
-                    if (Object.keys(settingsUpdates).length > 0) {
-                        batch.set(settingsDocRef, settingsUpdates, { merge: true });
-                        ops++;
+                    for (let c = 0; c < chunks.length; c++) {
+                        const batch = writeBatch(db);
+                        chunks[c].forEach(entry => batch.set(doc(entriesColRef), entry));
+                        if (hasSettings && c === chunks.length - 1) batch.set(settingsDocRef, settingsUpdates, { merge: true });
+                        await batch.commit();
+                        savedCount += chunks[c].length;
                     }
-                    if (ops > 0) commits.push(batch.commit());
-                    await Promise.all(commits);
-
                     alert('Ledger session successfully imported!');
                 } catch (err) {
                     console.error(err);
-                    alert('Import failed during database commit.');
+                    if (savedCount === 0) {
+                        alert('Import failed during database commit. Nothing was saved.');
+                    } else {
+                        alert(`Import stopped partway: ${savedCount} of ${newEntries.length} transaction(s) were saved before the error.`
+                            + (hasSettings ? ' Settings were not changed.' : '')
+                            + '\n\nCheck the dashboard before importing this file again, or the saved rows will be added twice.');
+                    }
                 }
             };
 
@@ -1435,14 +1454,14 @@
 
             rows.forEach(item => {
                 if (!item.name) return;
-                total += (item.amount || 0);
+                total += Number(item.amount) || 0; // Number(): an amount stored as text must add, not concatenate
                 htmlString += `<tr>`;
                 if (hasAmount) htmlString += `<td class="amount-cell amount-red">${formatMoney(item.amount || 0)}</td>`;
                 htmlString += `<td>${escapeHTML(item.name)}</td>`;
                 
                 htmlString += `<td class="action-cell">
                     <div style="display: flex; align-items: center; justify-content: ${!hasAmount ? 'flex-end' : 'space-between'}; width: 100%;">
-                        <span class="badge ${getBadgeClass(item.status)}">${item.status || ''}</span> 
+                        <span class="badge ${getBadgeClass(item.status)}">${escapeHTML(item.status)}</span> 
                         <span class="delete-btn" title="Delete" data-id="${escapeHTML(item.id)}">×</span>
                     </div>
                 </td></tr>`;
@@ -1470,7 +1489,9 @@
             let htmlString = '';
             
             const startField = tabName === 'Bank_Reconciliation' ? 'bankReconStart' : 'groceryStart';
-            const savedStart = settings[startField] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500);
+            // Coerced to a real number, so whatever is stored can't break out of the value="" attribute below.
+            const rawStart = Number(settings[startField] ?? (tabName === 'Bank_Reconciliation' ? 2500 : 500));
+            const savedStart = Number.isFinite(rawStart) ? rawStart : 0;
 
             htmlString += `<tr class="highlight-row"><td style="font-weight: bold;"><div style="display: flex; align-items: baseline;"><span style="color: var(--text-muted); margin-right: 2px;">$</span><input type="number" id="start-input-${tbodyId}" class="ghost-input recon-start-input" data-tbody="${tbodyId}" data-tab="${tabName}" style="font-size: 1rem; padding: 0;" value="${savedStart}" step="0.01" min="0"></div></td><td style="text-align: right; color: var(--text-muted);">Starting Balance</td></tr>`;
 
@@ -1531,7 +1552,8 @@
                         responsive: true, maintainAspectRatio: false, cutout: '75%', 
                         plugins: { 
                             legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, color: legendColor, font: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" } } },
-                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }, bodyFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }, padding: 12, cornerRadius: 8, callbacks: { label: function(context) { let label = context.label || ''; if (label) { label += ': '; } if (context.parsed !== null) { label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed); } return label; } } }
+                            // The Remaining Revenue tooltip is hidden while the income is masked (it's income minus expenses).
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }, bodyFont: { family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }, padding: 12, cornerRadius: 8, callbacks: { label: function(context) { let label = context.label || ''; if (label) { label += ': '; } if (context.dataIndex === 0 && document.documentElement.classList.contains('income-masked')) { return label + 'Hidden'; } if (context.parsed !== null) { label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed); } return label; } } }
                         }, animation: { animateScale: false, animateRotate: true }
                     } 
                 });
@@ -1767,7 +1789,10 @@
             DOM.dashboardGrid.addEventListener('click', async (e) => {
                 if (e.target.classList.contains('delete-btn')) {
                     const id = e.target.getAttribute('data-id');
-                    try { await deleteDoc(doc(entriesCol, id)); } catch(err) { console.error(err); alert("Couldn't delete item."); }
+                    const item = Object.values(liveData).flat().find(row => row.id === id);
+                    if (confirm(`Delete "${item?.name ?? 'this entry'}"?`)) {
+                        try { await deleteDoc(doc(entriesCol, id)); } catch(err) { console.error(err); alert("Couldn't delete item."); }
+                    }
                 }
                 if (e.target.closest('.add-row-btn')) {
                     const tr = e.target.closest('.add-row-btn');
@@ -1802,13 +1827,15 @@
                 for (const key in liveData) liveData[key] = [];
                 snap.forEach((docSnap) => {
                     const row = { id: docSnap.id, ...docSnap.data() };
-                    if (liveData[row.category]) liveData[row.category].push(row);
+                    // hasOwn, not liveData[row.category]: a category like "toString" or "constructor" would
+                    // otherwise match a built-in, throw on .push, and leave the dashboard stuck on loading.
+                    if (Object.hasOwn(liveData, row.category)) liveData[row.category].push(row);
                 });
                 
                 for (const key in liveData) {
                     liveData[key].sort((a, b) => {
-                        const timeA = a.createdAt?.toMillis() ?? a.localTime ?? 0;
-                        const timeB = b.createdAt?.toMillis() ?? b.localTime ?? 0;
+                        const timeA = a.createdAt?.toMillis?.() ?? a.localTime ?? 0;
+                        const timeB = b.createdAt?.toMillis?.() ?? b.localTime ?? 0;
                         return timeA - timeB;
                     });
                 }
