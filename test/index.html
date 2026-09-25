@@ -249,19 +249,7 @@
         }
 
         /* ===== Privacy Mode ===== */
-        /* Stacks the existing header actions over the Privacy Mode row, right-aligned under Sign Out. */
-        .header-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem; }
-        .privacy-btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
-            padding: 0.5rem 1rem; border: none; border-radius: 6px;
-            background: #dc2626; color: #ffffff; font-weight: bold;
-            cursor: pointer; transition: background-color 0.2s, transform 0.1s;
-            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-        }
-        @media (hover: hover) { .privacy-btn:hover { background: #b91c1c; } }
-        .privacy-btn:active { transform: scale(0.97); }
-        .privacy-btn:focus-visible { outline: 2px solid var(--text-main); outline-offset: 2px; }
-
+        /* The Privacy Mode trigger now lives in the header menu (see "Header menu" below). */
         .privacy-shield {
             position: fixed; inset: 0; width: 100%; height: 100%;
             max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
@@ -289,13 +277,8 @@
         /* Leave the page exactly as-is underneath: no scroll lock, so no scrollbar jump or chart resize. */
         body:has(#privacy-shield[open]) { overflow: visible; }
 
-        @media (max-width: 768px) {
-            .privacy-row, .privacy-btn { width: 100%; }
-            .privacy-btn { min-height: 44px; }
-        }
         @media (prefers-reduced-motion: reduce) { .privacy-logo { transition: none; } }
         @media print {
-            .privacy-row { display: none !important; }
             html.privacy-active body { visibility: hidden !important; }
         }
 
@@ -319,6 +302,73 @@
         html.income-masked .income-mask { display: inline; }
         html.income-masked .mask-toggle .icon-eye { display: none; }
         html.income-masked .mask-toggle .icon-eye-off { display: block; }
+
+        /* ===== Header menu (hamburger) =====
+           Holds Privacy Mode, Import CSV, Export CSV, Save PDF and Sign Out. The buttons keep their original IDs. */
+        .account-bar { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+        .account-email { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .menu-wrap { position: relative; flex: none; }
+
+        .menu-toggle {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px; border: 1px solid var(--border-color); border-radius: 10px;
+            background: var(--card-bg); color: var(--text-main); cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+        }
+        @media (hover: hover) { .menu-toggle:hover { background: var(--accent-soft); } }
+        .menu-toggle[aria-expanded="true"] { background: var(--accent-soft); border-color: var(--accent-text); }
+        .menu-toggle:focus-visible { outline: 2px solid var(--text-main); outline-offset: 2px; }
+
+        /* Three bars that fold into an X while the menu is open. */
+        .menu-bars { position: relative; display: block; width: 18px; height: 12px; }
+        .menu-bars span { position: absolute; left: 0; width: 100%; height: 2px; border-radius: 2px; background: currentColor; transition: top 0.2s ease, transform 0.2s ease, opacity 0.15s ease; }
+        .menu-bars span:nth-child(1) { top: 0; }
+        .menu-bars span:nth-child(2) { top: 5px; }
+        .menu-bars span:nth-child(3) { top: 10px; }
+        .menu-toggle[aria-expanded="true"] .menu-bars span:nth-child(1) { top: 5px; transform: rotate(45deg); }
+        .menu-toggle[aria-expanded="true"] .menu-bars span:nth-child(2) { opacity: 0; }
+        .menu-toggle[aria-expanded="true"] .menu-bars span:nth-child(3) { top: 5px; transform: rotate(-45deg); }
+
+        .header-menu {
+            position: absolute; top: calc(100% + 8px); right: 0; z-index: 50;
+            display: flex; flex-direction: column; width: max-content; min-width: 220px; max-width: calc(100vw - 2rem);
+            padding: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08);
+            opacity: 0; visibility: hidden; transform: translateY(-4px) scale(0.98); transform-origin: top right;
+            transition: opacity 0.14s ease, transform 0.14s ease, visibility 0s linear 0.14s;
+        }
+        .header-menu.is-open { opacity: 1; visibility: visible; transform: none; transition: opacity 0.14s ease, transform 0.14s ease, visibility 0s; }
+        :root[data-theme="dark"] .header-menu { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); }
+
+        .menu-item {
+            display: flex; align-items: center; gap: 0.75rem; width: 100%; min-height: 44px;
+            padding: 0.55rem 0.75rem; border: none; border-radius: 8px; background: transparent;
+            color: var(--text-main); font-size: 0.95rem; font-weight: 600; text-align: left; white-space: nowrap;
+            cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+        }
+        .menu-item svg { flex: none; color: var(--text-muted); }
+        .menu-item:active { background: var(--accent-soft); }
+        @media (hover: hover) { .menu-item:hover { background: var(--accent-soft); } }
+        .menu-item:focus-visible { outline: 2px solid var(--accent-text); outline-offset: -2px; }
+        /* Privacy Mode keeps its red. #dc2626 on white and #f87171 on the dark card both clear 4.5:1. */
+        .menu-item-privacy, .menu-item-privacy svg { color: #dc2626; }
+        :root[data-theme="dark"] .menu-item-privacy, :root[data-theme="dark"] .menu-item-privacy svg { color: #f87171; }
+        .menu-item-privacy:active { background: rgba(220, 38, 38, 0.1); }
+        @media (hover: hover) { .menu-item-privacy:hover { background: rgba(220, 38, 38, 0.1); } }
+        .menu-sep { height: 1px; margin: 6px 8px; background: var(--border-color); }
+
+        /* Phones: email + menu become a slim bar above the title, menu button on the right. */
+        @media (max-width: 768px) {
+            .account-bar { order: -1; justify-content: space-between; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .header-menu, .header-menu.is-open, .menu-bars span { transition: none; }
+        }
+        /* Save PDF runs while the menu is still open, so keep the menu out of the printout. */
+        @media print {
+            .menu-wrap { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -360,22 +410,37 @@
                     Hard Reset (Wipe Session Data)
                 </button>
             </div>
-            <div class="header-stack">
-                <div class="header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
-                    <span id="user-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
-                    <div class="header-button-group" style="display: flex; gap: 0.5rem;">
-                        <input type="file" id="csv-upload-input" accept=".csv" style="display: none;">
-                        <button id="btn-import-csv" style="background: #f97316; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Import CSV</button>
-                        <button id="btn-export-csv" style="background: var(--success-green); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Export CSV</button>
-                        <button id="btn-save-pdf" style="background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Save PDF</button>
-                        <button id="btn-sign-out" style="background: var(--text-muted); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center;">Sign Out</button>
-                    </div>
-                </div>
-                <div class="privacy-row">
-                    <button type="button" class="privacy-btn" id="btn-privacy" aria-haspopup="dialog" aria-controls="privacy-shield">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                        Privacy Mode
+            <div class="account-bar">
+                <span id="user-email" class="account-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+                <input type="file" id="csv-upload-input" accept=".csv" style="display: none;">
+                <div class="menu-wrap" id="header-menu-wrap">
+                    <button type="button" id="btn-menu" class="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="header-menu">
+                        <span class="menu-bars" aria-hidden="true"><span></span><span></span><span></span></span>
                     </button>
+                    <div id="header-menu" class="header-menu">
+                        <button type="button" id="btn-privacy" class="menu-item menu-item-privacy" aria-haspopup="dialog" aria-controls="privacy-shield">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            Privacy Mode
+                        </button>
+                        <div class="menu-sep" role="separator"></div>
+                        <button type="button" id="btn-import-csv" class="menu-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Import CSV
+                        </button>
+                        <button type="button" id="btn-export-csv" class="menu-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export CSV
+                        </button>
+                        <button type="button" id="btn-save-pdf" class="menu-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            Save PDF
+                        </button>
+                        <div class="menu-sep" role="separator"></div>
+                        <button type="button" id="btn-sign-out" class="menu-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -782,6 +847,51 @@
             if (masked && document.activeElement === input) input.blur(); // mid-edit: close the keyboard; the typed value still saves
             apply(masked);
             try { localStorage.setItem(KEY, masked ? '1' : '0'); } catch (e) { /* still applied for this session */ }
+        });
+    })();
+    </script>
+
+    <!-- Header menu. Its own script: it only opens and closes the panel. -->
+    <script>
+    /* ===== Header menu (hamburger) =====
+       The buttons inside keep their original IDs, so the app script and Privacy Mode wire them up exactly as before.
+       Each button's own action runs first; the menu folds away afterwards. */
+    (function () {
+        'use strict';
+
+        var wrap = document.getElementById('header-menu-wrap');
+        var toggle = document.getElementById('btn-menu');
+        var menu = document.getElementById('header-menu');
+        if (!wrap || !toggle || !menu) return;
+
+        function isOpen() { return toggle.getAttribute('aria-expanded') === 'true'; }
+
+        function setOpen(open) {
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            menu.classList.toggle('is-open', open);
+            // Closing with focus inside the menu: hand focus back to the menu button so keyboard users keep their place.
+            if (!open && menu.contains(document.activeElement)) toggle.focus();
+        }
+
+        toggle.addEventListener('click', function () { setOpen(!isOpen()); });
+
+        // Listens on the panel, so it runs after the clicked button's own listener (Import, Export, Save PDF, Privacy, Sign Out).
+        menu.addEventListener('click', function (e) {
+            if (e.target.closest('.menu-item')) setOpen(false);
+        });
+
+        // Tap or click anywhere else closes it. pointerdown (not click) because iOS doesn't send clicks from plain areas.
+        document.addEventListener('pointerdown', function (e) {
+            if (isOpen() && !wrap.contains(e.target)) setOpen(false);
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && isOpen()) { setOpen(false); toggle.focus(); }
+        });
+
+        // Tabbing out of the menu closes it (only when focus actually lands somewhere else).
+        wrap.addEventListener('focusout', function (e) {
+            if (isOpen() && e.relatedTarget && !wrap.contains(e.relatedTarget)) setOpen(false);
         });
     })();
     </script>
