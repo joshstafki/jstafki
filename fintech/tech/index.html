@@ -12,22 +12,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f4f7f9">
     <script>
-        /* Apply the saved theme before first paint so there is no flash of the wrong theme.
+        /* Apply the saved theme and background before first paint so there is no flash of the wrong look.
            The app script below keeps it in sync (localStorage on this device, Firestore across devices). */
         (function () {
             var modes = ['auto', 'light', 'dark'], accents = ['blue', 'violet', 'teal', 'orange', 'graphite'];
-            var t = { mode: 'auto', accent: 'blue' };
+            var bgs = ['default', 'carbon', 'polka', 'gradient', 'ledger'];
+            // Textured backgrounds bring their own light or dark look. Keep in step with THEME_BG_MODE / THEME_BG_BAR in the app script.
+            var bgMode = { carbon: 'dark', polka: 'light', gradient: 'dark', ledger: 'light' };
+            var bgBar = { carbon: '#222224', polka: '#fce7f3', gradient: '#6a4ff0', ledger: '#edf5e8' };
+            var t = { mode: 'auto', accent: 'blue', bg: 'default' };
             try {
                 var s = JSON.parse(localStorage.getItem('fintech.theme.v1') || 'null');
                 if (s && modes.indexOf(s.mode) > -1) t.mode = s.mode;
                 if (s && accents.indexOf(s.accent) > -1) t.accent = s.accent;
+                if (s && bgs.indexOf(s.bg) > -1) t.bg = s.bg;
             } catch (e) {}
-            var dark = t.mode === 'dark' || (t.mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            var forced = bgMode[t.bg];
+            var dark = forced ? forced === 'dark' : (t.mode === 'dark' || (t.mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches));
             var root = document.documentElement;
             root.setAttribute('data-theme', dark ? 'dark' : 'light');
             root.setAttribute('data-accent', t.accent);
+            root.setAttribute('data-bg', t.bg);
+            var bar = bgBar[t.bg] || (dark ? '#0f172a' : '#f4f7f9');
             var m = document.querySelector('meta[name="theme-color"]');
-            if (m) m.setAttribute('content', dark ? '#0f172a' : '#f4f7f9');
+            if (m) { m.setAttribute('content', bar); m.setAttribute('data-rest', bar); }
         })();
     </script>
     <title>Financial Dashboard</title>
@@ -104,7 +112,7 @@
         :root[data-theme="dark"] .header-purple { color: #a78bfa; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 2rem; transition: background-color 0.3s, color 0.3s; }
+        body { background-color: var(--bg-base); color: var(--text-main); padding: 2rem; transition: background-color 0.3s, color 0.3s; }
         
         .dashboard-header { margin-bottom: 2rem; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start; }
@@ -227,7 +235,7 @@
         .google-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
         .login-error { color: #fecaca; font-size: 0.85rem; margin-top: 0.9rem; min-height: 1.2em; }
 
-        #loading-screen { text-align: center; margin-top: 5rem; font-family: 'Space Grotesk', sans-serif; color: var(--text-muted); }
+        #loading-screen { text-align: center; margin-top: 5rem; font-family: 'Space Grotesk', sans-serif; color: var(--page-muted); text-shadow: var(--page-shadow); }
         .spinner { border: 4px solid rgba(0,0,0,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent); animation: spin 1s linear infinite; margin: 0 auto 1rem; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -384,6 +392,108 @@
         @media print {
             .menu-wrap { display: none !important; }
         }
+
+        /* ===== Backgrounds (Personalize) =====
+           Page texture only. The cards, tables, numbers and calculations don't change.
+           Everything is drawn with CSS gradients: no image files to load, and nothing for the Content-Security-Policy
+           to block (it has no img-src, so data: or remote background images would be refused).
+           The texture variables are shared by the page (html[data-bg]) and the preview tiles in Personalize
+           (.bg-swatch[data-bg]), the same way the accent swatches reuse the accent rules. */
+        :root, [data-bg="default"] { --bg-base: var(--bg-color); --bg-image: none; --bg-size: auto; --bg-pos: 0 0; }
+
+        /* Woven carbon: two twills crossing at 27deg/207deg over a checker, plus a faint gloss from the top. */
+        [data-bg="carbon"] {
+            --bg-base: #222224;
+            --bg-image:
+                radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.07), transparent 65%),
+                linear-gradient(27deg, #242427 5px, transparent 5px),
+                linear-gradient(207deg, #242427 5px, transparent 5px),
+                linear-gradient(27deg, #313135 5px, transparent 5px),
+                linear-gradient(207deg, #313135 5px, transparent 5px),
+                linear-gradient(90deg, #2a2a2d 10px, transparent 10px),
+                linear-gradient(#2c2c2f 25%, #29292c 25%, #29292c 50%, transparent 50%, transparent 75%, #333337 75%, #333337);
+            --bg-size: 100% 100%, 20px 20px, 20px 20px, 20px 20px, 20px 20px, 20px 20px, 20px 20px;
+            --bg-pos: 0 0, 0 5px, 10px 0, 0 10px, 10px 5px, 0 0, 0 0;
+        }
+        /* Offset rows of pink dots on blush. */
+        [data-bg="polka"] {
+            --bg-base: #fce7f3;
+            --bg-image:
+                radial-gradient(circle, #f9a8d4 7px, transparent 7.5px),
+                radial-gradient(circle, #f9a8d4 7px, transparent 7.5px);
+            --bg-size: 40px 40px;
+            --bg-pos: 0 0, 20px 20px;
+        }
+        /* The sign-in screen's gradient and dot grid, held still. Blue sits at 55% so the header row stays on the darker end. */
+        [data-bg="gradient"] {
+            --bg-base: var(--grad-blue);
+            --bg-image:
+                radial-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+                linear-gradient(135deg, var(--grad-violet) 0%, var(--grad-blue) 55%, var(--grad-teal) 100%);
+            --bg-size: 28px 28px, 100% 100%;
+            --bg-pos: 0 0, 0 0;
+        }
+        /* Accountant's columnar pad: pale green paper, green rules and columns, double red margin line. */
+        [data-bg="ledger"] {
+            --bg-base: #edf5e8;
+            --bg-image:
+                linear-gradient(90deg, transparent 6px, rgba(220, 38, 38, 0.45) 6px 7px, transparent 7px 9px, rgba(220, 38, 38, 0.45) 9px 10px, transparent 10px),
+                repeating-linear-gradient(180deg, transparent 0 23px, rgba(21, 128, 61, 0.2) 23px 24px),
+                repeating-linear-gradient(90deg, transparent 0 119px, rgba(21, 128, 61, 0.12) 119px 120px);
+            --bg-size: 100% 100%;
+            --bg-pos: 0 0;
+        }
+
+        /* The texture sits on its own fixed layer behind the page, so the dashboard scrolls over it.
+           Cheap to scroll on phones, and it works on iOS, where background-attachment: fixed doesn't. */
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; z-index: -1; pointer-events: none;
+            width: 100%; height: 100vh; height: 100lvh; /* lvh: still covers when a phone's address bar slides away */
+            background-color: var(--bg-base);
+            background-image: var(--bg-image);
+            background-size: var(--bg-size);
+            background-position: var(--bg-pos);
+        }
+
+        /* Carbon Fiber: neutral charcoal cards instead of the navy dark theme, so they sit naturally on the grey weave. */
+        :root[data-bg="carbon"][data-theme="dark"] { --card-bg: #19191c; --border-color: #38383e; --row-alt: #141416; --text-muted: #a1a1aa; }
+        :root[data-bg="carbon"][data-theme="dark"] .inline-input,
+        :root[data-bg="carbon"][data-theme="dark"] .inline-input option { background-color: #111113; }
+
+        /* Text that sits straight on the background: the page title, version line, your email and the loading text. */
+        :root { --page-text: var(--text-main); --page-muted: var(--text-muted); --page-shadow: none; }
+        :root[data-bg="polka"], :root[data-bg="ledger"] { --page-muted: #4b5563; }
+        :root[data-bg="polka"] { --page-shadow: 0 0 3px #fce7f3, 0 0 8px #fce7f3; } /* soft blush halo lifts the header text off the dots */
+        :root[data-bg="gradient"] { --page-text: #ffffff; --page-muted: rgba(255, 255, 255, 0.9); --page-shadow: 0 1px 3px rgba(15, 23, 42, 0.45); }
+        .dashboard-header h1 { color: var(--page-text); }
+        .dashboard-header h1, .dashboard-header p, .account-email { text-shadow: var(--page-shadow); }
+        :root[data-bg="gradient"] .dashboard-header a { color: #ffffff; }
+        :root[data-bg="carbon"] .dashboard-header a { color: var(--accent-text); }
+
+        /* Background tiles in Personalize: a small live sample of each texture. Selected = accent ring + check badge. */
+        .bg-thumb {
+            display: grid; place-items: center; width: 100%; max-width: 64px; height: 44px;
+            border: 1px solid var(--border-color); border-radius: 10px;
+            background-color: var(--bg-base); background-image: var(--bg-image);
+            background-size: var(--bg-size); background-position: var(--bg-pos);
+        }
+        .bg-swatch[data-bg="default"] .bg-thumb { background: linear-gradient(135deg, #f4f7f9 50%, #0f172a 50%); } /* Default follows light or dark */
+        .bg-thumb::before, .bg-thumb::after { content: ''; grid-area: 1 / 1; opacity: 0; }
+        .bg-thumb::before { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+        .bg-thumb::after { width: 5px; height: 10px; border: solid #ffffff; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+        .bg-swatch input:checked + .bg-thumb { box-shadow: 0 0 0 3px var(--card-bg), 0 0 0 5px var(--accent-text); }
+        .bg-swatch input:checked + .bg-thumb::before, .bg-swatch input:checked + .bg-thumb::after { opacity: 1; }
+        .bg-swatch input:focus-visible + .bg-thumb { outline: 2px solid var(--text-main); outline-offset: 2px; }
+
+        /* Appearance steps aside (dimmed, locked) while a textured background sets the look. */
+        .theme-group:disabled .theme-segmented { opacity: 0.5; }
+        .theme-group:disabled .theme-segmented label { cursor: not-allowed; }
+
+        /* Save PDF: plain white paper and dark text whatever background is on screen. */
+        @media print {
+            body::before { display: none !important; }
+            :root[data-bg] { --page-text: var(--text-main); --page-muted: var(--text-muted); --page-shadow: none; }
+        }
     </style>
 </head>
 <body>
@@ -420,13 +530,13 @@
         <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <h1>Financial Dashboard</h1>
-                <p style="color: var(--text-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) <a href="https://www.jstafki.com/fintech/version">v1.00.62</a></p>
+                <p style="color: var(--page-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) <a href="https://www.jstafki.com/fintech/version">v1.00.70</a></p>
                 <button id="btn-hard-reset" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
                     Hard Reset (Wipe Session Data)
                 </button>
             </div>
             <div class="account-bar">
-                <span id="user-email" class="account-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+                <span id="user-email" class="account-email" style="color: var(--page-muted); font-size: 0.9rem;"></span>
                 <input type="file" id="csv-upload-input" accept=".csv" style="display: none;">
                 <div class="menu-wrap" id="header-menu-wrap">
                     <button type="button" id="btn-menu" class="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="header-menu">
@@ -651,13 +761,24 @@
             </div>
 
             <fieldset class="theme-group">
+                <legend>Background</legend>
+                <div class="theme-swatches">
+                    <label class="swatch bg-swatch" data-bg="default"><input type="radio" name="theme-bg" value="default"><span class="bg-thumb"></span><span class="swatch-name">Default</span></label>
+                    <label class="swatch bg-swatch" data-bg="carbon" title="Carbon Fiber"><input type="radio" name="theme-bg" value="carbon"><span class="bg-thumb"></span><span class="swatch-name">Carbon</span></label>
+                    <label class="swatch bg-swatch" data-bg="polka" title="Polka Dot"><input type="radio" name="theme-bg" value="polka"><span class="bg-thumb"></span><span class="swatch-name">Polka</span></label>
+                    <label class="swatch bg-swatch" data-bg="gradient"><input type="radio" name="theme-bg" value="gradient"><span class="bg-thumb"></span><span class="swatch-name">Gradient</span></label>
+                    <label class="swatch bg-swatch" data-bg="ledger"><input type="radio" name="theme-bg" value="ledger"><span class="bg-thumb"></span><span class="swatch-name">Ledger</span></label>
+                </div>
+            </fieldset>
+
+            <fieldset class="theme-group" id="theme-mode-group" aria-describedby="theme-mode-hint">
                 <legend>Appearance</legend>
                 <div class="theme-segmented">
                     <label><input type="radio" name="theme-mode" value="auto"><span>Auto</span></label>
                     <label><input type="radio" name="theme-mode" value="light"><span>Light</span></label>
                     <label><input type="radio" name="theme-mode" value="dark"><span>Dark</span></label>
                 </div>
-                <p class="theme-hint">Auto matches your device's light or dark setting.</p>
+                <p class="theme-hint" id="theme-mode-hint">Auto matches your device's light or dark setting.</p>
             </fieldset>
 
             <fieldset class="theme-group">
@@ -719,10 +840,12 @@
         var SHADES = [];
         for (var s = 0; s <= 41; s++) SHADES.push('rgb(' + (214 + s) + ',' + (214 + s) + ',' + Math.min(255, 217 + s) + ')');
 
+        // data-rest on the meta tag is the bar color the current theme and background want. The theme code keeps it
+        // current (even while this screen is up), so the right color comes back on exit.
         function setThemeColor(white) {
             if (!themeMeta) return;
-            var dark = root.getAttribute('data-theme') === 'dark';
-            themeMeta.setAttribute('content', white ? '#ffffff' : (dark ? '#0f172a' : '#f4f7f9'));
+            var rest = themeMeta.getAttribute('data-rest') || (root.getAttribute('data-theme') === 'dark' ? '#0f172a' : '#f4f7f9');
+            themeMeta.setAttribute('content', white ? '#ffffff' : rest);
         }
 
         function centerOf(el) {
@@ -960,7 +1083,7 @@
         const APP_MANAGED_CATEGORIES = ['Fill_Ups', 'Bank_Reconciliation', 'Grocery_Budget'];
         const IMPORT_NUMERIC_SETTINGS = ['spendableIncome', 'estGas', 'estGroceries', 'goalTarget', 'goalCurrent'];
         const IMPORT_TEXT_SETTINGS = ['scratchpadText', 'goalName'];
-        const APP_MANAGED_SETTINGS = ['bankReconStart', 'groceryStart', 'sessionStart', 'sessionEnd', 'themeMode', 'themeAccent'];
+        const APP_MANAGED_SETTINGS = ['bankReconStart', 'groceryStart', 'sessionStart', 'sessionEnd', 'themeMode', 'themeAccent', 'themeBg'];
         const MAX_CSV_BYTES = 1024 * 1024; // 1 MB
         const MAX_CSV_ROWS = 2000;
         const MAX_AMOUNT = 9999999;
@@ -1373,40 +1496,70 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        /* --- 3b. THEME (Auto / Light / Dark + accent color) ---
+        /* --- 3b. THEME (Auto / Light / Dark + accent color + background) ---
            The <head> script applies the saved theme before first paint. This section keeps it in sync:
            localStorage = instant on this device (no flash), Firestore settings doc = follows the account across devices. */
         const THEME_KEY = 'fintech.theme.v1';
         const THEME_MODES = ['auto', 'light', 'dark'];
         const THEME_ACCENTS = ['blue', 'violet', 'teal', 'orange', 'graphite'];
-        const THEME_DEFAULT = { mode: 'auto', accent: 'blue' };
+        const THEME_BACKGROUNDS = ['default', 'carbon', 'polka', 'gradient', 'ledger'];
+        // Each textured background brings its own light or dark look and overrides Appearance while it's on.
+        // null = follows Appearance. To change a pairing, edit it here and in bgMode in the <head> script.
+        const THEME_BG_MODE = { default: null, carbon: 'dark', polka: 'light', gradient: 'dark', ledger: 'light' };
+        const THEME_BG_BAR = { carbon: '#222224', polka: '#fce7f3', gradient: '#6a4ff0', ledger: '#edf5e8' };
+        const THEME_BG_NAMES = { default: 'Default', carbon: 'Carbon Fiber', polka: 'Polka Dot', gradient: 'Gradient', ledger: 'Ledger' };
+        const THEME_DEFAULT = { mode: 'auto', accent: 'blue', bg: 'default' };
         const THEME_BAR = { light: '#f4f7f9', dark: '#0f172a' };
         const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 
         // Unknown or missing values fall back, so bad data can never reach the page.
         const sanitizeTheme = (t, fallback) => ({
             mode: THEME_MODES.includes(t?.mode) ? t.mode : fallback.mode,
-            accent: THEME_ACCENTS.includes(t?.accent) ? t.accent : fallback.accent
+            accent: THEME_ACCENTS.includes(t?.accent) ? t.accent : fallback.accent,
+            bg: THEME_BACKGROUNDS.includes(t?.bg) ? t.bg : fallback.bg
         });
         const resolveMode = (mode) => (mode === 'auto' ? (systemDark.matches ? 'dark' : 'light') : mode);
+        // The mode actually on screen: the background's own look if it has one, otherwise Appearance.
+        const effectiveMode = (t) => THEME_BG_MODE[t.bg] || resolveMode(t.mode);
 
         let theme = { ...THEME_DEFAULT };
         try { theme = sanitizeTheme(JSON.parse(localStorage.getItem(THEME_KEY) || 'null'), THEME_DEFAULT); } catch (e) { /* storage blocked: use defaults */ }
 
         const syncThemeControls = () => {
-            const mode = document.querySelector(`input[name="theme-mode"][value="${theme.mode}"]`);
+            // While a background sets the look, Appearance shows that look, locked. The saved Auto/Light/Dark choice
+            // is kept underneath and comes back when the background goes back to Default.
+            const forced = THEME_BG_MODE[theme.bg];
+            const mode = document.querySelector(`input[name="theme-mode"][value="${forced || theme.mode}"]`);
             const accent = document.querySelector(`input[name="theme-accent"][value="${theme.accent}"]`);
+            const bg = document.querySelector(`input[name="theme-bg"][value="${theme.bg}"]`);
             if (mode) mode.checked = true;
             if (accent) accent.checked = true;
+            if (bg) bg.checked = true;
+            const modeGroup = document.getElementById('theme-mode-group');
+            const modeHint = document.getElementById('theme-mode-hint');
+            if (modeGroup) modeGroup.disabled = Boolean(forced);
+            if (modeHint) modeHint.textContent = forced
+                ? `${THEME_BG_NAMES[theme.bg]} comes with the ${forced} theme. Choose the Default background to use Auto, Light or Dark.`
+                : "Auto matches your device's light or dark setting.";
+        };
+
+        // Browser bar color. data-rest always holds the resting color so Privacy Mode can put it back after its
+        // white screen; the visible color is left alone while that screen is up.
+        const setBarColor = (color) => {
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (!meta) return;
+            meta.setAttribute('data-rest', color);
+            if (!document.documentElement.classList.contains('privacy-active')) meta.setAttribute('content', color);
         };
 
         const applyTheme = (next) => {
             theme = sanitizeTheme(next, theme);
-            const resolved = resolveMode(theme.mode);
+            const resolved = effectiveMode(theme);
             const root = document.documentElement;
             root.setAttribute('data-theme', resolved);
             root.setAttribute('data-accent', theme.accent);
-            document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_BAR[resolved]);
+            root.setAttribute('data-bg', theme.bg);
+            setBarColor(THEME_BG_BAR[theme.bg] || THEME_BAR[resolved]);
             try { localStorage.setItem(THEME_KEY, JSON.stringify(theme)); } catch (e) { /* storage blocked: still applied for this session */ }
             syncThemeControls();
             if (revenueChartInstance) renderChart();
@@ -1416,14 +1569,14 @@
         // stray settings snapshot can never bounce the screen back to the previous choice.
         const persistTheme = async () => {
             if (!settingsRef) return;
-            try { await setDoc(settingsRef, { themeMode: theme.mode, themeAccent: theme.accent }, { merge: true }); } catch (err) { console.error(err); }
+            try { await setDoc(settingsRef, { themeMode: theme.mode, themeAccent: theme.accent, themeBg: theme.bg }, { merge: true }); } catch (err) { console.error(err); }
         };
 
         // Called from the settings snapshot: follow the account's saved theme (e.g. changed on another device).
         // If the account has nothing saved yet, keep whatever this device is showing.
         const applyCloudTheme = (data) => {
-            const next = sanitizeTheme({ mode: data.themeMode, accent: data.themeAccent }, theme);
-            if (next.mode !== theme.mode || next.accent !== theme.accent) applyTheme(next);
+            const next = sanitizeTheme({ mode: data.themeMode, accent: data.themeAccent, bg: data.themeBg }, theme);
+            if (next.mode !== theme.mode || next.accent !== theme.accent || next.bg !== theme.bg) applyTheme(next);
         };
 
         // Auto follows the device live (e.g. sunset dark mode).
@@ -1435,7 +1588,7 @@
             if (revenueChartInstance) renderChart();
         });
         window.addEventListener('afterprint', () => {
-            document.documentElement.setAttribute('data-theme', resolveMode(theme.mode));
+            document.documentElement.setAttribute('data-theme', effectiveMode(theme));
             if (revenueChartInstance) renderChart();
         });
 
@@ -1447,6 +1600,7 @@
             DOM.themeDialog.addEventListener('change', (e) => {
                 if (e.target.name === 'theme-mode') applyTheme({ ...theme, mode: e.target.value });
                 else if (e.target.name === 'theme-accent') applyTheme({ ...theme, accent: e.target.value });
+                else if (e.target.name === 'theme-bg') applyTheme({ ...theme, bg: e.target.value });
                 else return;
                 persistTheme();
             });
