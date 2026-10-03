@@ -2071,7 +2071,8 @@
         });
     </script>
 
-    <!-- Summary widget. Builds its own card at the top of the middle column. -->
+
+    <!-- Summary widget. Builds its own card below the Safe to Spend Split card. -->
     <script>
     /* FINTECH summary widget */
 (function () {
@@ -2079,7 +2080,9 @@
 
     var CSS = `
     .summary-lines { list-style: none; }
-    .summary-lines li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color); animation: summaryRowIn 0.35s ease both; }
+    .summary-lines li { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color); animation: summaryRowIn 0.35s ease both; }
+    .summary-lines li.summary-total { border-top: 2px solid var(--border-color); font-weight: 700; }
+    .summary-lines .summary-note { color: var(--text-muted); font-size: 0.9rem; font-weight: 400; text-align: right; }
     @keyframes summaryRowIn { from { opacity: 0; transform: translateY(6px); } }
     .summary-run-wrap { padding: 1rem 1.25rem; }
     .summary-run { width: 100%; min-height: 44px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--accent-soft); color: var(--accent-text); font-weight: 600; cursor: pointer; }
@@ -2109,25 +2112,72 @@
 
     var $ = function (id) { return document.getElementById(id); };
     var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
-    // Same format as the dashboard's own formatMoney.
+    var round2 = function (n) { return Math.round(n * 100) / 100; };
     var money = function (n) { return (n < 0 ? '-' : '') + '$' + Math.abs(n).toFixed(2); };
     var num = function (t) { var n = parseFloat(String(t).replace(/[^0-9.\-]/g, '')); return isFinite(n) ? n : 0; };
 
-    // [label, amount, isIncome]. Edit here if "Net" should mean something else.
+    // Sum of the UNPAID rows in Out of Pocket and Bank Initiated, read from the rendered tables.
+    var unpaidTotal = function () {
+        var total = 0;
+        ['out-of-pocket-body', 'bank-initiated-body'].forEach(function (id) {
+            var body = $(id);
+            if (!body) return;
+            body.querySelectorAll('tr').forEach(function (tr) {
+                if (!tr.querySelector('.badge-unpaid')) return;
+                var cell = tr.querySelector('.amount-cell');
+                if (cell) total += num(cell.textContent);
+            });
+        });
+        return round2(total);
+    };
+
+    var parseDay = function (v) {
+        var p = String(v || '').split('-');
+        return p.length === 3 ? new Date(+p[0], +p[1] - 1, +p[2]) : null;
+    };
+
+    // Days left in the ledger session, counting today. null = no end date set.
+    var daysLeft = function () {
+        var end = parseDay($('session-end').value);
+        if (!end) return null;
+        var from = new Date();
+        from.setHours(0, 0, 0, 0);
+        var start = parseDay($('session-start').value);
+        if (start && start > from) from = start;
+        return Math.round((end - from) / 86400000) + 1;
+    };
+
+    // One object per row. masked = worked out from income, so the privacy eye hides it.
     var collect = function () {
+        var income = num($('spendable-income').value);
+        var oop = num($('out-of-pocket-total').textContent);
+        var bank = num($('bank-initiated-total').textContent);
+        var gas = num($('est-gas').value);
+        var groc = num($('est-groceries').value);
+        var trueNet = round2(income - oop - bank - gas - groc);
+        var unpaid = unpaidTotal();
+        var days = daysLeft();
+        var daily = days > 0 ? round2(Math.max(0, trueNet) / days) : null;
         return [
-            ['Total Spendable Income', num($('spendable-income').value), true],
-            ['Net Out of Pocket', num($('out-of-pocket-total').textContent), false],
-            ['Net Bank Initiated', num($('bank-initiated-total').textContent), false],
-            ['Net Gas', num($('est-gas').value), false],
-            ['Net Groceries', num($('est-groceries').value), false]
+            { label: 'Total Spendable Income', amount: income, masked: true },
+            { label: 'Net Out of Pocket', amount: oop, tone: 'red' },
+            { label: 'Net Bank Initiated', amount: bank, tone: 'red' },
+            { label: 'Net Gas', amount: gas, tone: 'red' },
+            { label: 'Net Groceries', amount: groc, tone: 'red' },
+            { label: 'True Net Revenue', amount: trueNet, masked: true, tone: trueNet < 0 ? 'red' : 'green', total: true },
+            { label: 'Unpaid Still Owed', amount: unpaid, tone: unpaid > 0 ? 'red' : 'green' },
+            { label: days > 0 ? 'Safe Daily Spend (' + days + (days === 1 ? ' day left)' : ' days left)') : 'Safe Daily Spend',
+              amount: daily, text: days === null ? 'Set session dates' : 'Session ended', masked: true }
         ];
     };
-    var signature = function () { return JSON.stringify(collect().map(function (r) { return r[1]; })); };
+    var signature = function () {
+        return JSON.stringify(collect().map(function (r) { return [r.label, r.amount]; }));
+    };
 
     function init() {
-        var host = $('spendable-income') && $('spendable-income').closest('.card');
-        if (!host) return;
+        var split = $('split-savings') && $('split-savings').closest('.card');
+        var fallback = $('spendable-income') && $('spendable-income').closest('.card');
+        if (!split && !fallback) return;
 
         var style = document.createElement('style');
         style.textContent = CSS;
@@ -2135,7 +2185,9 @@
 
         var tmp = document.createElement('div');
         tmp.innerHTML = HTML.trim();
-        host.parentElement.prepend(tmp.firstElementChild);
+        var card = tmp.firstElementChild;
+        if (split) split.after(card);
+        else fallback.parentElement.prepend(card);
 
         var btn = $('btn-run-summary'), list = $('summary-lines'), busy = $('summary-busy'), stale = $('summary-stale');
         var sig = '', running = false;
@@ -2144,13 +2196,18 @@
 
         var makeRow = function (row) {
             var li = document.createElement('li');
+            if (row.total) li.className = 'summary-total';
             var name = document.createElement('span');
-            name.textContent = row[0];
+            name.textContent = row.label;
             var val = document.createElement('strong');
-            val.className = row[2] ? 'amount-cell' : 'amount-cell amount-red';
-            // The income row reuses the dashboard's mask classes, so the eye toggle hides it here too.
-            if (row[2]) val.innerHTML = '<span class="income-derived">' + money(row[1]) + '</span><span class="derived-mask" role="img" aria-label="Amount hidden">$XXXX.XX</span>';
-            else val.textContent = money(row[1]);
+            if (row.amount === null) {
+                val.className = 'summary-note';
+                val.textContent = row.text;
+            } else {
+                val.className = 'amount-cell' + (row.tone === 'red' ? ' amount-red' : row.tone === 'green' ? ' amount-green' : '');
+                if (row.masked) val.innerHTML = '<span class="income-derived">' + money(row.amount) + '</span><span class="derived-mask" role="img" aria-label="Amount hidden">$XXXX.XX</span>';
+                else val.textContent = money(row.amount);
+            }
             li.append(name, val);
             return li;
         };
@@ -2162,7 +2219,7 @@
             stale.hidden = true;
             list.textContent = '';
             busy.showModal();
-            await sleep(900); // the figures are already live on the page, so this pause is for feel
+            await sleep(900);
             var rows = collect();
             sig = signature();
             busy.close();
@@ -2182,9 +2239,13 @@
 
         // Flag the summary as out of date when any of its figures change.
         document.addEventListener('input', checkStale);
+        document.addEventListener('change', checkStale);
         var mo = new MutationObserver(checkStale);
         ['out-of-pocket-total', 'bank-initiated-total'].forEach(function (id) {
             if ($(id)) mo.observe($(id), { childList: true, characterData: true, subtree: true });
+        });
+        ['out-of-pocket-body', 'bank-initiated-body'].forEach(function (id) {
+            if ($(id)) mo.observe($(id), { childList: true });
         });
     }
 
