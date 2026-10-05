@@ -2075,7 +2075,7 @@
     </script>
 
 
-    <!-- Summary widget. Builds its own card below the Safe to Spend Split card. -->
+    <!-- Summary widget. Builds its own card above the Fill Ups card (top of the right column). -->
     <script>
     /* FINTECH summary widget */
 (function () {
@@ -2178,9 +2178,10 @@
     };
 
     function init() {
+        var fillUps = $('fill-ups-body') && $('fill-ups-body').closest('.card');
         var split = $('split-savings') && $('split-savings').closest('.card');
         var fallback = $('spendable-income') && $('spendable-income').closest('.card');
-        if (!split && !fallback) return;
+        if (!fillUps && !split && !fallback) return;
 
         var style = document.createElement('style');
         style.textContent = CSS;
@@ -2189,7 +2190,8 @@
         var tmp = document.createElement('div');
         tmp.innerHTML = HTML.trim();
         var card = tmp.firstElementChild;
-        if (split) split.after(card);
+        if (fillUps) fillUps.before(card);
+        else if (split) split.after(card);
         else fallback.parentElement.prepend(card);
 
         var btn = $('btn-run-summary'), list = $('summary-lines'), busy = $('summary-busy'), stale = $('summary-stale');
