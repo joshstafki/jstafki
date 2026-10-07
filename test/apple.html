@@ -162,7 +162,7 @@
         .scratchpad-area { width: 100%; height: 100px; border: none; resize: none; background: transparent; color: var(--text-main); font-family: inherit; outline: none; font-size: 0.95rem; line-height: 1.5; }
 
         /* --- Personalize: theme picker (bottom sheet on phones, centered dialog on desktop) --- */
-        /* Pen icon in the top-right of the Out of Pocket header. The 44px tap target uses negative margins so the header keeps its normal height. */
+        /* Icon button for a card header (Personalize now lives in the header menu). The 44px tap target uses negative margins so the header keeps its normal height. */
         .card-header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
         .header-icon-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -12px -13px -12px 0; border: none; border-radius: 10px; background: transparent; color: inherit; cursor: pointer; }
         .header-icon-btn:active { background: var(--accent-soft); }
@@ -196,16 +196,6 @@
 
         .theme-actions { display: flex; justify-content: flex-end; }
         .theme-reset { min-height: 44px; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: transparent; color: var(--text-main); font-weight: 600; cursor: pointer; }
-        /* Personalize > Widgets list. The show/hide rules themselves are built by the layout script at the end of the page. */
-        .widget-list { list-style: none; display: grid; gap: 6px; }
-        .widget-row { display: flex; align-items: center; gap: 0.75rem; min-height: 44px; padding: 0.25rem 0.75rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--row-alt); cursor: pointer; }
-        .widget-row.sub { margin-left: 1.25rem; }
-        .widget-row.disabled { cursor: default; }
-        .widget-row.disabled .widget-name { color: var(--text-muted); }
-        .widget-name { flex: 1; font-size: 0.95rem; font-weight: 600; }
-        .widget-note { color: var(--text-muted); font-size: 0.75rem; }
-        .widget-row input { width: 22px; height: 22px; accent-color: var(--accent); cursor: inherit; }
-        .widget-row:has(input:focus-visible) { outline: 2px solid var(--text-main); outline-offset: 2px; }
         body:has(dialog[open]) { overflow: hidden; }
         @media (min-width: 769px) {
             .theme-dialog { width: 420px; margin: auto; border-bottom: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35); }
@@ -503,6 +493,47 @@
             body::before { display: none !important; }
             :root[data-bg] { --page-text: var(--text-main); --page-muted: var(--text-muted); --page-shadow: none; }
         }
+
+        /* ===== Edit Layout (widget personalisation) =====
+           Hiding is CSS only (.pw-off): nothing is removed from the page and no ID or value changes, so Firestore sync, Import CSV and Export CSV are unaffected. */
+        .pw-off { display: none !important; }
+        .pw-bar, .pw-sub-row, .pw-scrim, .pw-toolbar { display: none; }
+        .pw-scrim { position: fixed; inset: 0; z-index: 40; background: rgba(15, 23, 42, 0.6); }
+        .pw-editing .pw-scrim { display: block; }
+        .pw-editing .dashboard-grid { position: relative; z-index: 41; padding-bottom: 200px; }
+        .pw-editing .dashboard-grid > div { min-height: 72px; outline: 1px dashed rgba(255, 255, 255, 0.45); outline-offset: 6px; border-radius: 12px; }
+        .pw-editing .card { animation: pw-wiggle 0.3s ease-in-out infinite alternate; }
+        .pw-editing .card:nth-child(even) { animation-duration: 0.26s; animation-delay: -0.15s; }
+        @keyframes pw-wiggle { from { transform: rotate(-0.45deg); } to { transform: rotate(0.45deg); } }
+        .pw-editing .card.pw-drag { animation: none; opacity: 0.5; outline: 2px dashed var(--accent-text); outline-offset: 3px; }
+        .pw-editing .card > :not(.pw-bar):not(.pw-sub-row) { pointer-events: none; user-select: none; }
+        .pw-editing .pw-bar, .pw-editing .pw-sub-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-main); }
+        .pw-editing .pw-bar { background: var(--accent-soft); }
+        .pw-editing .pw-sub-row { flex-wrap: wrap; }
+        .pw-drop { height: 0; box-shadow: 0 0 0 3px var(--accent-text); border-radius: 3px; }
+        .pw-minus { flex: none; width: 30px; height: 30px; border: none; border-radius: 50%; background: #dc2626; color: #fff; font-size: 22px; line-height: 1; font-weight: 700; cursor: pointer; }
+        .pw-lock { flex: none; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        .pw-grip { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border: 1px dashed var(--border-color); border-radius: 8px; background: var(--card-bg); font-weight: 600; cursor: grab; touch-action: none; user-select: none; }
+        .pw-grip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pw-grip svg { flex: none; color: var(--text-muted); }
+        .pw-size, .pw-chip, .pw-btn { min-height: 34px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-main); font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+        .pw-chip[aria-pressed="false"] { opacity: 0.55; text-decoration: line-through; }
+        .pw-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .pw-bar button:focus-visible, .pw-grip:focus-visible, .pw-toolbar button:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+        .pw-editing .pw-toolbar { display: flex; flex-direction: column; gap: 8px; position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; width: min(560px, calc(100vw - 24px)); padding: 10px 12px; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4); }
+        .pw-tip { font-size: 0.8rem; color: var(--text-muted); }
+        .pw-tray { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+        .pw-actions { display: flex; justify-content: flex-end; gap: 8px; }
+        /* Smaller sizes only ever shrink a widget; Large is the original, optimal look. */
+        .card[data-pw-size="s"] .table-responsive { max-height: 170px; overflow-y: auto; }
+        .card[data-pw-size="m"] .table-responsive { max-height: 280px; overflow-y: auto; }
+        .card[data-pw-size] .total-row td { position: sticky; bottom: 0; background: var(--row-alt); }
+        .card[data-pw-size="s"] .scratchpad-area { height: 56px; }
+        .card[data-pw-size="m"] .scratchpad-area { height: 80px; }
+        .card[data-pw="chart"][data-pw-size="s"] .card-body { height: 200px !important; }
+        .card[data-pw="chart"][data-pw-size="m"] .card-body { height: 260px !important; }
+        @media (prefers-reduced-motion: reduce) { .pw-editing .card { animation: none; outline: 2px dashed var(--border-color); outline-offset: 2px; } }
+        @media print { .pw-scrim, .pw-toolbar, .pw-bar, .pw-sub-row { display: none !important; } }
     </style>
 </head>
 <body>
@@ -557,6 +588,15 @@
                             Privacy Mode
                         </button>
                         <div class="menu-sep" role="separator"></div>
+                        <button type="button" id="btn-personalize" class="menu-item" aria-haspopup="dialog" aria-controls="theme-dialog">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                            Personalize
+                        </button>
+                        <button type="button" id="btn-edit-layout" class="menu-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                            Edit Layout
+                        </button>
+                        <div class="menu-sep" role="separator"></div>
                         <button type="button" id="btn-import-csv" class="menu-item">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                             Import CSV
@@ -587,12 +627,7 @@
             <!-- Column 1: Expenses & Scratchpad -->
             <div>
                 <div class="card">
-                    <div class="card-header header-blue card-header-row">
-                        Out of Pocket Expenses
-                        <button type="button" id="btn-personalize" class="header-icon-btn" aria-label="Personalize" title="Personalize" aria-haspopup="dialog" aria-controls="theme-dialog">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                        </button>
-                    </div>
+                    <div class="card-header header-blue">Out of Pocket Expenses</div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table>
@@ -803,13 +838,6 @@
                     <label class="swatch" data-accent="orange"><input type="radio" name="theme-accent" value="orange"><span class="swatch-dot"></span><span class="swatch-name">Orange</span></label>
                     <label class="swatch" data-accent="graphite"><input type="radio" name="theme-accent" value="graphite"><span class="swatch-dot"></span><span class="swatch-name">Graphite</span></label>
                 </div>
-            </fieldset>
-
-            <fieldset class="theme-group" id="widget-group" aria-describedby="widget-hint">
-                <legend>Widgets</legend>
-                <ul class="widget-list" id="widget-list"></ul>
-                <p class="theme-hint" id="widget-hint">Untick a widget to hide it. Hidden widgets keep their data and keep calculating; they just aren't shown or printed.</p>
-                <button type="button" id="btn-widgets-all" class="theme-reset" style="margin-top: 0.75rem;">Show all widgets</button>
             </fieldset>
 
             <div class="theme-actions">
@@ -1592,12 +1620,6 @@
             try { await setDoc(settingsRef, { themeMode: theme.mode, themeAccent: theme.accent, themeBg: theme.bg }, { merge: true }); } catch (err) { console.error(err); }
         };
 
-        // Widget visibility (layout script at the end of the page): written straight away, like the theme.
-        if (window.fintechLayout) window.fintechLayout.onSave(async (hidden) => {
-            if (!settingsRef) return;
-            try { await setDoc(settingsRef, { hiddenWidgets: hidden }, { merge: true }); } catch (err) { console.error(err); }
-        });
-
         // Called from the settings snapshot: follow the account's saved theme (e.g. changed on another device).
         // If the account has nothing saved yet, keep whatever this device is showing.
         const applyCloudTheme = (data) => {
@@ -2036,7 +2058,6 @@
                 if (snap.exists()) {
                     settings = { ...settings, ...snap.data() };
                     applyCloudTheme(snap.data());
-                    if (window.fintechLayout) window.fintechLayout.applyCloud(snap.data().hiddenWidgets);
                 }
                 
                 if (document.activeElement !== DOM.spendableIncome) DOM.spendableIncome.value = settings.spendableIncome;
@@ -2189,9 +2210,9 @@
             { label: 'Total Spendable Income', amount: income, masked: true },
             { label: 'Net Out of Pocket', amount: oop, tone: 'red' },
             { label: 'Net Bank Initiated', amount: bank, tone: 'red' },
-            { key: 'gas', label: 'Net Gas', amount: gas, tone: 'red' },
-            { key: 'groc', label: 'Net Groceries', amount: groc, tone: 'red' },
-            { key: 'net', label: 'True Net Revenue', amount: trueNet, masked: true, tone: trueNet < 0 ? 'red' : 'green', total: true },
+            { label: 'Net Gas', amount: gas, tone: 'red' },
+            { label: 'Net Groceries', amount: groc, tone: 'red' },
+            { label: 'True Net Revenue', amount: trueNet, masked: true, tone: trueNet < 0 ? 'red' : 'green', total: true },
             { label: 'Unpaid Still Owed', amount: unpaid, tone: unpaid > 0 ? 'red' : 'green' },
             { label: days > 0 ? 'Safe Daily Spend (' + days + (days === 1 ? ' day left)' : ' days left)') : 'Safe Daily Spend',
               amount: daily, text: days === null ? 'Set session dates' : 'Session ended', masked: true }
@@ -2226,7 +2247,6 @@
         var makeRow = function (row) {
             var li = document.createElement('li');
             if (row.total) li.className = 'summary-total';
-            if (row.key) li.setAttribute('data-w', row.key); // the layout script hides this line along with its widget
             var name = document.createElement('span');
             name.textContent = row.label;
             var val = document.createElement('strong');
@@ -2283,150 +2303,244 @@
     else init();
 })();
     </script>
-    <!-- Widget visibility. Everything is shown or hidden with CSS only, so nothing leaves the page: hidden widgets keep their
-         data, keep calculating and keep saving. Out of Pocket, Bank Initiated and Total Spendable Income are locked on.
-         Saved on this device (localStorage) and on the account (Firestore, wired up in the app script). -->
+
     <script>
+    /* ===== Edit Layout (widget personalisation) =====
+       Cosmetic only: widgets are hidden with CSS and never removed, so IDs, values, Firestore sync, Import CSV and Export CSV behave exactly as before.
+       The arrangement is remembered on this device (localStorage); nothing extra is written to Firestore. */
     (function () {
         'use strict';
         var KEY = 'fintech.layout.v1';
-        // find = any element inside the widget. parent = a part of another widget (its direct wrapper is hidden). lock = can never be hidden.
-        var W = [
-            { id: 'oop',     name: 'Out of Pocket Expenses',         find: '#out-of-pocket-body',  lock: true },
-            { id: 'bank',    name: 'Bank Initiated Expenses',        find: '#bank-initiated-body', lock: true },
-            { id: 'scratch', name: 'Pending / Uncleared Scratchpad', find: '#scratchpad-input' },
-            { id: 'income',  name: 'Total Spendable Income',         find: '#spendable-income',    lock: true },
-            { id: 'revenue', name: 'Actual Total Revenue',           find: '#actual-revenue' },
-            { id: 'gas',     name: 'Gas',                            find: '#est-gas',          parent: 'revenue' },
-            { id: 'groc',    name: 'Groceries',                      find: '#est-groceries',    parent: 'revenue' },
-            { id: 'net',     name: 'Net total',                      find: '#true-net-revenue', parent: 'revenue' },
-            { id: 'split',   name: 'Safe to Spend Split',            find: '#split-savings' },
-            { id: 'goal',    name: 'Sinking Fund / Goal',            find: '#goal-name' },
-            { id: 'chart',   name: 'Revenue vs. Expenses',           find: '#revenueChart' },
-            { id: 'summary', name: 'Summary',                        find: '#summary-card' },
-            { id: 'fillups', name: 'Fill Ups',                       find: '#fill-ups-body' },
-            { id: 'recon',   name: 'Bank Reconciliation',            find: '#bank-recon-body' },
-            { id: 'grocery', name: 'Grocery Budget',                 find: '#grocery-budget-body' },
-            { id: 'session', name: 'Ledger Session',                 find: '#session-start' }
-        ];
         var $ = function (id) { return document.getElementById(id); };
-        var each = function (list, fn) { Array.prototype.forEach.call(list, fn); };
-        var byId = {};
-        W.forEach(function (w) { byId[w.id] = w; });
+        // [key, an element inside the card, label, can be hidden, can be resized]
+        var DEFS = [
+            ['oop', 'out-of-pocket-body', 'Out of Pocket', 0, 1], ['bank', 'bank-initiated-body', 'Bank Initiated', 0, 1],
+            ['scratch', 'scratchpad-input', 'Scratchpad', 1, 1], ['income', 'spendable-income', 'Total Spendable Income', 0, 0],
+            ['revenue', 'actual-revenue', 'Actual Total Revenue', 1, 0], ['split', 'split-savings', 'Safe to Spend Split', 1, 0],
+            ['goal', 'goal-name', 'Savings Goal', 1, 0], ['chart', 'revenueChart', 'Revenue vs. Expenses', 1, 1],
+            ['summary', 'summary-lines', 'Summary', 1, 0], ['fillups', 'fill-ups-body', 'Fill Ups', 1, 1],
+            ['recon', 'bank-recon-body', 'Bank Reconciliation', 1, 1], ['grocery', 'grocery-budget-body', 'Grocery Budget', 1, 1],
+            ['ledger', 'session-start', 'Ledger Session', 1, 0]
+        ];
+        var SUBS = [['gas', 'est-gas', 'Gas'], ['groc', 'est-groceries', 'Groceries'], ['tiny', 'true-net-revenue', 'Small total']];
+        var SIZES = ['l', 'm', 's'], SIZE_NAME = { l: 'Large', m: 'Medium', s: 'Small' };
+        var GRIP = '<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><circle cx="4" cy="3" r="1.4"/><circle cx="10" cy="3" r="1.4"/><circle cx="4" cy="7" r="1.4"/><circle cx="10" cy="7" r="1.4"/><circle cx="4" cy="11" r="1.4"/><circle cx="10" cy="11" r="1.4"/></svg>';
+        var el = function (tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+        var btn = function (cls, text) { var b = el('button', cls, text); b.type = 'button'; return b; };
 
-        // Unknown ids and locked widgets are dropped, so an old or edited saved value can never hide a locked widget.
-        var clean = function (list) {
-            var out = [];
-            (Array.isArray(list) ? list : []).forEach(function (id) {
-                if (byId[id] && !byId[id].lock && out.indexOf(id) < 0) out.push(id);
+        function init() {
+            var grid = $('dashboard-grid'), menuBtn = $('btn-edit-layout');
+            if (!grid || !menuBtn) return;
+            var cols = Array.prototype.slice.call(grid.children), widgets = [], byKey = Object.create(null), subs = [];
+            var editing = false, drag = null, mark = el('div', 'pw-drop');
+
+            DEFS.forEach(function (d) {
+                var e = $(d[1]), card = e && e.closest('.card');
+                if (!card || card.parentNode.parentNode !== grid) return;
+                card.setAttribute('data-pw', d[0]);
+                var w = { key: d[0], card: card, label: d[2], hide: !!d[3], size: !!d[4] };
+                widgets.push(w); byKey[d[0]] = w;
             });
-            return out;
-        };
-        var hidden = [];
-        try { hidden = clean(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) { /* storage blocked: start with everything shown */ }
-        var listeners = [], rows = {}, chartWasHidden = null;
-
-        // Hidden if switched off, or if the widget it belongs to is switched off.
-        var effective = function () {
-            return W.filter(function (w) { return hidden.indexOf(w.id) > -1 || (w.parent && hidden.indexOf(w.parent) > -1); })
-                    .map(function (w) { return w.id; });
-        };
-
-        var sheet = document.createElement('style');
-        sheet.textContent = '.w-empty { display: none !important; }' + W.filter(function (w) { return !w.lock; }).map(function (w) {
-            return 'html[data-hide~="' + w.id + '"] [data-w="' + w.id + '"] { display: none !important; }';
-        }).join('');
-        document.head.appendChild(sheet);
-
-        var target = function (w) {
-            var el = document.querySelector(w.find);
-            return el ? (w.parent ? el.parentElement : el.closest('.card')) : null;
-        };
-
-        var sync = function () {
-            W.forEach(function (w) {
-                var r = rows[w.id];
-                if (!r) return;
-                var parentOff = !!(w.parent && hidden.indexOf(w.parent) > -1);
-                r.box.checked = w.lock ? true : (!parentOff && hidden.indexOf(w.id) < 0);
-                r.box.disabled = !!(w.lock || parentOff);
-                r.label.classList.toggle('disabled', r.box.disabled);
-                r.note.textContent = w.lock ? 'Always shown' : (parentOff ? 'Card is hidden' : '');
+            SUBS.forEach(function (d) {
+                var e = $(d[1]);
+                if (e && e.parentElement) subs.push({ key: d[0], el: e.parentElement, label: d[2] });
             });
-        };
 
-        var apply = function () {
-            var eff = effective();
-            document.documentElement.setAttribute('data-hide', eff.join(' '));
-            W.forEach(function (w) { var el = target(w); if (el) el.setAttribute('data-w', w.id); });
-            // Gas and Groceries share one row: collapse it when both are hidden so no stray gap is left behind.
-            var gas = $('est-gas'), groc = $('est-groceries');
-            if (gas && groc) gas.parentElement.parentElement.classList.toggle('w-empty', eff.indexOf('gas') > -1 && eff.indexOf('groc') > -1);
-            // A column with nothing visible in it collapses too, so the grid does not keep an empty slot (or print a blank one).
-            var grid = $('dashboard-grid');
-            if (grid) each(grid.children, function (col) {
-                var any = Array.prototype.some.call(col.children, function (c) { return getComputedStyle(c).display !== 'none'; });
-                col.classList.toggle('w-empty', !any);
+            var keysOf = function (col) {
+                return Array.prototype.map.call(col.children, function (c) { return c.getAttribute('data-pw'); }).filter(Boolean);
+            };
+            var base = cols.map(keysOf);
+            var applyOrder = function (order) {
+                order.slice(0, cols.length).forEach(function (keys, i) {
+                    if (Array.isArray(keys)) keys.forEach(function (k) { if (byKey[k]) cols[i].appendChild(byKey[k].card); });
+                });
+            };
+            var syncCols = function () {
+                cols.forEach(function (c) { c.classList.toggle('pw-off', !editing && !c.querySelector('.card:not(.pw-off)')); });
+            };
+            var save = function () {
+                var off = widgets.filter(function (w) { return w.card.classList.contains('pw-off'); }).map(function (w) { return w.key; })
+                    .concat(subs.filter(function (x) { return x.el.classList.contains('pw-off'); }).map(function (x) { return x.key; }));
+                var size = {};
+                widgets.forEach(function (w) { var v = w.card.getAttribute('data-pw-size'); if (v) size[w.key] = v; });
+                try { localStorage.setItem(KEY, JSON.stringify({ order: cols.map(keysOf), off: off, size: size })); } catch (e) {}
+            };
+
+            // ---- per-widget edit bar ----
+            widgets.forEach(function (w) {
+                var bar = el('div', 'pw-bar');
+                if (w.hide) {
+                    var m = btn('pw-minus', '\u2212');
+                    m.setAttribute('aria-label', 'Hide ' + w.label);
+                    m.addEventListener('click', function () { w.card.classList.add('pw-off'); save(); renderTray(); });
+                    bar.appendChild(m);
+                } else {
+                    var lock = el('span', 'pw-lock', 'Always on');
+                    lock.title = "This widget can't be hidden";
+                    bar.appendChild(lock);
+                }
+                var g = el('div', 'pw-grip');
+                g.tabIndex = 0; g.setAttribute('role', 'button');
+                g.setAttribute('aria-label', 'Move ' + w.label + '. Drag, or use the arrow keys.');
+                g.innerHTML = GRIP + '<span></span>';
+                g.lastChild.textContent = w.label;
+                bar.appendChild(g);
+                if (w.size) {
+                    var z = btn('pw-size', 'L');
+                    w.paint = function () {
+                        var v = w.card.getAttribute('data-pw-size') || 'l';
+                        z.textContent = v.toUpperCase();
+                        z.setAttribute('aria-label', w.label + ' size: ' + SIZE_NAME[v] + '. Press to change.');
+                    };
+                    z.addEventListener('click', function () {
+                        var n = SIZES[(SIZES.indexOf(w.card.getAttribute('data-pw-size') || 'l') + 1) % 3];
+                        if (n === 'l') w.card.removeAttribute('data-pw-size'); else w.card.setAttribute('data-pw-size', n);
+                        w.paint(); save();
+                    });
+                    bar.appendChild(z);
+                    w.paint();
+                }
+                w.card.insertBefore(bar, w.card.firstChild);
+
+                if (w.key === 'revenue' && subs.length) {
+                    var row = el('div', 'pw-sub-row', 'Show:');
+                    subs.forEach(function (x) {
+                        var c = btn('pw-chip', x.label);
+                        x.paint = function () { c.setAttribute('aria-pressed', x.el.classList.contains('pw-off') ? 'false' : 'true'); };
+                        c.addEventListener('click', function () { x.el.classList.toggle('pw-off'); x.paint(); save(); });
+                        x.paint(); row.appendChild(c);
+                    });
+                    w.card.insertBefore(row, bar.nextSibling);
+                }
+
+                // Drag (mouse, pen and touch). The card stays put; a line shows where it will land.
+                g.addEventListener('pointerdown', function (e) {
+                    if (drag || (e.button && e.button !== 0)) return;
+                    e.preventDefault();
+                    drag = { card: w.card, x: e.clientX, y: e.clientY };
+                    w.card.classList.add('pw-drag');
+                    try { g.setPointerCapture(e.pointerId); } catch (x) {}
+                    place(e.clientX, e.clientY);
+                    drag.timer = setInterval(function () {
+                        if (drag.y < 70) window.scrollBy(0, -12);
+                        else if (drag.y > window.innerHeight - 190) window.scrollBy(0, 12);
+                        else return;
+                        place(drag.x, drag.y);
+                    }, 30);
+                });
+                g.addEventListener('pointermove', function (e) {
+                    if (!drag || drag.card !== w.card) return;
+                    drag.x = e.clientX; drag.y = e.clientY; place(drag.x, drag.y);
+                });
+                g.addEventListener('pointerup', function () { finish(true); });
+                g.addEventListener('pointercancel', function () { finish(false); });
+
+                // Keyboard: up/down within a column, left/right to the neighbouring column.
+                g.addEventListener('keydown', function (e) {
+                    var c = w.card, col = c.parentNode, k = e.key;
+                    var vis = function (n) { return n.classList.contains('card') && !n.classList.contains('pw-off'); };
+                    if (k === 'ArrowUp' || k === 'ArrowDown') {
+                        var up = k === 'ArrowUp', n = up ? c.previousElementSibling : c.nextElementSibling;
+                        while (n && !vis(n)) n = up ? n.previousElementSibling : n.nextElementSibling;
+                        if (!n) return;
+                        col.insertBefore(c, up ? n : n.nextElementSibling);
+                    } else if (k === 'ArrowLeft' || k === 'ArrowRight') {
+                        var t = cols[cols.indexOf(col) + (k === 'ArrowLeft' ? -1 : 1)];
+                        if (!t) return;
+                        t.appendChild(c);
+                    } else return;
+                    e.preventDefault(); g.focus(); c.scrollIntoView({ block: 'nearest' }); save();
+                });
             });
-            // Chart.js sizes itself to its box, so nudge it when the chart comes back from hidden.
-            var chartHidden = eff.indexOf('chart') > -1;
-            if (chartWasHidden && !chartHidden) requestAnimationFrame(function () { window.dispatchEvent(new Event('resize')); });
-            chartWasHidden = chartHidden;
-            sync();
-        };
 
-        var save = function () {
-            try { localStorage.setItem(KEY, JSON.stringify(hidden)); } catch (e) { /* still applied for this session */ }
-        };
-        var commit = function (next) {
-            hidden = clean(next);
-            save();
-            apply();
-            listeners.forEach(function (fn) { fn(hidden.slice()); });
-        };
-
-        var list = $('widget-list');
-        if (list) {
-            W.forEach(function (w) {
-                var li = document.createElement('li'), label = document.createElement('label');
-                var name = document.createElement('span'), note = document.createElement('span'), box = document.createElement('input');
-                label.className = 'widget-row' + (w.parent ? ' sub' : '');
-                name.className = 'widget-name'; name.textContent = w.name;
-                note.className = 'widget-note';
-                box.type = 'checkbox'; box.setAttribute('data-id', w.id);
-                label.append(name, note, box);
-                li.appendChild(label);
-                list.appendChild(li);
-                rows[w.id] = { label: label, note: note, box: box };
-            });
-            list.addEventListener('change', function (e) {
-                var id = e.target.getAttribute && e.target.getAttribute('data-id');
-                if (!id || !byId[id] || byId[id].lock) return;
-                commit(e.target.checked ? hidden.filter(function (x) { return x !== id; }) : hidden.concat(id));
-            });
-        }
-        if ($('btn-widgets-all')) $('btn-widgets-all').addEventListener('click', function () { commit([]); });
-
-        // Used by the app script: onSave persists to the account, applyCloud follows what the account has saved.
-        window.fintechLayout = {
-            onSave: function (fn) { listeners.push(fn); },
-            applyCloud: function (saved) {
-                if (!Array.isArray(saved)) return; // nothing saved on the account yet: keep this device's choice
-                var next = clean(saved);
-                if (next.slice().sort().join() === hidden.slice().sort().join()) return;
-                hidden = next;
-                save();
-                apply();
+            function place(x, y) {
+                var best = null, bd = Infinity;
+                cols.forEach(function (c) {
+                    if (c.classList.contains('pw-off')) return;
+                    var r = c.getBoundingClientRect();
+                    var dx = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
+                    var dy = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0;
+                    if (dx * dx + dy * dy < bd) { bd = dx * dx + dy * dy; best = c; }
+                });
+                if (!best) return;
+                var at = null;
+                Array.prototype.some.call(best.children, function (c) {
+                    if (!c.classList.contains('card') || c === drag.card || c.classList.contains('pw-off')) return false;
+                    var r = c.getBoundingClientRect();
+                    if (y < r.top + r.height / 2) { at = c; return true; }
+                    return false;
+                });
+                best.insertBefore(mark, at);
             }
-        };
+            function finish(drop) {
+                if (!drag) return;
+                clearInterval(drag.timer);
+                if (drop && mark.parentNode) mark.parentNode.insertBefore(drag.card, mark);
+                if (mark.parentNode) mark.parentNode.removeChild(mark);
+                drag.card.classList.remove('pw-drag');
+                drag = null; save();
+            }
 
-        apply();
-        // The Summary card is added to the page after load; re-apply whenever a column gains or loses a card.
-        var grid = $('dashboard-grid');
-        if (grid) {
-            var mo = new MutationObserver(apply);
-            each(grid.children, function (col) { mo.observe(col, { childList: true }); });
+            // ---- toolbar, grey-out and hidden-widget tray ----
+            var scrim = el('div', 'pw-scrim'), tb = el('div', 'pw-toolbar'), tray = el('div', 'pw-tray'), act = el('div', 'pw-actions');
+            scrim.setAttribute('aria-hidden', 'true');
+            tb.setAttribute('role', 'region'); tb.setAttribute('aria-label', 'Edit layout');
+            var reset = btn('pw-btn', 'Reset layout'), done = btn('pw-btn pw-primary', 'Done');
+            act.append(reset, done);
+            tb.append(el('div', 'pw-tip', 'Drag the grip to reorder. \u2212 hides a widget, S / M / L shrinks it.'), tray, act);
+            document.body.append(scrim, tb);
+
+            function renderTray() {
+                tray.textContent = '';
+                var hid = widgets.filter(function (w) { return w.card.classList.contains('pw-off'); });
+                tray.appendChild(el('span', 'pw-tip', hid.length ? 'Hidden \u2014 tap to restore:' : 'No hidden widgets.'));
+                hid.forEach(function (w) {
+                    var b = btn('pw-chip', '+ ' + w.label);
+                    b.addEventListener('click', function () { w.card.classList.remove('pw-off'); save(); renderTray(); });
+                    tray.appendChild(b);
+                });
+            }
+            function setEditing(on) {
+                if (!on) finish(false);
+                editing = on;
+                document.body.classList.toggle('pw-editing', on);
+                syncCols(); renderTray();
+                if (on) done.focus();
+                else { var t = $('btn-menu'); if (t) t.focus(); }
+            }
+            menuBtn.addEventListener('click', function () { setEditing(true); });
+            done.addEventListener('click', function () { setEditing(false); });
+            document.addEventListener('keydown', function (e) { if (editing && !drag && e.key === 'Escape') setEditing(false); });
+            reset.addEventListener('click', function () {
+                if (!confirm('Reset the layout to the default arrangement?')) return;
+                applyOrder(base);
+                widgets.forEach(function (w) { w.card.classList.remove('pw-off'); w.card.removeAttribute('data-pw-size'); if (w.paint) w.paint(); });
+                subs.forEach(function (x) { x.el.classList.remove('pw-off'); if (x.paint) x.paint(); });
+                try { localStorage.removeItem(KEY); } catch (e) {}
+                renderTray();
+            });
+
+            // ---- restore the saved arrangement (always re-checked against the rules, so stored data can't hide a required widget) ----
+            try {
+                var st = JSON.parse(localStorage.getItem(KEY) || 'null');
+                if (st && typeof st === 'object') {
+                    if (Array.isArray(st.order)) applyOrder(st.order);
+                    (Array.isArray(st.off) ? st.off : []).forEach(function (k) {
+                        if (byKey[k]) { if (byKey[k].hide) byKey[k].card.classList.add('pw-off'); return; }
+                        subs.forEach(function (x) { if (x.key === k) x.el.classList.add('pw-off'); });
+                    });
+                    Object.keys(st.size || {}).forEach(function (k) {
+                        if (byKey[k] && byKey[k].size && (st.size[k] === 'm' || st.size[k] === 's')) byKey[k].card.setAttribute('data-pw-size', st.size[k]);
+                    });
+                    widgets.forEach(function (w) { if (w.paint) w.paint(); });
+                    subs.forEach(function (x) { if (x.paint) x.paint(); });
+                }
+            } catch (e) {}
+            syncCols();
         }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+        else init();
     })();
     </script>
 </body>
