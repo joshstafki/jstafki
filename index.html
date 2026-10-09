@@ -1,110 +1,663 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>MAKE THINGS MOVE. — Digital Space</title>
 
-    <title>Under Construction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <meta name="description" content="This website is currently under construction. Please check back soon.">
+<style>
+:root {
+    --bg: #050505;
+    --fg: #f4f5f0;
+    --cyan: #7df9ff;
+    --gold: #d4bc82;
+}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            min-height: 100%;
-        }
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: Manrope, sans-serif;
+}
 
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f7f7f7;
-            color: #222;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 30px;
-        }
+#app {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    height: 100%;
+    height: 100svh;
+    overflow: hidden;
 
-        .container {
-            width: 100%;
-            max-width: 850px;
-            text-align: center;
-            background: #ffffff;
-            padding: 60px 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-        }
+    background-color: #050505;
+    background-image:
+        radial-gradient(
+            circle,
+            rgba(125,125,125,.25) .8px,
+            transparent 1.2px
+        ),
+        radial-gradient(
+            ellipse at 50% 45%,
+            rgba(255,255,255,.035),
+            transparent 70%
+        );
+    background-size: 5px 5px, 100% 100%;
+    background-position: 0 0, center;
+}
 
-        .construction-image {
-            display: block;
-            width: 100%;
-            max-width: 560px;
-            height: auto;
-            margin: 0 auto 35px;
-        }
+/* PERSONAL WORDMARK */
 
-        h1 {
-            margin: 0 0 15px;
-            font-size: clamp(2rem, 5vw, 3.2rem);
-            font-weight: 700;
-            letter-spacing: -0.03em;
-        }
+.site-header {
+    position: absolute;
+    top: 34px;
+    left: 38px;
+    z-index: 20;
 
-        p {
-            margin: 0 auto;
-            max-width: 600px;
-            color: #666;
-            font-size: 1.1rem;
-            line-height: 1.7;
-        }
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
 
-        .footer {
-            margin-top: 35px;
-            font-size: 0.85rem;
-            color: #999;
-        }
+    pointer-events: none;
+}
 
-        @media (max-width: 600px) {
-            body {
-                padding: 15px;
-            }
+.header-name {
+    font-family: Manrope, sans-serif;
+    font-size: clamp(28px, 3vw, 44px);
+    font-weight: 800;
+    letter-spacing: -.075em;
+    line-height: .95;
+    color: #f4f5f0;
+}
 
-            .container {
-                padding: 40px 20px;
-            }
-        }
-    </style>
+.header-tagline {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(12px, 1.05vw, 15px);
+    font-weight: 500;
+    letter-spacing: .105em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: rgba(244, 245, 240, .68);
+}
+
+/* ATMOSPHERE */
+
+.atmosphere {
+    position: absolute;
+    inset: -30%;
+    z-index: 1;
+    pointer-events: none;
+
+    background: radial-gradient(
+        ellipse at 65% 45%,
+        rgba(189,163,107,.045),
+        transparent 58%
+    );
+
+    animation: atmosphere 14s ease-in-out infinite alternate;
+}
+
+@keyframes atmosphere {
+    from {
+        transform: scale(1) rotate(0deg);
+        opacity: .5;
+    }
+    to {
+        transform: scale(1.15) rotate(8deg);
+        opacity: 1;
+    }
+}
+
+/* FILM GRAIN */
+
+.noise {
+    position: absolute;
+    inset: -50%;
+    z-index: 5;
+    pointer-events: none;
+    opacity: .035;
+
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+
+    animation: noise .2s steps(2) infinite;
+}
+
+@keyframes noise {
+    0%   { transform: translate(0,0); }
+    25%  { transform: translate(1%,-1%); }
+    50%  { transform: translate(-1%,1%); }
+    75%  { transform: translate(1%,1%); }
+    100% { transform: translate(-1%,-1%); }
+}
+
+/* VIGNETTE */
+
+.vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+
+    background: radial-gradient(
+        ellipse at center,
+        transparent 35%,
+        rgba(0,0,0,.25) 72%,
+        rgba(0,0,0,.65) 100%
+    );
+}
+
+/* HERO */
+
+.hero {
+    position: absolute;
+    left: 6.5vw;
+    bottom: 10vh;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.kicker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.42);
+
+    animation: fade-up 1s ease both;
+}
+
+.kicker::before {
+    content: "";
+    width: 30px;
+    height: 1px;
+    background: var(--cyan);
+    box-shadow: 0 0 12px rgba(125,249,255,.5);
+}
+
+h1 {
+    font-size: clamp(70px, 11vw, 170px);
+    line-height: .78;
+    letter-spacing: -.085em;
+    font-weight: 700;
+    mix-blend-mode: screen;
+}
+
+h1 div {
+    overflow: hidden;
+}
+
+h1 span {
+    display: block;
+    animation: reveal 1.15s cubic-bezier(.16,1,.3,1) both;
+}
+
+h1 div:nth-child(1) span {
+    animation-delay: .1s;
+}
+
+h1 div:nth-child(2) span {
+    animation-delay: .23s;
+}
+
+h1 div:nth-child(3) span {
+    animation-delay: .36s;
+}
+
+.h1-dim {
+    opacity: .16;
+}
+
+@keyframes reveal {
+    from {
+        transform: translateY(110%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fade-up {
+    from {
+        transform: translateY(12px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ROTATING GLOBE */
+
+#globe-stage {
+    position: absolute;
+    z-index: 2;
+
+    width: min(54vw, 78vh, 780px);
+    aspect-ratio: 1;
+
+    left: 72%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    pointer-events: none;
+}
+
+#globe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.sphere {
+    fill: url(#ocean);
+    stroke: var(--gold);
+    stroke-width: .85;
+    vector-effect: non-scaling-stroke;
+}
+
+.graticule {
+    fill: none;
+    stroke: #b89b5c;
+    stroke-width: .45;
+    opacity: .36;
+    vector-effect: non-scaling-stroke;
+}
+
+.country {
+    fill: rgba(183,151,82,.15);
+    stroke: #c8ad70;
+    stroke-width: .48;
+    vector-effect: non-scaling-stroke;
+}
+
+.borders {
+    fill: none;
+    stroke: #d5bd86;
+    stroke-width: .38;
+    opacity: .8;
+    vector-effect: non-scaling-stroke;
+}
+
+.continent-label {
+    fill: #e2d0a2;
+    font-family: 'Cormorant Garamond', 'Palatino Linotype', Georgia, serif;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: rgba(13,12,8,.75);
+    stroke-width: 2px;
+    stroke-linejoin: round;
+    pointer-events: none;
+    user-select: none;
+}
+
+.ornament {
+    fill: none;
+    stroke: #bda36b;
+    stroke-width: .65;
+    opacity: .55;
+    vector-effect: non-scaling-stroke;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 800px) {
+    .site-header {
+        top: 22px;
+        left: 20px;
+        right: 20px;
+        gap: 6px;
+    }
+
+    .header-name {
+        font-size: clamp(25px, 7vw, 34px);
+    }
+
+    .header-tagline {
+        font-size: 11px;
+        letter-spacing: .075em;
+        line-height: 1.5;
+    }
+
+    #globe-stage {
+        width: min(88vw, 54vh, 520px);
+        left: 72%;
+        top: 34%;
+        opacity: .72;
+    }
+
+    .hero {
+        left: 6vw;
+        right: 4vw;
+        bottom: 12vh;
+    }
+
+    h1 {
+        font-size: 20vw;
+    }
+
+    .kicker {
+        font-size: 8px;
+        margin-bottom: 20px;
+    }
+
+    .noise {
+        opacity: .025;
+    }
+
+    .vignette {
+        background: radial-gradient(
+            ellipse at center,
+            transparent 30%,
+            rgba(0,0,0,.25) 70%,
+            rgba(0,0,0,.65) 100%
+        );
+    }
+}
+
+@media (max-width: 420px) {
+    .header-name {
+        font-size: 27px;
+    }
+
+    .header-tagline {
+        font-size: 10px;
+        letter-spacing: .065em;
+    }
+
+    #globe-stage {
+        width: 94vw;
+        left: 72%;
+        top: 30%;
+        opacity: .56;
+    }
+
+    .hero {
+        bottom: 14vh;
+    }
+
+    h1 {
+        font-size: 20.5vw;
+    }
+
+    .kicker {
+        font-size: 7px;
+        letter-spacing: .14em;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .noise,
+    .atmosphere {
+        animation: none !important;
+    }
+
+    h1 span {
+        animation: none !important;
+        transform: none;
+        opacity: 1;
+    }
+
+    .kicker {
+        animation: none !important;
+    }
+}
+</style>
 </head>
 
 <body>
+<div id="app">
 
-    <main class="container">
+    <!-- PERSONAL WORDMARK -->
+    <header class="site-header">
+        <div class="header-name">JOSHUA STAFKI</div>
+        <div class="header-tagline">CHASING A STORY WORTH LEAVING BEHIND</div>
+    </header>
 
-        <img
-            class="construction-image"
-            src="https://t4.ftcdn.net/jpg/00/89/02/67/360_F_89026793_eyw5a7WCQE0y1RHsizu41uhj7YStgvAA.jpg"
-            alt="Under construction"
-        >
+    <div class="atmosphere"></div>
 
-        <h1>This Site Is Under Construction</h1>
+    <!-- GLOBE -->
 
-        <p>
-            We’re currently working on something new.
-            Please check back soon for updates.
-        </p>
+    <main id="globe-stage" aria-label="Antique-style rotating globe">
+        <svg id="globe" viewBox="0 0 600 600" role="img"
+             aria-label="Rotating globe with antique Latin continent names">
 
-        <div class="footer">
-            © 2026
+            <defs>
+                <radialGradient id="ocean" cx="32%" cy="27%" r="78%">
+                    <stop offset="0%" stop-color="#29271c"/>
+                    <stop offset="58%" stop-color="#17170f"/>
+                    <stop offset="100%" stop-color="#090a08"/>
+                </radialGradient>
+
+                <radialGradient id="halo">
+                    <stop offset="0%" stop-color="#b99a56" stop-opacity=".16"/>
+                    <stop offset="72%" stop-color="#b99a56" stop-opacity=".035"/>
+                    <stop offset="100%" stop-color="#b99a56" stop-opacity="0"/>
+                </radialGradient>
+
+                <clipPath id="sphere-clip">
+                    <circle cx="300" cy="300" r="258"/>
+                </clipPath>
+            </defs>
+
+            <circle cx="300" cy="300" r="290" fill="url(#halo)"/>
+
+            <circle cx="300" cy="300" r="264"
+                    fill="none" stroke="#bda36b"
+                    stroke-opacity=".16" stroke-width=".7"/>
+
+            <circle class="sphere" cx="300" cy="300" r="258"/>
+
+            <g clip-path="url(#sphere-clip)">
+                <path id="graticule" class="graticule"></path>
+                <g id="land"></g>
+                <path id="borders" class="borders"></path>
+                <g id="labels"></g>
+            </g>
+
+            <circle cx="300" cy="300" r="258"
+                    fill="none" stroke="#ead8a7"
+                    stroke-opacity=".4" stroke-width=".5"/>
+
+            <g class="ornament">
+                <circle cx="300" cy="300" r="273"/>
+                <path d="
+                    M300 19v12
+                    M300 569v12
+                    M19 300h12
+                    M569 300h12
+                    M101 101l8 8
+                    M491 101l-8 8
+                    M101 499l8-8
+                    M491 499l-8-8
+                "/>
+            </g>
+        </svg>
+    </main>
+
+    <div class="noise"></div>
+    <div class="vignette"></div>
+
+    <!-- TYPOGRAPHY -->
+
+    <section class="hero">
+        <div class="kicker">
+            Independent digital entrepreneur
         </div>
 
-    </main>
+        <h1>
+            <div><span>MAKE</span></div>
+            <div class="h1-dim"><span>THINGS</span></div>
+            <div><span>MOVE.</span></div>
+        </h1>
+    </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+
+<script>
+(() => {
+    'use strict';
+
+    const reducedMotion = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+    );
+
+    const projection = d3.geoOrthographic()
+        .translate([300, 300])
+        .scale(258)
+        .clipAngle(90)
+        .precision(.3);
+
+    const path = d3.geoPath(projection);
+    const landLayer = d3.select('#land');
+    const labelLayer = d3.select('#labels');
+
+    const graticulePath = document.getElementById('graticule');
+    const bordersPath = document.getElementById('borders');
+
+    const labels = [
+        { name: 'EUROPA', coordinates: [18, 51] },
+        { name: 'ASIA', coordinates: [88, 43] },
+        { name: 'AFRICA', coordinates: [20, 3] },
+        { name: 'AMERICA SEPTENTRIONALIS', coordinates: [-103, 39] },
+        { name: 'AMERICA MERIDIONALIS', coordinates: [-61, -20] },
+        { name: 'OCEANIA', coordinates: [137, -25] }
+    ];
+
+    const labelNodes = labelLayer
+        .selectAll('text')
+        .data(labels)
+        .join('text')
+        .attr('class', 'continent-label')
+        .text(d => d.name);
+
+    const graticule = d3.geoGraticule().step([15, 15])();
+
+    function render() {
+        graticulePath.setAttribute('d', path(graticule) || '');
+
+        landLayer.selectAll('path').attr('d', path);
+
+        if (window.__worldTopology) {
+            bordersPath.setAttribute(
+                'd',
+                path(
+                    topojson.mesh(
+                        window.__worldTopology,
+                        window.__worldTopology.objects.countries,
+                        (a, b) => a !== b
+                    )
+                ) || ''
+            );
+        }
+
+        const rotation = projection.rotate();
+        const center = [-rotation[0], -rotation[1]];
+
+        labelNodes
+            .attr('x', d => {
+                const p = projection(d.coordinates);
+                return p ? p[0] : -1000;
+            })
+            .attr('y', d => {
+                const p = projection(d.coordinates);
+                return p ? p[1] + 4 : -1000;
+            })
+            .attr('opacity', d =>
+                d3.geoDistance(d.coordinates, center) < Math.PI / 2
+                    ? 1
+                    : 0
+            );
+    }
+
+    async function start() {
+        const response = await fetch(
+            'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
+        );
+
+        if (!response.ok) {
+            throw new Error('Could not load world geometry');
+        }
+
+        const topology = await response.json();
+        window.__worldTopology = topology;
+
+        const features = topojson.feature(
+            topology,
+            topology.objects.countries
+        ).features;
+
+        landLayer
+            .selectAll('path')
+            .data(features)
+            .join('path')
+            .attr('class', 'country')
+            .attr('d', path);
+
+        render();
+
+        let last = 0;
+        let longitude = -18;
+
+        function animate(now) {
+            requestAnimationFrame(animate);
+
+            if (reducedMotion.matches) {
+                last = now;
+                return;
+            }
+
+            if (!last) last = now;
+
+            const delta = Math.min(now - last, 50);
+            last = now;
+
+            longitude += delta * .0042;
+
+            projection.rotate([longitude, -8, 0]);
+            render();
+        }
+
+        requestAnimationFrame(animate);
+
+        reducedMotion.addEventListener?.('change', render);
+    }
+
+    if (window.d3 && window.topojson) {
+        start().catch(err =>
+            console.error('Globe geometry could not be loaded:', err)
+        );
+    }
+})();
+</script>
 
 </body>
 </html>
