@@ -1,22 +1,875 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=https://docs.google.com/spreadsheets/d/e/2PACX-1vSg3xBLpEFJwGqCLDx8dmfTQ0Q2F3eQz5Nz3axaUDb75-hdpTjJ-EKtDO8jX5bniXvnQmZB_oPI_B8l/pubhtml">
-    <script>
-        window.location.replace("https://docs.google.com/spreadsheets/d/e/2PACX-1vSg3xBLpEFJwGqCLDx8dmfTQ0Q2F3eQz5Nz3axaUDb75-hdpTjJ-EKtDO8jX5bniXvnQmZB_oPI_B8l/pubhtml");
-    </script>
-    <title>Redirecting...</title>
-    <style>
-        html, body {
-            margin: 0;
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            overflow: hidden;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f5f7fa">
+<title>FINTECH — Release History</title>
+<meta name="description" content="FINTECH software release history, version information, and product updates.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+:root {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --text: #172235;
+  --muted: #758196;
+  --line: #e5eaf1;
+  --accent: #244b80;
+  --accent-soft: #edf3fa;
+  --success: #197451;
+  --success-bg: #eaf7f0;
+  --error: #a63838;
+  --error-bg: #fff0f0;
+  --radius: 14px;
+  --shadow: 0 4px 20px rgba(28, 47, 75, .035);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select { font: inherit; }
+
+button { cursor: pointer; }
+
+a { color: inherit; }
+
+.shell {
+  width: min(1120px, 100%);
+  padding: 0 30px;
+  margin: auto;
+}
+
+/* Navigation */
+
+.topbar {
+  height: 76px;
+  background: rgba(255,255,255,.88);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav-inner {
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.brand-name {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -.55px;
+}
+
+.brand-name span {
+  color: var(--accent);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.back-link {
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 12px;
+  transition: color .2s;
+}
+
+.back-link:hover { color: var(--accent); }
+
+.connection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  background: #24a16a;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #24a16a16;
+}
+
+.status-dot.error {
+  background: #d24c4c;
+  box-shadow: 0 0 0 3px #d24c4c16;
+}
+
+/* Main content */
+
+main { padding: 52px 0 76px; }
+
+.breadcrumb {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 28px;
+}
+
+.breadcrumb .current { color: var(--accent); }
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 34px;
+}
+
+.kicker {
+  color: var(--accent);
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  margin-bottom: 13px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 49px);
+  font-weight: 800;
+  letter-spacing: -2.5px;
+  line-height: 1.1;
+}
+
+.subtitle {
+  max-width: 540px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+.release-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 9px 11px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+
+/* Current version */
+
+.current-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 42px;
+}
+
+.current-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--accent);
+}
+
+.current-inner {
+  display: grid;
+  grid-template-columns: minmax(200px, .75fr) minmax(0, 1.65fr);
+}
+
+.version-side {
+  padding: 29px;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.field-label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.15px;
+  text-transform: uppercase;
+}
+
+.version-number {
+  margin-top: 17px;
+  color: var(--accent);
+  font-size: clamp(32px, 4vw, 43px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  overflow-wrap: anywhere;
+}
+
+.version-caption {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 11px;
+}
+
+.description-side {
+  padding: 29px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 190px;
+}
+
+.description {
+  margin-top: 15px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.description.empty {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.current-footer {
+  min-height: 47px;
+  padding: 11px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.sync-info {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.refresh {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: white;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 11px;
+  transition: background .2s, border-color .2s;
+}
+
+.refresh:hover {
+  background: var(--accent-soft);
+  border-color: #bdcce0;
+}
+
+.refresh:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+/* Release history */
+
+.history-section { margin-top: 42px; }
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 15px;
+  margin-bottom: 21px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -.9px;
+  font-weight: 750;
+}
+
+.section-heading p {
+  color: var(--muted);
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.total {
+  color: var(--muted);
+  font: 11px "DM Mono", monospace;
+  white-space: nowrap;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: #8c97a8;
+  pointer-events: none;
+}
+
+.search {
+  display: block;
+  width: 100%;
+  min-height: 43px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 0 14px 0 40px;
+  outline: none;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.search:focus {
+  border-color: #91a9c8;
+  box-shadow: 0 0 0 3px #244b800c;
+}
+
+.table-frame {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: auto;
+  box-shadow: var(--shadow);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+thead { background: #f8fafc; }
+
+th {
+  border-bottom: 1px solid var(--line);
+  color: #68768b;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .75px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 16px 19px;
+}
+
+th button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
+
+th button:hover { color: var(--accent); }
+
+td {
+  padding: 16px 19px;
+  border-bottom: 1px solid #edf0f5;
+  color: #526075;
+  line-height: 1.8;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+tbody tr:last-child td { border-bottom: 0; }
+
+tbody tr { transition: background .15s; }
+
+tbody tr:hover { background: #f8fafd; }
+
+tbody td:first-child {
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.empty-state {
+  padding: 38px 20px;
+  text-align: center;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.error-box {
+  display: none;
+  padding: 14px 17px;
+  margin-bottom: 20px;
+  border: 1px solid #f0d3d3;
+  border-radius: 9px;
+  background: var(--error-bg);
+  color: var(--error);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  background: white;
+}
+
+.footer-inner {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.footer-brand {
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing: .8px;
+}
+
+@media (max-width: 680px) {
+  .shell { padding: 0 18px; }
+  .topbar { height: 66px; }
+  .nav-right { gap: 11px; }
+  .back-link { display: none; }
+  main { padding-top: 34px; }
+  .hero { align-items: flex-start; flex-direction: column; }
+  h1 { letter-spacing: -1.8px; }
+  .current-inner { grid-template-columns: 1fr; }
+  .version-side {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 23px;
+  }
+  .version-number { margin-top: 12px; }
+  .description-side { padding: 24px; min-height: 145px; }
+  .section-heading { align-items: flex-start; }
+  .toolbar { flex-direction: column; }
+  .table-frame { margin: 0 -1px; }
+  th, td { padding: 13px 14px; }
+  .footer-inner { padding: 16px 0; align-items: flex-start; flex-direction: column; }
+}
+</style>
 </head>
+
 <body>
+<header class="topbar">
+  <div class="shell nav-inner">
+    <a class="brand" href="https://www.jstafki.com/fintech/" aria-label="FINTECH home">
+      <span class="brand-mark">F</span>
+      <span class="brand-name">FIN<span>TECH</span></span>
+    </a>
+
+    <div class="nav-right">
+      <a class="back-link" href="https://www.jstafki.com/fintech/">Back to FINTECH</a>
+      <div class="connection">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Connecting…</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <div class="breadcrumb">
+    <span>FINTECH</span>
+    <span>/</span>
+    <span class="current">Release history</span>
+  </div>
+
+  <section class="hero">
+    <div>
+      <div class="kicker">Product documentation</div>
+      <h1>Release history</h1>
+      <p class="subtitle">
+        A transparent record of FINTECH's development.
+        Explore version releases, improvements, and changes
+        across the application's lifecycle.
+      </p>
+    </div>
+    <div class="release-label">VERSION CONTROL · LIVE</div>
+  </section>
+
+  <div class="error-box" id="errorBox" role="alert"></div>
+
+  <section class="current-card" aria-labelledby="currentVersion">
+    <div class="current-inner">
+      <div class="version-side">
+        <div class="field-label">Current release</div>
+        <div class="version-number" id="currentVersion">—</div>
+        <div class="version-caption">Latest published version</div>
+      </div>
+
+      <div class="description-side">
+        <div class="field-label">Release description</div>
+        <div class="description empty" id="currentDescription">
+          Retrieving current release information…
+        </div>
+      </div>
+    </div>
+
+    <div class="current-footer">
+      <span class="sync-info" id="lastUpdated">Waiting for data connection</span>
+      <button class="refresh" id="refreshButton" type="button">
+        ↻ Refresh
+      </button>
+    </div>
+  </section>
+
+  <section class="history-section">
+    <div class="section-heading">
+      <div>
+        <h2>All releases</h2>
+        <p>Browse and search the complete version history.</p>
+      </div>
+      <span class="total" id="recordCount">0 RELEASES</span>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search" id="searchInput" type="search"
+          placeholder="Search version history…"
+          aria-label="Search release history">
+      </div>
+    </div>
+
+    <div class="table-frame">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody">
+          <tr><td class="empty-state">Loading release history…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="shell footer-inner">
+    <span class="footer-brand">FINTECH</span>
+    <span id="footerStatus">Release data initializing</span>
+    <span>Software version history</span>
+  </div>
+</footer>
+
+<script>
+const SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/e/" +
+  "2PACX-1vSg3xBLpEFJwGqCLDx8dmfTQ0Q2F3eQz5Nz3axaUDb75-hdpTjJ-EKtDO8jX5bniXvnQmZB_oPI_B8l/" +
+  "pub?output=csv";
+
+const HEADER_ROW = 3;       // Spreadsheet row 4
+const FIRST_DATA_ROW = 4;   // Spreadsheet row 5
+const REFRESH_MS = 60000;
+
+let headers = [];
+let records = [];
+let sortColumn = 0;
+let sortDirection = -1;
+let loading = false;
+let hasLoaded = false;
+
+const $ = id => document.getElementById(id);
+const clean = value => String(value ?? "").trim();
+
+function setStatus(message, error = false) {
+  $("statusText").textContent = message;
+  $("footerStatus").textContent = message;
+  $("statusDot").classList.toggle("error", error);
+}
+
+function showError(message) {
+  $("errorBox").textContent = message;
+  $("errorBox").style.display = "block";
+}
+
+function clearError() {
+  $("errorBox").textContent = "";
+  $("errorBox").style.display = "none";
+}
+
+function cell(rows, row, col) {
+  return clean(rows[row]?.[col]);
+}
+
+function findLastValue(rows, column) {
+  for (let i = rows.length - 1; i >= FIRST_DATA_ROW; i--) {
+    const value = cell(rows, i, column);
+    if (value) return value;
+  }
+  return "";
+}
+
+function updateCurrent(rows) {
+  // B1 and D1 in the published CSV correspond to
+  // row index 0 and column indices 1 and 3.
+  // Merged cells may not always serialize as expected,
+  // so the history columns provide a fallback.
+  const version =
+    cell(rows, 0, 1) || findLastValue(rows, 0);
+
+  const description =
+    cell(rows, 0, 3) || findLastValue(rows, 1);
+
+  $("currentVersion").textContent = version || "—";
+
+  const descriptionNode = $("currentDescription");
+  descriptionNode.textContent = description ||
+    "No release description is currently available.";
+  descriptionNode.classList.toggle("empty", !description);
+}
+
+function renderHeaders() {
+  const tr = document.createElement("tr");
+
+  headers.forEach((header, index) => {
+    const th = document.createElement("th");
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.textContent = header +
+      (sortColumn === index
+        ? (sortDirection === 1 ? " ↑" : " ↓")
+        : "");
+
+    button.addEventListener("click", () => {
+      if (sortColumn === index) {
+        sortDirection *= -1;
+      } else {
+        sortColumn = index;
+        sortDirection = 1;
+      }
+
+      renderHeaders();
+      renderRecords();
+    });
+
+    th.appendChild(button);
+    tr.appendChild(th);
+  });
+
+  $("tableHead").replaceChildren(tr);
+}
+
+function renderRecords() {
+  const tbody = $("tableBody");
+  tbody.replaceChildren();
+
+  const query = clean($("searchInput").value).toLowerCase();
+
+  const filtered = records
+    .filter(row =>
+      row.some(value => clean(value).toLowerCase().includes(query))
+    )
+    .slice()
+    .sort((a, b) => {
+      const left = clean(a[sortColumn]);
+      const right = clean(b[sortColumn]);
+
+      return left.localeCompare(right, undefined, {
+        numeric: true,
+        sensitivity: "base"
+      }) * sortDirection;
+    });
+
+  $("recordCount").textContent =
+    `${filtered.length} / ${records.length} RELEASES`;
+
+  if (!filtered.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+
+    td.colSpan = Math.max(headers.length, 1);
+    td.className = "empty-state";
+    td.textContent = records.length
+      ? "No releases match your search."
+      : "No release records were found below row 4.";
+
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  filtered.forEach(row => {
+    const tr = document.createElement("tr");
+
+    row.forEach(value => {
+      const td = document.createElement("td");
+      td.textContent = clean(value) || "—";
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function processCSV(csv) {
+  const parsed = Papa.parse(csv, {
+    skipEmptyLines: false
+  });
+
+  if (parsed.errors.some(error => error.code === "UndetectableDelimiter")) {
+    throw new Error("The CSV delimiter could not be identified.");
+  }
+
+  const rows = parsed.data;
+
+  if (!rows || rows.length <= HEADER_ROW) {
+    throw new Error("Spreadsheet row 4 could not be found.");
+  }
+
+  updateCurrent(rows);
+
+  const rawHeaders = (rows[HEADER_ROW] || []).map(clean);
+
+  while (rawHeaders.length && !rawHeaders[rawHeaders.length - 1]) {
+    rawHeaders.pop();
+  }
+
+  if (!rawHeaders.length || rawHeaders.every(value => !value)) {
+    throw new Error("No column headers were found on row 4.");
+  }
+
+  headers = rawHeaders.map((value, index) =>
+    value || `Column ${index + 1}`
+  );
+
+  records = rows.slice(FIRST_DATA_ROW)
+    .filter(row => row.some(value => clean(value) !== ""))
+    .map(row => headers.map((_, index) => clean(row[index])));
+
+  // Default to the first column, descending.
+  sortColumn = 0;
+  sortDirection = -1;
+
+  renderHeaders();
+  renderRecords();
+}
+
+async function loadSheet() {
+  if (loading) return;
+  loading = true;
+
+  $("refreshButton").disabled = true;
+  $("refreshButton").textContent = "Refreshing…";
+  setStatus("Connecting");
+  clearError();
+
+  try {
+    const url = new URL(SHEET_URL);
+    url.searchParams.set("_", String(Date.now()));
+
+    const response = await fetch(url.toString(), {
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed with HTTP ${response.status}.`);
+    }
+
+    const csv = await response.text();
+
+    if (!csv.trim() || /<html[\s>]/i.test(csv.slice(0, 500))) {
+      throw new Error("Google Sheets did not return CSV data.");
+    }
+
+    processCSV(csv);
+    hasLoaded = true;
+
+    $("lastUpdated").textContent =
+      "Last synchronized " +
+      new Date().toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+
+    setStatus("Live Data Connected (Google Sheets)");
+  } catch (error) {
+    console.error("FINTECH release history:", error);
+
+    setStatus(
+      hasLoaded ? "Using Last Loaded Data" : "Connection Issue",
+      !hasLoaded
+    );
+
+    showError(
+      "The release data could not be refreshed. " +
+      error.message +
+      " Check the published CSV URL and browser access permissions."
+    );
+  } finally {
+    loading = false;
+    $("refreshButton").disabled = false;
+    $("refreshButton").textContent = "↻ Refresh";
+  }
+}
+
+$("refreshButton").addEventListener("click", loadSheet);
+$("searchInput").addEventListener("input", renderRecords);
+
+loadSheet();
+setInterval(loadSheet, REFRESH_MS);
+</script>
 </body>
 </html>
