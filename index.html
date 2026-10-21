@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,7 +37,17 @@
       color: var(--fg);
       font-family: Manrope, Inter, Arial, sans-serif;
       font-weight: 300;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scrollbar-color: #777 #050505;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100svh;
       overflow: hidden;
+      isolation: isolate;
     }
 
     .wordmark {
@@ -102,7 +113,7 @@
 
     /* ROTATING FACTS */
     .facts-stage {
-      position: fixed;
+      position: absolute;
       top: 50%;
       left: 50%;
       width: min(1100px, 90vw);
@@ -110,6 +121,45 @@
       transform: translate(-50%, -50%);
       text-align: left;
       z-index: 5;
+    }
+
+    /* SCROLL-REVEALED INTRO BANNER */
+    .intro-section {
+      position: relative;
+      width: 100%;
+      height: 360px;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f2;
+      background-image: radial-gradient(circle, rgba(75, 75, 75, 0.28) 1px, transparent 1.15px);
+      background-size: 5px 5px;
+      overflow: hidden;
+    }
+
+    .intro-banner {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: clamp(28px, 5vw, 72px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      color: #101010;
+    }
+
+    .intro-copy {
+      width: 100%;
+      max-width: 1250px;
+      margin: 0;
+      font-size: clamp(1.8rem, 4.2vw, 4.5rem);
+      line-height: 1.18;
+      letter-spacing: -0.045em;
+      font-weight: 400;
+      text-align: center;
+      text-wrap: pretty;
+      overflow-wrap: normal;
+      text-wrap: balance;
     }
 
     .fact {
@@ -151,11 +201,26 @@
         font-size: clamp(1.8rem, 8vw, 3rem);
         line-height: 1.18;
       }
+
+      .intro-section { height: 340px; }
+      .intro-banner { padding: 24px 7vw; }
+      .intro-copy {
+        font-size: clamp(1.55rem, 5.8vw, 2.8rem);
+        line-height: 1.2;
+        letter-spacing: -0.04em;
+      }
     }
 
     @media (max-width: 420px) {
       .facts-stage { top: 116px; }
       .fact { font-size: clamp(1.7rem, 8vw, 2.4rem); }
+      .intro-section { height: 320px; }
+      .intro-banner { padding: 20px 6vw; }
+      .intro-copy {
+        font-size: clamp(1.35rem, 6vw, 2rem);
+        line-height: 1.2;
+        letter-spacing: -0.04em;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -165,14 +230,22 @@
   </style>
 </head>
 <body>
-  <header class="wordmark" aria-label="Joshua Stafki">
-    <h1 class="name">JOSHUA STAFKI</h1>
-    <p class="catchphrase">CHASING A STORY WORTH LEAVING BEHIND</p>
-  </header>
+  <section class="hero" aria-label="Introduction">
+    <header class="wordmark" aria-label="Joshua Stafki">
+      <h1 class="name">JOSHUA STAFKI</h1>
+      <p class="catchphrase">CHASING A STORY WORTH LEAVING BEHIND</p>
+    </header>
 
-  <main class="facts-stage" aria-label="Rotating facts">
-    <div class="fact" id="fact" aria-live="polite"></div>
-  </main>
+    <main class="facts-stage" aria-label="Rotating facts">
+      <div class="fact" id="fact" aria-live="polite"></div>
+    </main>
+  </section>
+
+  <section class="intro-section" aria-label="Services introduction">
+    <div class="intro-banner">
+      <p class="intro-copy">Delivering results at the speed of light, offering an extensive catalogue of AI &amp; Web application solutions primed to help small businesses own and maintain vital web traffic.</p>
+    </div>
+  </section>
 
   <script>
     (() => {
@@ -183,7 +256,7 @@
         'linear-gradient(110deg, #65f28a 0%, #22d6b3 48%, #368cff 100%)',
         // Purple → pink
         'linear-gradient(110deg, #8b5cff 0%, #c35cff 52%, #ff79c6 100%)',
-        // Plain white (must be a gradient because the text uses background-clip)
+        // Plain white
         'linear-gradient(110deg, #ffffff 0%, #ffffff 100%)',
         // Purple → red
         'linear-gradient(110deg, #9b5cff 0%, #d044b7 48%, #ff3d4f 100%)'
