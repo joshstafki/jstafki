@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#050505">
-  <title>jSTAFKI</title>
+  <title>jSTAFKI.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -37,11 +37,16 @@
       background-image: radial-gradient(circle, rgba(125,125,125,.25) 1px, transparent 1.1px), radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.035), transparent 70%);
       background-size: 5px 5px, 100% 100%; background-attachment: fixed;
     }
-    body { min-height: 100vh; min-height: 100svh; color: var(--fg); font-family: Manrope, Inter, Arial, sans-serif; font-weight: 300; overflow-x: hidden; overflow-y: auto; scrollbar-color: #777 #050505; }
-    .hero { position: relative; min-height: 100vh; min-height: 100svh; overflow: hidden; isolation: isolate; }
+    body { display: flex; flex-direction: column; min-height: 100vh; min-height: 100svh; color: var(--fg); font-family: Manrope, Inter, Arial, sans-serif; font-weight: 300; overflow-x: hidden; overflow-y: auto; scrollbar-color: #777 #050505; }
+    .hero { position: relative; flex: 0 0 auto; min-height: 100vh; min-height: 100svh; overflow: hidden; isolation: isolate; }
     .wordmark { position: absolute; top: 34px; left: 6.5vw; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
     .name { display: inline-block; width: max-content; margin: 0; font-size: clamp(28px,3vw,44px); font-weight: 600; letter-spacing: -.035em; line-height: .95; color: transparent; background-image: var(--name-gradient); background-size: 220% 100%; background-position: 0% 50%; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: gradient-drift 11s ease-in-out infinite alternate; transform: scaleX(1.16); transform-origin: left center; }
     @keyframes gradient-drift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+    /* Mobile card entrance: hinged at its top edge (under the rotating line), tipped back and low, then swings up flat. */
+    @keyframes panel-rise {
+      from { transform: perspective(900px) translateY(48px) rotateX(-10deg); }
+      to   { transform: perspective(900px) translateY(0) rotateX(0deg); }
+    }
     .catchphrase { margin: 0; color: rgba(244,245,240,.68); font-size: clamp(12px,1.05vw,15px); font-weight: 300; letter-spacing: .105em; line-height: 1.4; text-transform: uppercase; }
     .facts-stage { position: absolute; top: 50%; left: 50%; width: min(1100px,90vw); padding: 40px; transform: translate(-50%,-50%); text-align: left; z-index: 5; }
     /* All facts live in the DOM, stacked in a single grid cell. The container is always as tall as the longest fact,
@@ -53,7 +58,7 @@
     html:not(.js) .fact:first-child { opacity: 1; transform: none; pointer-events: auto; }
     .link-style { color: #fff; font-weight: 400; text-decoration: underline; text-decoration-color: rgba(255,255,255,.55); text-underline-offset: 7px; text-decoration-thickness: 1px; }
     /* Inverted dotted descriptor section. Its padding provides breathing room above and below the copy. */
-    .intro-section { position: relative; width: 100%; min-height: 440px; margin: 0; padding: clamp(64px, 8vh, 96px) clamp(24px, 6vw, 96px); display: flex; align-items: center; justify-content: center; background-color: #f5f5f2; background-image: radial-gradient(circle, rgba(75,75,75,.28) 1px, transparent 1.15px); background-size: 5px 5px; transform-origin: 50% 0%; }
+    .intro-section { position: relative; flex: 1 0 auto; width: 100%; min-height: 440px; margin: 0; padding: clamp(64px, 8vh, 96px) clamp(24px, 6vw, 96px); display: flex; align-items: center; justify-content: center; background-color: #f5f5f2; background-image: radial-gradient(circle, rgba(75,75,75,.28) 1px, transparent 1.15px); background-size: 5px 5px; transform-origin: 50% 0%; transition: transform 180ms ease-out; will-change: transform; }
     .intro-banner { width: 100%; min-height: 0; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: transparent; color: #101010; }
     .intro-copy { width: 100%; max-width: 1220px; margin: 0 auto; font-size: clamp(2.4rem, 4.25vw, 4rem); line-height: 1.16; letter-spacing: -.04em; font-weight: 400; text-align: center; overflow-wrap: break-word; text-wrap: balance; }
     @media (max-width: 800px) {
@@ -65,7 +70,7 @@
       .facts-stage { position: relative; top: auto; left: auto; width: 88vw; margin: 128px 0 0 6vw; padding: 12px 0 0; transform: none; }
       .fact { font-size: clamp(1.8rem,8vw,3rem); line-height: 1.18; }
       /* Perspective is applied inside the transform function in JS, where it actually affects rotateX. */
-      .intro-section { min-height: 0; padding: clamp(44px, 10vw, 68px) 7vw; transition: transform 180ms ease-out; will-change: transform; }
+      .intro-section { min-height: 0; padding: clamp(44px, 10vw, 68px) 7vw; transition: transform 180ms ease-out; will-change: transform; animation: panel-rise 900ms cubic-bezier(.2,.8,.2,1) 150ms backwards; }
       .intro-banner { width: 100%; padding: 0; }
       .intro-copy { max-width: 680px; font-size: clamp(2rem, 7.3vw, 3rem); line-height: 1.16; letter-spacing: -.04em; }
     }
@@ -78,7 +83,7 @@
       .intro-banner { padding: 0; }
       .intro-copy { font-size: clamp(1.85rem, 7vw, 2.5rem); line-height: 1.18; letter-spacing: -.035em; }
     }
-    @media (prefers-reduced-motion: reduce) { .name, .fact { animation: none; transition: none; } .fact { transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .name, .fact, .intro-section { animation: none; transition: none; } .fact { transform: none; } }
   </style>
 </head>
 <body>
@@ -123,7 +128,7 @@
       setInterval(showFact, DISPLAY_DURATION);
     })();
 
-    // Give the mobile descriptor a restrained 3-D, rising-panel feel as it enters view.
+    // Give the descriptor card (all screen sizes) a restrained 3-D, rising-panel feel as it enters view.
     // Progress runs 0 -> 1 as the panel scrolls fully into view, so the panel always settles at rest
     // (no leftover offset at the bottom of the page) and rises into place as the person scrolls.
     (() => {
@@ -132,7 +137,7 @@
       let ticking = false;
       function updatePanelMotion() {
         ticking = false;
-        if (window.innerWidth > 800 || reduceMotion.matches) {
+        if (reduceMotion.matches) {
           panel.style.transform = '';
           return;
         }
@@ -140,7 +145,7 @@
         const viewport = window.innerHeight || document.documentElement.clientHeight;
         const progress = Math.max(0, Math.min(1, (viewport - rect.top) / (rect.height * 0.85)));
         const lift = (1 - progress) * 16;
-        const tilt = (1 - progress) * 5;
+        const tilt = -(1 - progress) * 8;
         panel.style.transform = `perspective(900px) translateY(${lift}px) rotateX(${tilt}deg)`;
       }
       function requestPanelUpdate() {
