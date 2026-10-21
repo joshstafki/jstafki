@@ -36,12 +36,14 @@
       color: var(--fg);
       font-family: Manrope, Inter, Arial, sans-serif;
       font-weight: 300;
+      overflow: hidden;
     }
 
     .wordmark {
       position: absolute;
       top: 34px;
       left: 6.5vw;
+      z-index: 10;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
@@ -97,6 +99,69 @@
       .name { font-size: 27px; transform: scaleX(1.04); }
       .catchphrase { font-size: 10px; letter-spacing: 0.065em; }
     }
+
+    /* ROTATING FACTS */
+    .facts-stage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: min(1100px, 90vw);
+      padding: 40px;
+      transform: translate(-50%, -50%);
+      text-align: left;
+      z-index: 5;
+    }
+
+    .fact {
+      color: #fff;
+      font-family: "Segoe UI", sans-serif;
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      font-weight: 400;
+      line-height: 1.2;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 700ms ease, transform 700ms ease;
+      overflow-wrap: break-word;
+    }
+
+    .fact.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .link-style {
+      color: #fff;
+      font-weight: 400;
+      text-decoration: underline;
+      text-decoration-color: rgba(255, 255, 255, 0.55);
+      text-underline-offset: 7px;
+      text-decoration-thickness: 1px;
+    }
+
+    @media (max-width: 800px) {
+      .facts-stage {
+        top: 124px;
+        left: 6vw;
+        width: 88vw;
+        padding: 12px 0 0;
+        transform: none;
+      }
+
+      .fact {
+        font-size: clamp(1.8rem, 8vw, 3rem);
+        line-height: 1.18;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .facts-stage { top: 116px; }
+      .fact { font-size: clamp(1.7rem, 8vw, 2.4rem); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .name, .fact { animation: none; transition: none; }
+      .fact { transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -104,6 +169,10 @@
     <h1 class="name">JOSHUA STAFKI</h1>
     <p class="catchphrase">CHASING A STORY WORTH LEAVING BEHIND</p>
   </header>
+
+  <main class="facts-stage" aria-label="Rotating facts">
+    <div class="fact" id="fact" aria-live="polite"></div>
+  </main>
 
   <script>
     (() => {
@@ -114,8 +183,8 @@
         'linear-gradient(110deg, #65f28a 0%, #22d6b3 48%, #368cff 100%)',
         // Purple → pink
         'linear-gradient(110deg, #8b5cff 0%, #c35cff 52%, #ff79c6 100%)',
-        // Plain white
-        '#ffffff',
+        // Plain white (must be a gradient because the text uses background-clip)
+        'linear-gradient(110deg, #ffffff 0%, #ffffff 100%)',
         // Purple → red
         'linear-gradient(110deg, #9b5cff 0%, #d044b7 48%, #ff3d4f 100%)'
       ];
@@ -134,6 +203,45 @@
       }
 
       document.documentElement.style.setProperty('--name-gradient', variants[choice]);
+    })();
+
+    (() => {
+      const facts = [
+        ["SEO optimization", "drives website & AI traffic by 40%"],
+        ["Graphic Web Design", "helps with presenting a consistent storefront"],
+        ["Microsoft Clarity", "offers integrated tracking solutions"],
+        ["GitHub", "optimizes code storage"],
+        ["Claude Code", "renders 3D elements in milliseconds"],
+        ["FINTECH", "is an ideal solution software for the modern financier"],
+        ["ChatGPT", "works fast on basic web design"],
+        ["SquareSpace", "sells domains for any website"]
+      ];
+
+      const display = document.getElementById('fact');
+      let index = 0;
+      const DISPLAY_DURATION = 4500;
+      const TRANSITION_DURATION = 700;
+      let transitionTimer;
+
+      function showFact() {
+        display.classList.remove('visible');
+        clearTimeout(transitionTimer);
+        transitionTimer = setTimeout(() => {
+          const [name, description] = facts[index];
+          display.replaceChildren();
+
+          const productName = document.createElement('span');
+          productName.className = 'link-style';
+          productName.textContent = name;
+
+          display.append(productName, document.createTextNode(' ' + description));
+          requestAnimationFrame(() => display.classList.add('visible'));
+          index = (index + 1) % facts.length;
+        }, TRANSITION_DURATION);
+      }
+
+      showFact();
+      setInterval(showFact, DISPLAY_DURATION);
     })();
   </script>
 </body>
