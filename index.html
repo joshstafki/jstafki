@@ -7,7 +7,7 @@
   <title>JOSHUA STAFKI — MAKE THINGS MOVE.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       color-scheme: dark;
@@ -49,16 +49,32 @@
     }
 
     .name {
+      display: inline-block;
+      width: max-content;
       margin: 0;
       font-size: clamp(28px, 3vw, 44px);
-      font-weight: 300;
-      letter-spacing: -0.055em;
+      font-weight: 600;
+      letter-spacing: -0.035em;
       line-height: 0.95;
       color: transparent;
-      background: var(--name-gradient);
+      background-image: var(--name-gradient);
+      background-size: 220% 100%;
+      background-position: 0% 50%;
       background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      animation: gradient-drift 11s ease-in-out infinite alternate;
+      transform: scaleX(1.16);
+      transform-origin: left center;
+    }
+
+    @keyframes gradient-drift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .name { animation: none; }
     }
 
     .catchphrase {
@@ -73,12 +89,12 @@
 
     @media (max-width: 800px) {
       .wordmark { top: 22px; left: 6vw; gap: 6px; }
-      .name { font-size: clamp(25px, 7vw, 34px); }
+      .name { font-size: clamp(25px, 7vw, 34px); transform: scaleX(1.08); }
       .catchphrase { font-size: 11px; letter-spacing: 0.075em; line-height: 1.5; }
     }
 
     @media (max-width: 420px) {
-      .name { font-size: 27px; }
+      .name { font-size: 27px; transform: scaleX(1.04); }
       .catchphrase { font-size: 10px; letter-spacing: 0.065em; }
     }
   </style>
@@ -92,11 +108,16 @@
   <script>
     (() => {
       const variants = [
-        'linear-gradient(105deg, #75f7ff 0%, #8c7bff 48%, #ff76d8 100%)',
-        'linear-gradient(105deg, #ff70c8 0%, #b27aff 50%, #6feaff 100%)',
-        'linear-gradient(105deg, #72a7ff 0%, #6fffe0 52%, #b6ff78 100%)',
-        'linear-gradient(105deg, #fff06a 0%, #ff9b70 48%, #ff6bc7 100%)',
-        '#f4f5f0'
+        // Red → orange
+        'linear-gradient(110deg, #ff2638 0%, #ff542f 48%, #ffad42 100%)',
+        // Green → blue
+        'linear-gradient(110deg, #65f28a 0%, #22d6b3 48%, #368cff 100%)',
+        // Purple → pink
+        'linear-gradient(110deg, #8b5cff 0%, #c35cff 52%, #ff79c6 100%)',
+        // Plain white
+        '#ffffff',
+        // Purple → red
+        'linear-gradient(110deg, #9b5cff 0%, #d044b7 48%, #ff3d4f 100%)'
       ];
 
       let choice;
