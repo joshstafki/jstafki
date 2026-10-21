@@ -25,12 +25,19 @@
         if (stored !== null && Number.isInteger(Number(stored)) && Number(stored) >= 0 && Number(stored) < variants.length) choice = Number(stored);
         else { choice = Math.floor(Math.random() * variants.length); sessionStorage.setItem('jstafki-name-gradient', String(choice)); }
       } catch (_) { choice = Math.floor(Math.random() * variants.length); }
-      document.documentElement.style.setProperty('--name-gradient', variants[choice]);
+      const gradient = variants[choice];
+      const stops = gradient.match(/#[0-9a-f]{6}/gi);
+      const rootStyle = document.documentElement.style;
+      rootStyle.setProperty('--name-gradient', gradient);
+      /* The same colors drive the path-to-completion section, so it always matches the name. */
+      rootStyle.setProperty('--g1', stops[0]);
+      rootStyle.setProperty('--g2', stops[Math.floor(stops.length / 2)]);
+      rootStyle.setProperty('--g3', stops[stops.length - 1]);
     })();
   </script>
   <style>
     /* --name-gradient must be a valid <image> (gradient), not a plain color, or the transparent-text name disappears. */
-    :root { color-scheme: dark; --bg: #050505; --fg: #f4f5f0; --name-gradient: linear-gradient(110deg, #f4f5f0 0%, #f4f5f0 100%); }
+    :root { color-scheme: dark; --bg: #050505; --fg: #f4f5f0; --name-gradient: linear-gradient(110deg, #f4f5f0 0%, #f4f5f0 100%); --g1: #f4f5f0; --g2: #f4f5f0; --g3: #f4f5f0; }
     * { box-sizing: border-box; }
     html, body {
       width: 100%; min-height: 100%; margin: 0; background-color: var(--bg);
@@ -61,6 +68,35 @@
     .intro-section { position: relative; flex: 1 0 auto; width: 100%; min-height: 440px; margin: 0; padding: clamp(64px, 8vh, 96px) clamp(24px, 6vw, 96px); display: flex; align-items: center; justify-content: center; background-color: #f5f5f2; background-image: radial-gradient(circle, rgba(75,75,75,.28) 1px, transparent 1.15px); background-size: 5px 5px; transform-origin: 50% 0%; transition: transform 180ms ease-out; will-change: transform; }
     .intro-banner { width: 100%; min-height: 0; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: transparent; color: #101010; }
     .intro-copy { width: 100%; max-width: 1220px; margin: 0 auto; font-size: clamp(2.4rem, 4.25vw, 4rem); line-height: 1.16; letter-spacing: -.04em; font-weight: 400; text-align: center; overflow-wrap: break-word; text-wrap: balance; }
+    /* ===== Path to completion =====
+       Desktop: a tall track holds a sticky 100svh stage, so the section stays locked while scrolling draws the path.
+       Mobile: normal flow, a vertical timeline that fills as it scrolls into view. Colors come from the name's gradient (--g1..--g3). */
+    .path-track { position: relative; flex: 0 0 auto; height: 320vh; height: 320svh; }
+    .path-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; align-items: center; justify-content: center; padding: 16px 3vw; }
+    .stage { position: relative; container-type: inline-size; width: min(100%, 1280px); width: min(100%, 1280px, calc((100svh - 32px) * 16 / 9)); aspect-ratio: 16 / 9; }
+    .path-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .path-base { fill: none; stroke: #fff; stroke-opacity: .35; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1 12; }
+    .path-progress { fill: none; stroke: url(#pathGrad); stroke-width: 5; stroke-linecap: round; }
+    .path-head { position: absolute; left: 6.25%; top: 10%; width: 53%; }
+    .path-head h2 { margin: 1.2cqw 0 0; font-size: clamp(26px, 4.4cqw, 56px); line-height: 1.08; letter-spacing: -.04em; font-weight: 500; }
+    .path-head .k { color: var(--g1); }
+    .k { font-size: clamp(9px, .95cqw, 12px); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+    .steps { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
+    .step { --ns: clamp(18px, 2.5cqw, 32px); position: absolute; left: calc(var(--x) / 1280 * 100%); top: calc(var(--y) / 720 * 100%); width: 0; height: 0; }
+    .node { position: absolute; left: 0; top: 0; z-index: 1; width: var(--ns); height: var(--ns); transform: translate(-50%, -50%); border-radius: 50%; border: 3px solid rgba(255,255,255,.5); background: #050505; transition: background .5s ease, border-color .5s ease, box-shadow .5s ease; }
+    .node::after { content: ""; position: absolute; left: 50%; top: 50%; width: 26%; height: 26%; border-radius: 50%; background: rgba(255,255,255,.5); transform: translate(-50%, -50%); }
+    .step[data-state="done"] .node { background: var(--fg); border-color: var(--fg); }
+    .step[data-state="done"] .node::after { width: 28%; height: 52%; border-radius: 0; background: none; border: solid #050505; border-width: 0 3px 3px 0; transform: translate(-50%, -58%) rotate(45deg); }
+    .step[data-state="now"] .node { background: linear-gradient(135deg, var(--g1), var(--g3)); border-color: transparent; box-shadow: 0 0 0 10px rgba(255,255,255,.14); box-shadow: 0 0 0 10px color-mix(in srgb, var(--g3) 24%, transparent); }
+    .step[data-state="now"] .node::after { background: #050505; }
+    .lbl { position: absolute; left: 0; width: 14.1cqw; min-width: 100px; transform: translateX(-50%); text-align: center; }
+    .step[data-side="down"] .lbl { top: 2.8cqw; }
+    .step[data-side="up"] .lbl { bottom: 2.8cqw; }
+    .lbl .t { margin-top: .5cqw; font-size: clamp(15px, 2cqw, 26px); font-weight: 500; letter-spacing: -.03em; color: var(--fg); }
+    .lbl .d { margin-top: .3cqw; font-size: clamp(11px, 1.1cqw, 14px); color: rgba(244,245,240,.68); }
+    .step[data-state="done"] .k { color: var(--g1); }
+    .step[data-state="now"] .k { color: var(--g3); }
+    .step[data-state="next"] .k { color: rgba(244,245,240,.6); }
     @media (max-width: 800px) {
       /* Mobile: the hero is sized by the facts grid (tallest fact), so the dotted descriptor follows as a natural next element. */
       .hero { min-height: 0; height: auto; overflow: visible; padding-top: 1px; padding-bottom: 34px; }
@@ -73,6 +109,23 @@
       .intro-section { min-height: 0; padding: clamp(44px, 10vw, 68px) 7vw; transition: transform 180ms ease-out; will-change: transform; animation: panel-rise 900ms cubic-bezier(.2,.8,.2,1) 150ms backwards; }
       .intro-banner { width: 100%; padding: 0; }
       .intro-copy { max-width: 680px; font-size: clamp(2rem, 7.3vw, 3rem); line-height: 1.16; letter-spacing: -.04em; }
+      /* Path to completion on mobile: not pinned, a vertical timeline whose rail fills as it scrolls into view. */
+      .path-track { height: auto; }
+      .path-sticky { position: static; height: auto; display: block; padding: clamp(64px, 14vw, 96px) 6vw clamp(72px, 16vw, 112px); }
+      .stage { container-type: normal; width: 100%; max-width: 560px; margin: 0 auto; aspect-ratio: auto; }
+      .path-svg { display: none; }
+      .path-head { position: static; width: auto; margin-bottom: 48px; }
+      .path-head h2 { margin-top: 14px; font-size: clamp(1.9rem, 8vw, 2.6rem); }
+      .k { font-size: 12px; }
+      .steps { position: relative; inset: auto; display: grid; gap: 40px; }
+      .steps::before, .steps::after { content: ""; position: absolute; top: var(--rail-top, 18px); height: var(--rail-h, calc(100% - 90px)); left: 16px; width: 4px; border-radius: 2px; }
+      .steps::before { background: radial-gradient(circle, rgba(255,255,255,.45) 1.2px, transparent 1.7px) 0 0 / 4px 12px; }
+      .steps::after { background: linear-gradient(to bottom, var(--g1), var(--g2), var(--g3)); clip-path: inset(0 0 calc(100% - var(--p, 1) * 100%) 0); }
+      .step { --ns: 36px; position: relative; left: auto; top: auto; width: auto; height: auto; min-height: 36px; padding-left: 64px; }
+      .node { transform: none; }
+      .lbl { position: static; width: auto; min-width: 0; transform: none; text-align: left; }
+      .lbl .t { margin-top: 4px; font-size: 24px; }
+      .lbl .d { margin-top: 4px; font-size: 15px; }
     }
     @media (max-width: 420px) {
       .name { font-size: 27px; transform: scaleX(1.04); }
@@ -83,7 +136,8 @@
       .intro-banner { padding: 0; }
       .intro-copy { font-size: clamp(1.85rem, 7vw, 2.5rem); line-height: 1.18; letter-spacing: -.035em; }
     }
-    @media (prefers-reduced-motion: reduce) { .name, .fact, .intro-section { animation: none; transition: none; } .fact { transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .name, .fact, .intro-section, .node { animation: none; transition: none; } .fact { transform: none; } }
+    @media (prefers-reduced-motion: reduce) and (min-width: 801px) { .path-track { height: auto; } .path-sticky { position: static; } }
   </style>
 </head>
 <body>
@@ -94,16 +148,38 @@
     </header>
     <main class="facts-stage" aria-label="Rotating facts">
       <div class="facts" id="facts">
-        <div class="fact"><span class="link-style">Claude Code</span> powers 100+ hours of real builds</div>
-<div class="fact"><span class="link-style">GitHub</span> holds 10,000+ lines of committed code</div>
-<div class="fact"><span class="link-style">Squarespace Domains</span> manages 2 live domains</div>
-<div class="fact"><span class="link-style">Microsoft Clarity</span> has recorded 57 user sessions</div>
-<div class="fact"><span class="link-style">Cloudflare</span> has blocked 14,000+ threats</div>
+        <div class="fact"><span class="link-style">SEO optimization</span> drives website &amp; AI traffic by 40%</div>
+        <div class="fact"><span class="link-style">Graphic Web Design</span> helps with presenting a consistent storefront</div>
+        <div class="fact"><span class="link-style">Microsoft Clarity</span> offers integrated tracking solutions</div>
+        <div class="fact"><span class="link-style">GitHub</span> optimizes code storage</div>
+        <div class="fact"><span class="link-style">Claude Code</span> renders 3D elements in milliseconds</div>
+        <div class="fact"><span class="link-style">FINTECH</span> is an ideal solution software for the modern financier</div>
+        <div class="fact"><span class="link-style">ChatGPT</span> works fast on basic web design</div>
+        <div class="fact"><span class="link-style">SquareSpace</span> sells domains for any website</div>
       </div>
     </main>
   </section>
   <section class="intro-section" aria-label="Services introduction">
     <div class="intro-banner"><p class="intro-copy">Delivering results at the speed of light, offering an extensive catalogue of AI &amp; Web application solutions primed to help small businesses own and maintain vital web traffic.</p></div>
+  </section>
+  <section class="path-track" id="path" aria-label="Path to completion">
+    <div class="path-sticky">
+      <div class="stage">
+        <svg class="path-svg" viewBox="0 0 1280 720" aria-hidden="true" focusable="false">
+          <defs><linearGradient id="pathGrad" gradientUnits="userSpaceOnUse" x1="140" y1="0" x2="1140" y2="0"><stop offset="0" style="stop-color:var(--g1)"/><stop offset=".5" style="stop-color:var(--g2)"/><stop offset="1" style="stop-color:var(--g3)"/></linearGradient></defs>
+          <path class="path-base" d="M140 520C260 520 280 400 400 400S540 520 660 520 800 360 920 360 1040 260 1140 260"/>
+          <path class="path-progress" d="M140 520C260 520 280 400 400 400S540 520 660 520 800 360 920 360 1040 260 1140 260"/>
+        </svg>
+        <div class="path-head"><div class="k">Path to completion</div><h2>From first idea to live site, one clear step at a time.</h2></div>
+        <ol class="steps">
+          <li class="step" data-state="done" data-side="down" style="--x:140;--y:520"><span class="node" aria-hidden="true"></span><div class="lbl"><div class="k">01 · <span class="s">Done</span></div><div class="t">Discover</div><div class="d">Goals, audience, scope</div></div></li>
+          <li class="step" data-state="done" data-side="up" style="--x:400;--y:400"><span class="node" aria-hidden="true"></span><div class="lbl"><div class="k">02 · <span class="s">Done</span></div><div class="t">Design</div><div class="d">Layout, brand, copy</div></div></li>
+          <li class="step" data-state="done" data-side="down" style="--x:660;--y:520"><span class="node" aria-hidden="true"></span><div class="lbl"><div class="k">03 · <span class="s">Done</span></div><div class="t">Build</div><div class="d">Code, test, refine</div></div></li>
+          <li class="step" data-state="done" data-side="up" style="--x:920;--y:360"><span class="node" aria-hidden="true"></span><div class="lbl"><div class="k">04 · <span class="s">Done</span></div><div class="t">Launch</div><div class="d">Go live, start tracking</div></div></li>
+          <li class="step" data-state="done" data-side="up" style="--x:1140;--y:260"><span class="node" aria-hidden="true"></span><div class="lbl"><div class="k">05 · <span class="s">Complete</span></div><div class="t">Grow</div><div class="d">Search, learn, iterate</div></div></li>
+        </ol>
+      </div>
+    </div>
   </section>
   <script>
     (() => {
@@ -154,6 +230,86 @@
       window.addEventListener('scroll', requestPanelUpdate, { passive: true });
       window.addEventListener('resize', requestPanelUpdate, { passive: true });
       updatePanelMotion();
+    })();
+
+    // Path to completion. One progress value (0 -> 1) drives both layouts:
+    // desktop: scroll through the pinned track draws the wavy path; mobile: the vertical rail fills as it scrolls into view.
+    // Each node turns done / now / next by comparing progress to where it sits along the line.
+    (() => {
+      const track = document.querySelector('.path-track');
+      if (!track) return;
+      const rail = track.querySelector('.steps');
+      const steps = Array.from(rail.querySelectorAll('.step'));
+      const line = track.querySelector('.path-progress');
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const narrow = window.matchMedia('(max-width: 800px)');
+      const clamp01 = (v) => Math.max(0, Math.min(1, v));
+      let fracs = steps.map((_, i) => i / (steps.length - 1));
+      let total = 0, railTop = 0, railH = 0, ticking = false;
+
+      function measure() {
+        if (narrow.matches) {
+          const ys = steps.map((s) => s.offsetTop + s.querySelector('.node').offsetHeight / 2);
+          railTop = ys[0];
+          railH = ys[ys.length - 1] - ys[0];
+          rail.style.setProperty('--rail-top', railTop + 'px');
+          rail.style.setProperty('--rail-h', railH + 'px');
+          if (railH > 0) fracs = ys.map((y) => (y - railTop) / railH);
+        } else if (line && line.getTotalLength) {
+          total = line.getTotalLength();
+          line.style.strokeDasharray = total;
+          fracs = steps.map((s) => {
+            const x = parseFloat(s.style.getPropertyValue('--x'));
+            let lo = 0, hi = total;
+            for (let i = 0; i < 24; i++) {
+              const mid = (lo + hi) / 2;
+              if (line.getPointAtLength(mid).x < x) lo = mid; else hi = mid;
+            }
+            return lo / total;
+          });
+        }
+      }
+
+      function progress() {
+        if (reduce.matches) return 1;
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        if (!narrow.matches) {
+          const r = track.getBoundingClientRect();
+          const span = r.height - vh;
+          return span > 0 ? clamp01(-r.top / span) : 1;
+        }
+        const atEnd = window.scrollY + vh >= document.documentElement.scrollHeight - 4;
+        if (atEnd || railH <= 0) return 1;
+        return clamp01((vh * 0.7 - (rail.getBoundingClientRect().top + railTop)) / railH);
+      }
+
+      function update() {
+        ticking = false;
+        const p = progress();
+        const last = steps.length - 1;
+        let reached = 0;
+        fracs.forEach((f, i) => { if (p >= f - 0.002) reached = i + 1; });
+        steps.forEach((s, i) => {
+          const state = p >= 0.999 || i < reached - 1 ? 'done' : i === reached - 1 ? 'now' : 'next';
+          if (s.dataset.state !== state) {
+            s.dataset.state = state;
+            s.querySelector('.s').textContent = state === 'done' ? (i === last ? 'Complete' : 'Done') : state === 'now' ? 'Now' : 'Next';
+          }
+        });
+        track.style.setProperty('--p', p.toFixed(4));
+        if (line && !narrow.matches && total) line.style.strokeDashoffset = total * (1 - p);
+      }
+
+      function schedule() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+      function remeasure() { measure(); schedule(); }
+
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', remeasure, { passive: true });
+      narrow.addEventListener('change', remeasure);
+      reduce.addEventListener('change', remeasure);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
+      measure();
+      update();
     })();
   </script>
 </body>
