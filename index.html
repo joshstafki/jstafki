@@ -4,12 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#050505">
-  <title>jSTAFKI.</title>
+  <title>jSTAFKI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    /* Runs in <head> so the name gradient is set before first paint (no flash) and the "js" class is available to CSS. */
+    (() => {
+      document.documentElement.classList.add('js');
+      const variants = [
+        'linear-gradient(110deg, #ff2638 0%, #ff542f 48%, #ffad42 100%)',
+        'linear-gradient(110deg, #65f28a 0%, #22d6b3 48%, #368cff 100%)',
+        'linear-gradient(110deg, #8b5cff 0%, #c35cff 52%, #ff79c6 100%)',
+        'linear-gradient(110deg, #ffffff 0%, #ffffff 100%)',
+        'linear-gradient(110deg, #9b5cff 0%, #d044b7 48%, #ff3d4f 100%)'
+      ];
+      let choice;
+      try {
+        const stored = sessionStorage.getItem('jstafki-name-gradient');
+        if (stored !== null && Number.isInteger(Number(stored)) && Number(stored) >= 0 && Number(stored) < variants.length) choice = Number(stored);
+        else { choice = Math.floor(Math.random() * variants.length); sessionStorage.setItem('jstafki-name-gradient', String(choice)); }
+      } catch (_) { choice = Math.floor(Math.random() * variants.length); }
+      document.documentElement.style.setProperty('--name-gradient', variants[choice]);
+    })();
+  </script>
   <style>
-    :root { color-scheme: dark; --bg: #050505; --fg: #f4f5f0; --name-gradient: #f4f5f0; }
+    /* --name-gradient must be a valid <image> (gradient), not a plain color, or the transparent-text name disappears. */
+    :root { color-scheme: dark; --bg: #050505; --fg: #f4f5f0; --name-gradient: linear-gradient(110deg, #f4f5f0 0%, #f4f5f0 100%); }
     * { box-sizing: border-box; }
     html, body {
       width: 100%; min-height: 100%; margin: 0; background-color: var(--bg);
@@ -23,22 +44,28 @@
     @keyframes gradient-drift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
     .catchphrase { margin: 0; color: rgba(244,245,240,.68); font-size: clamp(12px,1.05vw,15px); font-weight: 300; letter-spacing: .105em; line-height: 1.4; text-transform: uppercase; }
     .facts-stage { position: absolute; top: 50%; left: 50%; width: min(1100px,90vw); padding: 40px; transform: translate(-50%,-50%); text-align: left; z-index: 5; }
-    .fact { color: #fff; font-family: "Segoe UI",sans-serif; font-size: clamp(2rem,5vw,4.5rem); font-weight: 400; line-height: 1.2; opacity: 0; transform: translateY(12px); transition: opacity 700ms ease, transform 700ms ease; overflow-wrap: break-word; }
-    .fact.visible { opacity: 1; transform: translateY(0); }
+    /* All facts live in the DOM, stacked in a single grid cell. The container is always as tall as the longest fact,
+       so nothing below it (the light panel on mobile) moves when the rotation changes. */
+    .facts { display: grid; }
+    .fact { grid-area: 1 / 1; min-width: 0; color: #fff; font-family: "Segoe UI",sans-serif; font-size: clamp(2rem,5vw,4.5rem); font-weight: 400; line-height: 1.2; opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity 700ms ease, transform 700ms ease; overflow-wrap: break-word; }
+    .fact.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    /* Without JS, show the first fact statically. */
+    html:not(.js) .fact:first-child { opacity: 1; transform: none; pointer-events: auto; }
     .link-style { color: #fff; font-weight: 400; text-decoration: underline; text-decoration-color: rgba(255,255,255,.55); text-underline-offset: 7px; text-decoration-thickness: 1px; }
     /* Inverted dotted descriptor section. Its padding provides breathing room above and below the copy. */
     .intro-section { position: relative; width: 100%; min-height: 440px; margin: 0; padding: clamp(64px, 8vh, 96px) clamp(24px, 6vw, 96px); display: flex; align-items: center; justify-content: center; background-color: #f5f5f2; background-image: radial-gradient(circle, rgba(75,75,75,.28) 1px, transparent 1.15px); background-size: 5px 5px; transform-origin: 50% 0%; }
     .intro-banner { width: 100%; min-height: 0; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: transparent; color: #101010; }
     .intro-copy { width: 100%; max-width: 1220px; margin: 0 auto; font-size: clamp(2.4rem, 4.25vw, 4rem); line-height: 1.16; letter-spacing: -.04em; font-weight: 400; text-align: center; overflow-wrap: break-word; text-wrap: balance; }
     @media (max-width: 800px) {
-      /* Mobile: size the hero to the live rotating line, so the dotted descriptor follows it as a natural next element. */
+      /* Mobile: the hero is sized by the facts grid (tallest fact), so the dotted descriptor follows as a natural next element. */
       .hero { min-height: 0; height: auto; overflow: visible; padding-top: 1px; padding-bottom: 34px; }
       .wordmark { top: 22px; left: 6vw; gap: 6px; }
       .name { font-size: clamp(25px,7vw,34px); transform: scaleX(1.08); }
       .catchphrase { font-size: 11px; letter-spacing: .075em; line-height: 1.5; }
-      .facts-stage { position: relative; top: auto; left: auto; width: 88vw; margin: 128px 0 0 6vw; padding: 12px 0 0; transform: none; perspective: 900px; }
+      .facts-stage { position: relative; top: auto; left: auto; width: 88vw; margin: 128px 0 0 6vw; padding: 12px 0 0; transform: none; }
       .fact { font-size: clamp(1.8rem,8vw,3rem); line-height: 1.18; }
-      .intro-section { min-height: 0; padding: clamp(44px, 10vw, 68px) 7vw; perspective: 1000px; transform: translateY(0) rotateX(0deg); transition: transform 180ms ease-out; will-change: transform; }
+      /* Perspective is applied inside the transform function in JS, where it actually affects rotateX. */
+      .intro-section { min-height: 0; padding: clamp(44px, 10vw, 68px) 7vw; transition: transform 180ms ease-out; will-change: transform; }
       .intro-banner { width: 100%; padding: 0; }
       .intro-copy { max-width: 680px; font-size: clamp(2rem, 7.3vw, 3rem); line-height: 1.16; letter-spacing: -.04em; }
     }
@@ -60,56 +87,36 @@
       <h1 class="name">JOSHUA STAFKI</h1>
       <p class="catchphrase">CHASING A STORY WORTH LEAVING BEHIND</p>
     </header>
-    <main class="facts-stage" aria-label="Rotating facts"><div class="fact" id="fact" aria-live="polite"></div></main>
+    <main class="facts-stage" aria-label="Rotating facts">
+      <div class="facts" id="facts">
+        <div class="fact"><span class="link-style">SEO optimization</span> drives website &amp; AI traffic by 40%</div>
+        <div class="fact"><span class="link-style">Graphic Web Design</span> helps with presenting a consistent storefront</div>
+        <div class="fact"><span class="link-style">Microsoft Clarity</span> offers integrated tracking solutions</div>
+        <div class="fact"><span class="link-style">GitHub</span> optimizes code storage</div>
+        <div class="fact"><span class="link-style">Claude Code</span> renders 3D elements in milliseconds</div>
+        <div class="fact"><span class="link-style">FINTECH</span> is an ideal solution software for the modern financier</div>
+        <div class="fact"><span class="link-style">ChatGPT</span> works fast on basic web design</div>
+        <div class="fact"><span class="link-style">SquareSpace</span> sells domains for any website</div>
+      </div>
+    </main>
   </section>
   <section class="intro-section" aria-label="Services introduction">
     <div class="intro-banner"><p class="intro-copy">Delivering results at the speed of light, offering an extensive catalogue of AI &amp; Web application solutions primed to help small businesses own and maintain vital web traffic.</p></div>
   </section>
   <script>
     (() => {
-      const variants = [
-        'linear-gradient(110deg, #ff2638 0%, #ff542f 48%, #ffad42 100%)',
-        'linear-gradient(110deg, #65f28a 0%, #22d6b3 48%, #368cff 100%)',
-        'linear-gradient(110deg, #8b5cff 0%, #c35cff 52%, #ff79c6 100%)',
-        'linear-gradient(110deg, #ffffff 0%, #ffffff 100%)',
-        'linear-gradient(110deg, #9b5cff 0%, #d044b7 48%, #ff3d4f 100%)'
-      ];
-      let choice;
-      try {
-        const stored = sessionStorage.getItem('jstafki-name-gradient');
-        if (stored !== null && Number.isInteger(Number(stored)) && Number(stored) >= 0 && Number(stored) < variants.length) choice = Number(stored);
-        else { choice = Math.floor(Math.random() * variants.length); sessionStorage.setItem('jstafki-name-gradient', String(choice)); }
-      } catch (_) { choice = Math.floor(Math.random() * variants.length); }
-      document.documentElement.style.setProperty('--name-gradient', variants[choice]);
-    })();
-    (() => {
-      const facts = [
-        ["SEO optimization", "drives website & AI traffic by 40%"],
-        ["Graphic Web Design", "helps with presenting a consistent storefront"],
-        ["Microsoft Clarity", "offers integrated tracking solutions"],
-        ["GitHub", "optimizes code storage"],
-        ["Claude Code", "renders 3D elements in milliseconds"],
-        ["FINTECH", "is an ideal solution software for the modern financier"],
-        ["ChatGPT", "works fast on basic web design"],
-        ["SquareSpace", "sells domains for any website"]
-      ];
-      const display = document.getElementById('fact');
-      let index = 0;
+      const items = Array.from(document.querySelectorAll('#facts .fact'));
+      if (!items.length) return;
       const DISPLAY_DURATION = 4500;
       const TRANSITION_DURATION = 700;
+      let index = -1;
       let transitionTimer;
       function showFact() {
-        display.classList.remove('visible');
+        if (items[index]) items[index].classList.remove('visible');
         clearTimeout(transitionTimer);
         transitionTimer = setTimeout(() => {
-          const [name, description] = facts[index];
-          display.replaceChildren();
-          const productName = document.createElement('span');
-          productName.className = 'link-style';
-          productName.textContent = name;
-          display.append(productName, document.createTextNode(' ' + description));
-          requestAnimationFrame(() => display.classList.add('visible'));
-          index = (index + 1) % facts.length;
+          index = (index + 1) % items.length;
+          items[index].classList.add('visible');
         }, TRANSITION_DURATION);
       }
       showFact();
@@ -117,7 +124,8 @@
     })();
 
     // Give the mobile descriptor a restrained 3-D, rising-panel feel as it enters view.
-    // Its position remains in normal document flow directly after the live rotating fact.
+    // Progress runs 0 -> 1 as the panel scrolls fully into view, so the panel always settles at rest
+    // (no leftover offset at the bottom of the page) and rises into place as the person scrolls.
     (() => {
       const panel = document.querySelector('.intro-section');
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -130,10 +138,10 @@
         }
         const rect = panel.getBoundingClientRect();
         const viewport = window.innerHeight || document.documentElement.clientHeight;
-        const progress = Math.max(0, Math.min(1, (viewport - rect.top) / (viewport + rect.height)));
+        const progress = Math.max(0, Math.min(1, (viewport - rect.top) / (rect.height * 0.85)));
         const lift = (1 - progress) * 16;
-        const tilt = (1 - progress) * 1.8;
-        panel.style.transform = `translateY(${-lift}px) rotateX(${tilt}deg)`;
+        const tilt = (1 - progress) * 5;
+        panel.style.transform = `perspective(900px) translateY(${lift}px) rotateX(${tilt}deg)`;
       }
       function requestPanelUpdate() {
         if (!ticking) {
