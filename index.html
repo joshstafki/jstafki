@@ -35,6 +35,9 @@
       rootStyle.setProperty('--g1', stops[0]);
       rootStyle.setProperty('--g2', stops[Math.floor(stops.length / 2)]);
       rootStyle.setProperty('--g3', stops[stops.length - 1]);
+      /* Accent for the white projects section: the theme colors, or near-black if the theme is white (white on white would vanish). */
+      const accent = stops.every((s) => s.toLowerCase() === '#ffffff') ? ['#101010', '#101010', '#101010'] : [stops[0], stops[Math.floor(stops.length / 2)], stops[stops.length - 1]];
+      rootStyle.setProperty('--a1', accent[0]); rootStyle.setProperty('--a2', accent[1]); rootStyle.setProperty('--a3', accent[2]);
     })();
   </script>
   <style>
@@ -99,9 +102,6 @@
     .step[data-state="done"] .k { color: var(--g1); }
     .step[data-state="now"] .k { color: var(--g3); }
     .step[data-state="next"] .k { color: rgba(244,245,240,.6); }
-    /* Once the path has fully drawn, release the scroll-pin so the section behaves like normal content. */
-    .path-track.done { height: auto; }
-    .path-track.done .path-sticky { position: static; }
     @media (max-width: 800px) {
       /* Mobile: the hero is sized by the facts grid (tallest fact), so the dotted descriptor follows as a natural next element. */
       .hero { min-height: 0; height: auto; overflow: visible; padding-top: 1px; padding-bottom: 34px; }
@@ -144,67 +144,51 @@
     @media (prefers-reduced-motion: reduce) { .name, .fact, .intro-section, .node { animation: none; transition: none; } .fact { transform: none; } }
     @media (prefers-reduced-motion: reduce) and (min-width: 801px) { .path-track { height: auto; } .path-sticky { position: static; } }
 
-    /* ===== Projects =====
-       A white card drops down (top to bottom) behind each project so every row reads clearly against the dotted background.
-       Desktop: the section is pinned while scrolling and the cards drop one at a time, like the path above.
-       Mobile, short screens, reduced motion: no pin; each card drops as its row scrolls into view. */
-    .work { position: relative; flex: 0 0 auto; width: 100%; overflow-anchor: none; background-color: #f5f5f2; background-image: radial-gradient(circle, rgba(75,75,75,.28) 1px, transparent 1.15px); background-size: 5px 5px; color: #101010; }
-    .work-sticky { padding: clamp(72px, 10vh, 120px) clamp(24px, 6vw, 96px); }
-    .work-inner { max-width: 1100px; margin: 0 auto; }
-    .work .k { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(16,16,16,.6); }
-    .work h2 { margin: 14px 0 clamp(40px, 6vw, 72px); max-width: 16ch; font-size: clamp(2rem, 4.4vw, 3.5rem); line-height: 1.08; letter-spacing: -.04em; font-weight: 500; }
-    .proj-list { display: grid; gap: clamp(12px, 2.4vh, 20px); margin: 0; padding: 0; list-style: none; }
-    /* --drop (0 -> 1) is set by script; without JS the cards simply show. */
-    .proj-list > li { --drop: 1; position: relative; isolation: isolate; }
-    .js .proj-list > li { --drop: 0; }
-    .proj-list > li::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: 20px; background: #fff; box-shadow: inset 0 0 0 1px rgba(16,16,16,.08); clip-path: inset(0 0 calc(100% - var(--drop) * 100%) 0 round 20px); }
-    .proj { display: grid; grid-template-columns: clamp(120px, 16vw, 180px) 1fr auto; align-items: center; gap: clamp(20px, 4vw, 48px); padding: 28px clamp(16px, 2.5vw, 32px); color: inherit; text-decoration: none; }
-    .proj:focus-visible { outline: 2px solid #101010; outline-offset: 4px; border-radius: 20px; }
+    /* ===== Projects ===== */
+    :root { --a1: #101010; --a2: #101010; --a3: #101010; }
+    .work { font-family: "Segoe UI", sans-serif; position: relative; flex: 0 0 auto; width: 100%; padding: clamp(40px, 6vh, 64px) 0 clamp(56px, 9vh, 96px); background: #fff; color: #101010; text-align: center; overflow-anchor: none; }
 
-    /* Dark tile that holds each glowing icon */
-    .proj-tile { --c1: rgba(255,255,255,.95); --c2: rgba(255,255,255,.55); position: relative; isolation: isolate; display: grid; place-items: center; aspect-ratio: 1; overflow: hidden; border-radius: 20px; background-color: #050505; background-image: radial-gradient(circle, rgba(125,125,125,.25) 1px, transparent 1.1px); background-size: 5px 5px; }
-    .proj-tile::before { content: ""; position: absolute; inset: 18%; z-index: -1; border-radius: 50%; background: radial-gradient(circle, var(--c1), transparent 70%); opacity: .4; filter: blur(22px); transform: scale(.9); transition: opacity 300ms ease, transform 300ms ease; }
-    .proj-tile img, .proj-tile svg { display: block; width: 52%; height: 52%; object-fit: contain; pointer-events: none; user-select: none; filter: drop-shadow(0 0 8px var(--c1)) drop-shadow(0 0 20px var(--c2)); transition: filter 300ms ease, transform 300ms ease; }
-    .proj-tile .poster { width: 34%; height: auto; border-radius: 6px; }
-    .proj-tile--fintech { --c1: rgba(70,205,255,.92); --c2: rgba(35,235,170,.7); }
-    .proj-tile--poster { --c1: rgba(255,215,80,.92); --c2: rgba(232,168,40,.65); }
-    .proj:hover .proj-tile::before, .proj:focus-visible .proj-tile::before { opacity: .85; transform: scale(1.15); }
-    .proj:hover .proj-tile img, .proj:hover .proj-tile svg, .proj:focus-visible .proj-tile img, .proj:focus-visible .proj-tile svg { transform: scale(1.05); filter: drop-shadow(0 0 12px var(--c1)) drop-shadow(0 0 30px var(--c2)); }
+    /* Centered project heading, matching the reference snippet. */
+    .work-stage { width: min(100% - 6vw, 1280px, calc((100svh - 32px) * 16 / 9)); margin: 0 auto; }
+    .work-head { padding: 0; text-align: center; }
+    .work-head .k { font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #101010; }
+    .work-head h2 { max-width: 1100px; margin: 22px auto 30px; font-size: clamp(2rem, 4.4vw, 3.5rem); line-height: 1.08; letter-spacing: -.04em; font-weight: 400; text-wrap: balance; }
+    .work-verse { margin: 0 0 clamp(24px, 3.5vw, 40px); font-size: 0.85rem; font-style: italic; font-weight: 700; letter-spacing: 0.04em; color: rgba(16, 16, 16, 0.6); }
 
-    /* Text */
-    .proj-title { margin: 0; font-size: clamp(1.5rem, 2.8vw, 2.3rem); line-height: 1.1; letter-spacing: -.035em; font-weight: 500; }
-    .proj-desc { margin: 10px 0 0; max-width: 46ch; font-size: 1rem; line-height: 1.5; font-weight: 400; color: rgba(16,16,16,.66); }
-    .proj-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
-    .proj-tags li { padding: 4px 11px; border: 1px solid rgba(16,16,16,.25); border-radius: 999px; font-size: 12px; font-weight: 500; letter-spacing: .02em; color: rgba(16,16,16,.7); }
-    .proj-go { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid rgba(16,16,16,.3); border-radius: 50%; font-size: 20px; transition: background 250ms ease, color 250ms ease, transform 250ms ease; }
-    .proj:hover .proj-go, .proj:focus-visible .proj-go { background: #101010; color: #f5f5f2; transform: translateX(4px); }
+    /* The project links sit in a floating white pill; the pill stays centered. */
+    .work-inner { max-width: 1100px; margin: 0 auto; padding: 0 clamp(16px, 6vw, 96px); display: flex; justify-content: center; }
+    .work-nav { display: inline-flex; align-items: center; gap: clamp(2px, .8vw, 8px); max-width: 100%; padding: 5px; border-radius: 999px; background: #fff; border: 1px solid rgba(60,64,67,.08); box-shadow: 0 1px 3px rgba(60,64,67,.16), 0 6px 20px rgba(60,64,67,.12); }
+    .work-link { position: relative; isolation: isolate; display: grid; place-items: center; padding: 11px clamp(14px, 2.2vw, 24px); border-radius: 999px; text-decoration: none; white-space: nowrap; font-size: clamp(.9rem, 1.4vw, 1.05rem); font-weight: 500; letter-spacing: -.01em; line-height: 1.3; -webkit-tap-highlight-color: transparent; }
+    /* Two stacked copies of the label: gray at rest, theme gradient when selected. They cross-fade, since gradient text can't transition directly. */
+    .work-link > span { grid-area: 1 / 1; transition: opacity 220ms ease; }
+    .work-link__base { color: #5f6368; }
+    .work-link__ink { color: transparent; background-image: linear-gradient(110deg, var(--a1), var(--a2), var(--a3)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; opacity: 0; }
 
-    /* Pinned mode (roomy desktop only). Sizes use viewport height so all three cards fit on screen at once. */
-    @media (min-width: 801px) and (min-height: 680px) and (prefers-reduced-motion: no-preference) {
-      .work { height: 300vh; height: 300svh; }
-      .work-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; align-items: center; padding-top: clamp(24px, 4vh, 56px); padding-bottom: clamp(24px, 4vh, 56px); }
-      .work-inner { width: 100%; }
-      .work h2 { margin-bottom: clamp(16px, 3.5vh, 40px); font-size: clamp(2rem, min(4.4vw, 7vh), 3.5rem); }
-      .proj { grid-template-columns: min(clamp(120px, 16vw, 180px), 17vh) 1fr auto; padding-top: clamp(12px, 2vh, 20px); padding-bottom: clamp(12px, 2vh, 20px); }
-      /* Once all three have dropped, release the pin (same idea as the path). */
-      .work.done { height: auto; }
-      .work.done .work-sticky { position: static; }
+    /* Glass bubble: theme-tinted, with a bright top highlight, inner rim and soft colored glow. */
+    .work-link::before {
+      content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; opacity: 0; transform: scale(.88);
+      background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,0) 55%), rgba(140,140,140,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,0) 55%), linear-gradient(135deg, color-mix(in srgb, var(--a1) 16%, transparent), color-mix(in srgb, var(--a3) 16%, transparent));
+      box-shadow: inset 0 1px 1px rgba(255,255,255,.95), inset 0 0 0 1px rgba(0,0,0,.06), 0 6px 16px rgba(0,0,0,.1);
+      box-shadow: inset 0 1px 1px rgba(255,255,255,.95), inset 0 -3px 8px color-mix(in srgb, var(--a3) 20%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--a2) 22%, transparent), 0 6px 16px color-mix(in srgb, var(--a2) 22%, transparent);
+      -webkit-backdrop-filter: blur(8px) saturate(1.4); backdrop-filter: blur(8px) saturate(1.4);
+      transition: opacity 220ms ease, transform 260ms cubic-bezier(.2,.8,.2,1);
     }
-    @media (max-width: 700px) {
-      .proj { grid-template-columns: 96px 1fr; gap: 18px; padding: 22px 16px; }
-      .proj-tile { border-radius: 16px; }
-      .proj-go { display: none; }
-      .proj-desc { font-size: .95rem; }
+    .work-link:hover::before, .work-link:focus-visible::before, .work-link:active::before { opacity: 1; transform: scale(1); }
+    .work-link:hover .work-link__base, .work-link:focus-visible .work-link__base, .work-link:active .work-link__base { opacity: 0; }
+    .work-link:hover .work-link__ink, .work-link:focus-visible .work-link__ink, .work-link:active .work-link__ink { opacity: 1; }
+    .work-link:focus-visible { outline: 2px solid #101010; outline-offset: 2px; }
+
+    /* Keep the heading centered on mobile as well. */
+    @media (max-width: 800px) {
+      .work-stage { width: min(100% - 12vw, 680px); }
+      .work-head h2 { margin-top: 18px; margin-bottom: 28px; }
     }
-    @media (prefers-reduced-motion: reduce) { .proj-tile::before, .proj-tile img, .proj-tile svg, .proj-go { transition: none; } }
-    .work-verse {
-  margin: -28px 0 40px;
-  font-size: 0.85rem;
-  font-style: italic;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: rgba(16, 16, 16, 0.6);
-}
+    @media (max-width: 400px) {
+      .work-nav { padding: 4px; gap: 0; }
+      .work-link { padding: 10px 12px; font-size: .85rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { .work-link::before, .work-link > span { transition: none; } }
   </style>
 </head>
 <body>
@@ -246,90 +230,18 @@
     </div>
   </section>
   <section class="work" id="work" aria-label="Selected projects">
-    <div class="work-sticky">
-    <div class="work-inner">
-      <div class="k">Selected work</div>
-      <h2>Let there be light...</h2>
-      <p class="work-verse">Genesis 1:3</p>
-      <ul class="proj-list">
-        <li>
-          <a class="proj" href="https://www.intrepidflights.com">
-            <div class="proj-tile">
-              <img src="https://www.jstafki.com/assets/indigo.png" alt="Intrepid Flights logo" draggable="false" loading="lazy">
-            </div>
-            <div>
-              <h3 class="proj-title">Intrepid Flights</h3>
-              <p class="proj-desc">A self-run drone photography business, from the brand to the live site.</p>
-              <ul class="proj-tags"><li>Branding</li><li>Web</li><li>Aerial</li></ul>
-            </div>
-            <span class="proj-go" aria-hidden="true">↗</span>
-          </a>
-        </li>
-        <li>
-          <a class="proj" href="https://www.jstafki.com/fintech">
-            <div class="proj-tile proj-tile--fintech">
-              <img src="https://www.jstafki.com/assets/fintech/favicon.svg" alt="Fintech project icon" draggable="false" loading="lazy">
-            </div>
-            <div>
-              <h3 class="proj-title">Fintech</h3>
-              <p class="proj-desc">Personal finance, reimagined.</p>
-              <ul class="proj-tags"><li>Finance</li><li>Smart Tools</li></ul>
-            </div>
-            <span class="proj-go" aria-hidden="true">↗</span>
-          </a>
-        </li>
-        <li>
-          <a class="proj" href="https://www.jstafki.com/projects/premiere">
-            <div class="proj-tile proj-tile--poster">
-              <svg class="poster" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222 333" role="img" aria-labelledby="poster-title" preserveAspectRatio="xMidYMid meet">
-                <title id="poster-title">Wander Light minimalist art</title>
-                <defs>
-                  <linearGradient id="poster-bg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#171214"/>
-                    <stop offset="36%" stop-color="#211719"/>
-                    <stop offset="65%" stop-color="#49312c"/>
-                    <stop offset="79%" stop-color="#80573c"/>
-                    <stop offset="100%" stop-color="#e8b84b"/>
-                  </linearGradient>
-                  <radialGradient id="sun-glow">
-                    <stop offset="0%" stop-color="#f8d66f" stop-opacity="0.65"/>
-                    <stop offset="55%" stop-color="#e8b84b" stop-opacity="0.2"/>
-                    <stop offset="100%" stop-color="#e8b84b" stop-opacity="0"/>
-                  </radialGradient>
-                  <linearGradient id="sun-fill" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#ffda69"/>
-                    <stop offset="100%" stop-color="#e8b43d"/>
-                  </linearGradient>
-                  <clipPath id="poster-clip"><rect width="222" height="333" rx="20"/></clipPath>
-                </defs>
-                <g clip-path="url(#poster-clip)">
-                  <rect width="222" height="333" fill="url(#poster-bg)"/>
-                  <ellipse cx="111" cy="120" rx="92" ry="110" fill="url(#sun-glow)"/>
-                  <circle cx="111" cy="115" r="54" fill="url(#sun-glow)"/>
-                  <circle cx="111" cy="115" r="38" fill="url(#sun-fill)"/>
-                  <path d="M0 220 L222 220" stroke="#e8b84b" stroke-opacity=".25" stroke-width="1"/>
-                  <path d="M-10 260 L45 205 L95 242 L160 185 L232 255 L232 334 L-10 334 Z" fill="#151012" opacity="0.85"/>
-                  <path d="M-10 290 L70 235 L120 270 L185 220 L232 275 L232 334 L-10 334 Z" fill="#110c0e"/>
-                  <circle cx="111" cy="270" r="32" fill="none" stroke="#e8b84b" stroke-opacity="0.35" stroke-width="1"/>
-                  <circle cx="111" cy="270" r="50" fill="none" stroke="#e8b84b" stroke-opacity="0.2" stroke-width="0.75" stroke-dasharray="3 3"/>
-                  <path d="M111 220 L111 320" stroke="#e8b84b" stroke-opacity="0.15" stroke-width="0.75"/>
-                  <path d="M61 270 L161 270" stroke="#e8b84b" stroke-opacity="0.15" stroke-width="0.75"/>
-                  <circle cx="111" cy="270" r="3" fill="#ffe39b"/>
-                  <rect x="0" y="326" width="222" height="7" fill="#e8b84b" opacity=".7"/>
-                </g>
-                <rect x=".5" y=".5" width="221" height="332" rx="19.5" fill="none" stroke="#e8b84b" stroke-opacity=".23"/>
-              </svg>
-            </div>
-            <div>
-              <h3 class="proj-title">Premiere</h3>
-              <p class="proj-desc">Every Premiere. One Countdown.</p>
-              <ul class="proj-tags"><li>Cinema</li><li>Art direction</li></ul>
-            </div>
-            <span class="proj-go" aria-hidden="true">↗</span>
-          </a>
-        </li>
-      </ul>
+    <div class="work-stage">
+      <div class="work-head">
+        <div class="k">SCIENTIFIC PROGRESS</div>
+        <h2>Accelerating scientific<br>discovery to address society’s<br>biggest challenges</h2>
+      </div>
     </div>
+    <div class="work-inner">
+      <nav class="work-nav" aria-label="Projects">
+        <a class="work-link" href="https://www.intrepidflights.com"><span class="work-link__base">Intrepid Flights</span><span class="work-link__ink" aria-hidden="true">Intrepid Flights</span></a>
+        <a class="work-link" href="https://www.jstafki.com/fintech"><span class="work-link__base">Fintech</span><span class="work-link__ink" aria-hidden="true">Fintech</span></a>
+        <a class="work-link" href="https://www.jstafki.com/projects/premiere"><span class="work-link__base">Premiere</span><span class="work-link__ink" aria-hidden="true">Premiere</span></a>
+      </nav>
     </div>
   </section>
   <script>
@@ -353,8 +265,6 @@
     })();
 
     // Give the descriptor card (all screen sizes) a restrained 3-D, rising-panel feel as it enters view.
-    // Progress runs 0 -> 1 as the panel scrolls fully into view, so the panel always settles at rest
-    // (no leftover offset at the bottom of the page) and rises into place as the person scrolls.
     (() => {
       const panel = document.querySelector('.intro-section');
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -383,10 +293,7 @@
       updatePanelMotion();
     })();
 
-    // Path to completion. One progress value (0 -> 1) drives both layouts:
-    // desktop: scroll through the pinned track draws the wavy path; mobile: the vertical rail fills as it scrolls into view.
-    // Progress is a ratchet: it only ever moves forward, so scrolling back up never rewinds it,
-    // and once it completes the pin is released. State lives in memory only, so a refresh replays it.
+    // Path to completion.
     (() => {
       const track = document.querySelector('.path-track');
       if (!track) return;
@@ -398,8 +305,8 @@
       const clamp01 = (v) => Math.max(0, Math.min(1, v));
       let fracs = steps.map((_, i) => i / (steps.length - 1));
       let total = 0, railTop = 0, railH = 0, ticking = false;
-      let maxP = 0;          // furthest progress reached this page load
-      let finished = false;  // true once the path is fully drawn
+      let maxP = 0;
+      let finished = false;
 
       function measure() {
         if (narrow.matches) {
@@ -440,7 +347,7 @@
       function update() {
         ticking = false;
         if (finished) return;
-        maxP = Math.max(maxP, progress());   // never goes backward
+        maxP = Math.max(maxP, progress());
         const p = maxP;
         const last = steps.length - 1;
         let reached = 0;
@@ -455,15 +362,8 @@
         track.style.setProperty('--p', p.toFixed(4));
         if (line && !narrow.matches && total) line.style.strokeDashoffset = total * (1 - p);
 
-        if (p >= 0.999) {
-          finished = true;
-          // Content now follows the path. Collapsing the pinned track pulls everything below it up,
-          // so take the same distance off the scroll position and the viewer sees no jump.
-          const before = track.offsetHeight;
-          track.classList.add('done');   // release the scroll-pin; the finished graphic stays as-is
-          const shrink = before - track.offsetHeight;
-          if (shrink > 0) window.scrollTo(0, Math.max(0, window.scrollY - shrink));
-        }
+        // Path fully drawn: stop updating. The track is never resized and the page is never scrolled by script, so nothing can jump.
+        if (p >= 0.999) finished = true;
       }
 
       function schedule() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
@@ -475,63 +375,6 @@
       reduce.addEventListener('change', remeasure);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
       measure();
-      update();
-    })();
-    // Projects: prevent casual image dragging and context-menu actions on the logos.
-    (() => {
-      document.querySelectorAll('.proj-tile img').forEach((img) => {
-        img.addEventListener('contextmenu', (e) => e.preventDefault());
-        img.addEventListener('dragstart', (e) => e.preventDefault());
-      });
-    })();
-
-    // Projects: a white card drops behind each row. One value per row (--drop, 0 -> 1) drives the card.
-    // Pinned (desktop): scrolling through the tall track drops the cards one after another.
-    // Otherwise: each card drops as its row scrolls into view. Like the path, it only moves forward and then releases the pin.
-    (() => {
-      const work = document.querySelector('.work');
-      if (!work) return;
-      const rows = Array.from(work.querySelectorAll('.proj-list > li'));
-      const pinned = window.matchMedia('(min-width: 801px) and (min-height: 680px) and (prefers-reduced-motion: no-preference)');
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-      const clamp01 = (v) => Math.max(0, Math.min(1, v));
-      const drops = rows.map(() => 0);
-      let maxP = 0, ticking = false, finished = false;
-
-      function setDrop(i, v) {
-        if (v > drops[i]) { drops[i] = v; rows[i].style.setProperty('--drop', v.toFixed(3)); }
-      }
-      function finish() {
-        finished = true;
-        rows.forEach((row) => row.style.setProperty('--drop', '1'));
-        // Collapsing the pinned track shortens the page; take the same distance off the scroll position so nothing jumps.
-        const before = work.offsetHeight;
-        work.classList.add('done');
-        const shrink = before - work.offsetHeight;
-        if (shrink > 0) window.scrollTo(0, Math.max(0, window.scrollY - shrink));
-      }
-      function update() {
-        ticking = false;
-        if (finished) return;
-        const vh = window.innerHeight || document.documentElement.clientHeight;
-        if (reduce.matches) { rows.forEach((_, i) => setDrop(i, 1)); finish(); return; }
-        if (pinned.matches) {
-          const r = work.getBoundingClientRect();
-          const span = r.height - vh;
-          maxP = Math.max(maxP, span > 0 ? clamp01(-r.top / span) : 1);
-          rows.forEach((_, i) => setDrop(i, clamp01((maxP - i * 0.28) / 0.24)));   // cards drop at 0-.24, .28-.52, .56-.80; the rest is a short hold
-          if (maxP >= 0.999) finish();
-        } else {
-          rows.forEach((row, i) => setDrop(i, clamp01((vh * 0.92 - row.getBoundingClientRect().top) / (row.offsetHeight * 0.9))));
-          if (drops.every((d) => d >= 0.999)) finish();
-        }
-      }
-      function schedule() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
-
-      window.addEventListener('scroll', schedule, { passive: true });
-      window.addEventListener('resize', schedule, { passive: true });
-      pinned.addEventListener('change', schedule);
-      reduce.addEventListener('change', schedule);
       update();
     })();
   </script>
