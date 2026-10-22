@@ -7,6 +7,7 @@
   <title>jSTAFKI</title>
   <link rel="icon" type="image/png" href="/assets/monolith.png">
   <link rel="apple-touch-icon" href="/assets/monolith.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -189,6 +190,24 @@
       .work-link { padding: 10px 12px; font-size: .85rem; }
     }
     @media (prefers-reduced-motion: reduce) { .work-link::before, .work-link > span { transition: none; } }
+
+    /* ===== Footer ===== */
+    .site-footer { flex: 0 0 auto; width: 100%; padding: 34px clamp(22px, 5vw, 72px) 22px; color: #f4f5f0; background-color: #050505; background-image: radial-gradient(circle, rgba(125,125,125,.28) 1px, transparent 1.1px), radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.035), transparent 72%); background-size: 5px 5px, 100% 100%; font-family: "Segoe UI", sans-serif; }
+    .footer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px clamp(24px, 5vw, 72px); max-width: 1280px; margin: 0 auto; }
+    .footer-column { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+    .footer-heading { margin: 0 0 2px; color: #fff; font-size: 15px; font-weight: 600; letter-spacing: .01em; }
+    .footer-link, .footer-item { margin: 0; color: rgba(244,245,240,.78); font-size: 14px; font-weight: 400; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
+    .footer-link { transition: color 180ms ease; }
+    .footer-link:hover, .footer-link:focus-visible { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+    .footer-socials { display: flex; align-items: center; gap: 18px; margin-top: 12px; }
+    .footer-socials a { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; min-height: 28px; color: rgba(244,245,240,.82); font-size: 20px; text-decoration: none; transition: color 180ms ease, transform 180ms ease; }
+    .footer-socials a:hover, .footer-socials a:focus-visible { color: #fff; transform: translateY(-2px); }
+    .footer-socials a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 3px; }
+    .footer-bottom { max-width: 1280px; margin: 28px auto 0; padding-top: 14px; border-top: 1px solid rgba(244,245,240,.16); color: rgba(244,245,240,.72); font-size: 13px; line-height: 1.5; }
+    .footer-bottom a { color: #f4f5f0; text-decoration: underline; text-decoration-color: rgba(244,245,240,.45); text-underline-offset: 3px; }
+    @media (max-width: 620px) { .site-footer { padding: 30px 7vw 20px; } .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 22px; } .footer-column:last-child { grid-column: 1 / -1; } .footer-bottom { margin-top: 26px; } }
+    @media (max-width: 360px) { .footer-grid { grid-template-columns: 1fr; } .footer-column:last-child { grid-column: auto; } }
+    @media (prefers-reduced-motion: reduce) { .footer-link, .footer-socials a { transition: none; } .footer-socials a:hover { transform: none; } }
   </style>
 </head>
 <body>
@@ -244,6 +263,38 @@
       </nav>
     </div>
   </section>
+
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="footer-grid">
+      <nav class="footer-column" aria-label="Intrepid Flights links">
+        <a class="footer-heading footer-link" href="https://www.intrepidflights.com">Intrepid Flights</a>
+        <a class="footer-link" href="mailto:joshstafki@intrepidflights.com">- Media License Request</a>
+        <a class="footer-link" href="https://calendar.app.google/G2UdDi8vAQLdc6WB8">- Book Drone Shot</a>
+        <a class="footer-link" href="https://www.intrepidflights.com/legal/">- Legal</a>
+        <a class="footer-link" href="https://www.intrepidflights.com/about/">- About</a>
+        <a class="footer-link" href="https://500px.com/user/TVFyt7T7rEp">- 500PX Portfolio</a>
+      </nav>
+      <nav class="footer-column" aria-label="Fintech links">
+        <a class="footer-heading footer-link" href="https://www.jstafki.com/fintech">Fintech</a>
+        <a class="footer-link" href="https://www.jstafki.com/fintech/demo/">- Access Demo</a>
+        <a class="footer-link" href="https://www.jstafki.com/fintech/version/">- Version History</a>
+        <a class="footer-link" href="https://www.jstafki.com/fintech/features/">- Features</a>
+        <a class="footer-link" href="https://www.jstafki.com/fintech/pricing/">- Pricing</a>
+        <a class="footer-link" href="https://www.jstafki.com/fintech/privacy/">- Privacy</a>
+      </nav>
+      <nav class="footer-column" aria-label="Premiere and social links">
+        <a class="footer-heading footer-link" href="https://www.jstafki.com/projects/premiere">Premiere</a>
+        <a class="footer-link" href="https://my.flightradar24.com/joshstafki/">MyFlightRadar24</a>
+        <a class="footer-link" href="mailto:joshstafki@gmail.com" style="margin-top: 12px">Contact</a>
+        <div class="footer-socials" aria-label="Social media">
+          <a href="https://www.linkedin.com/in/joshstafki" aria-label="LinkedIn" title="LinkedIn"><i class="fa-brands fa-linkedin-in" aria-hidden="true"></i></a>
+          <a href="https://www.instagram.com/shuastafki" aria-label="Instagram" title="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+          <a href="https://x.com/joshstafki" aria-label="X" title="X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
+        </div>
+      </nav>
+    </div>
+    <div class="footer-bottom">© Josh Stafki. Designed by Josh Stafki. All Rights Reserved</div>
+  </footer>
   <script>
     (() => {
       const items = Array.from(document.querySelectorAll('#facts .fact'));
