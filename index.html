@@ -99,6 +99,9 @@
     .step[data-state="done"] .k { color: var(--g1); }
     .step[data-state="now"] .k { color: var(--g3); }
     .step[data-state="next"] .k { color: rgba(244,245,240,.6); }
+    /* Once the path has fully drawn, release the scroll-pin so the section behaves like normal content. */
+    .path-track.done { height: auto; }
+    .path-track.done .path-sticky { position: static; }
     @media (max-width: 800px) {
       /* Mobile: the hero is sized by the facts grid (tallest fact), so the dotted descriptor follows as a natural next element. */
       .hero { min-height: 0; height: auto; overflow: visible; padding-top: 1px; padding-bottom: 34px; }
@@ -233,7 +236,8 @@
 
     // Path to completion. One progress value (0 -> 1) drives both layouts:
     // desktop: scroll through the pinned track draws the wavy path; mobile: the vertical rail fills as it scrolls into view.
-    // Each node turns done / now / next by comparing progress to where it sits along the line.
+    // Progress is a ratchet: it only ever moves forward, so scrolling back up never rewinds it,
+    // and once it completes the pin is released. State lives in memory only, so a refresh replays it.
     (() => {
       const track = document.querySelector('.path-track');
       if (!track) return;
@@ -245,6 +249,8 @@
       const clamp01 = (v) => Math.max(0, Math.min(1, v));
       let fracs = steps.map((_, i) => i / (steps.length - 1));
       let total = 0, railTop = 0, railH = 0, ticking = false;
+      let maxP = 0;          // furthest progress reached this page load
+      let finished = false;  // true once the path is fully drawn
 
       function measure() {
         if (narrow.matches) {
@@ -284,7 +290,9 @@
 
       function update() {
         ticking = false;
-        const p = progress();
+        if (finished) return;
+        maxP = Math.max(maxP, progress());   // never goes backward
+        const p = maxP;
         const last = steps.length - 1;
         let reached = 0;
         fracs.forEach((f, i) => { if (p >= f - 0.002) reached = i + 1; });
@@ -297,6 +305,11 @@
         });
         track.style.setProperty('--p', p.toFixed(4));
         if (line && !narrow.matches && total) line.style.strokeDashoffset = total * (1 - p);
+
+        if (p >= 0.999) {
+          finished = true;
+          track.classList.add('done');   // release the scroll-pin; the finished graphic stays as-is
+        }
       }
 
       function schedule() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
