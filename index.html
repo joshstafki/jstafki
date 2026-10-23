@@ -50,6 +50,8 @@
       background-image: radial-gradient(circle, rgba(125,125,125,.25) 1px, transparent 1.1px), radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.035), transparent 70%);
       background-size: 5px 5px, 100% 100%; background-attachment: fixed;
     }
+    /* The path section collapses and shifts scrollY itself (see collapse() in the script), so the browser's own scroll anchoring must not also compensate. */
+    html, body { overflow-anchor: none; }
     body { display: flex; flex-direction: column; min-height: 100vh; min-height: 100svh; color: var(--fg); font-family: var(--font); font-optical-sizing: auto; font-variation-settings: "GRAD" 0; font-weight: 300; overflow-x: hidden; overflow-y: auto; scrollbar-color: #777 #050505; }
     .hero { position: relative; flex: 0 0 auto; min-height: 100vh; min-height: 100svh; overflow: hidden; isolation: isolate; }
     .wordmark { position: absolute; top: 34px; left: 6.5vw; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
@@ -76,8 +78,10 @@
     .intro-copy { width: 100%; max-width: 1220px; margin: 0 auto; font-size: clamp(2.4rem, 4.25vw, 4rem); line-height: 1.16; letter-spacing: -.04em; font-weight: 400; text-align: center; overflow-wrap: break-word; text-wrap: balance; }
     /* ===== Path to completion =====
        Desktop: a tall track holds a sticky 100svh stage, so the section stays locked while scrolling draws the path.
+       Once the path is complete the track collapses to the stage height (.is-done), so scrolling back up has no dead pinned stretch.
        Mobile: normal flow, a vertical timeline that fills as it scrolls into view. Colors come from the name's gradient (--g1..--g3). */
     .path-track { position: relative; flex: 0 0 auto; height: 320vh; height: 320svh; overflow-anchor: none; }
+    .path-track.is-done { height: auto; }
     .path-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; align-items: center; justify-content: center; padding: 16px 3vw; }
     .stage { position: relative; container-type: inline-size; width: min(100%, 1280px); width: min(100%, 1280px, calc((100svh - 32px) * 16 / 9)); aspect-ratio: 16 / 9; }
     .path-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -363,6 +367,34 @@
       let maxP = 0;
       let finished = false;
 
+      const sticky = track.querySelector('.path-sticky');
+      let collapsed = false, collapseTimer = 0, lastY = window.scrollY;
+
+      // Once the path is drawn, the pinned scroll runway is dead space on the way back up.
+      // Remove it and shift scrollY by the same amount, so nothing moves on screen.
+      function collapse() {
+        clearTimeout(collapseTimer);
+        if (collapsed || !finished) return;
+        collapsed = true;
+        const before = sticky.getBoundingClientRect().top;
+        track.classList.add('is-done');
+        const shift = sticky.getBoundingClientRect().top - before;
+        if (Math.abs(shift) > 0.5) window.scrollBy(0, shift);
+        lastY = window.scrollY;
+      }
+      function armCollapse() {
+        if (collapsed) return;
+        clearTimeout(collapseTimer);
+        collapseTimer = setTimeout(collapse, 140);
+      }
+      function onScroll() {
+        const y = window.scrollY;
+        const up = y < lastY;
+        lastY = y;
+        if (finished && !collapsed) { if (up) collapse(); else armCollapse(); }
+        schedule();
+      }
+
       function measure() {
         if (narrow.matches) {
           const ys = steps.map((s) => s.offsetTop + s.querySelector('.node').offsetHeight / 2);
@@ -417,14 +449,14 @@
         track.style.setProperty('--p', p.toFixed(4));
         if (line && !narrow.matches && total) line.style.strokeDashoffset = total * (1 - p);
 
-        // Path fully drawn: stop updating. The track is never resized and the page is never scrolled by script, so nothing can jump.
-        if (p >= 0.999) finished = true;
+        // Path fully drawn: stop updating, then collapse the pinned runway once scrolling pauses (or the first upward scroll).
+        if (p >= 0.999) { finished = true; armCollapse(); }
       }
 
       function schedule() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
       function remeasure() { measure(); schedule(); }
 
-      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', remeasure, { passive: true });
       narrow.addEventListener('change', remeasure);
       reduce.addEventListener('change', remeasure);
