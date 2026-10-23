@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
   <script>
     /* Runs in <head> so the name gradient is set before first paint (no flash) and the "js" class is available to CSS. */
     (() => {
@@ -43,14 +43,14 @@
   </script>
   <style>
     /* --name-gradient must be a valid <image> (gradient), not a plain color, or the transparent-text name disappears. */
-    :root { color-scheme: dark; --bg: #050505; --fg: #f4f5f0; --name-gradient: linear-gradient(110deg, #f4f5f0 0%, #f4f5f0 100%); --g1: #f4f5f0; --g2: #f4f5f0; --g3: #f4f5f0; }
+    :root { color-scheme: dark; --bg: #050505; --fg: #f4f5f0; --font: "Google Sans", Arial, sans-serif; --name-gradient: linear-gradient(110deg, #f4f5f0 0%, #f4f5f0 100%); --g1: #f4f5f0; --g2: #f4f5f0; --g3: #f4f5f0; }
     * { box-sizing: border-box; }
     html, body {
       width: 100%; min-height: 100%; margin: 0; background-color: var(--bg);
       background-image: radial-gradient(circle, rgba(125,125,125,.25) 1px, transparent 1.1px), radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.035), transparent 70%);
       background-size: 5px 5px, 100% 100%; background-attachment: fixed;
     }
-    body { display: flex; flex-direction: column; min-height: 100vh; min-height: 100svh; color: var(--fg); font-family: Manrope, Inter, Arial, sans-serif; font-weight: 300; overflow-x: hidden; overflow-y: auto; scrollbar-color: #777 #050505; }
+    body { display: flex; flex-direction: column; min-height: 100vh; min-height: 100svh; color: var(--fg); font-family: var(--font); font-optical-sizing: auto; font-variation-settings: "GRAD" 0; font-weight: 300; overflow-x: hidden; overflow-y: auto; scrollbar-color: #777 #050505; }
     .hero { position: relative; flex: 0 0 auto; min-height: 100vh; min-height: 100svh; overflow: hidden; isolation: isolate; }
     .wordmark { position: absolute; top: 34px; left: 6.5vw; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
     .name { display: inline-block; width: max-content; margin: 0; font-size: clamp(28px,3vw,44px); font-weight: 600; letter-spacing: -.035em; line-height: .95; color: transparent; background-image: var(--name-gradient); background-size: 220% 100%; background-position: 0% 50%; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: gradient-drift 11s ease-in-out infinite alternate; transform: scaleX(1.16); transform-origin: left center; }
@@ -65,7 +65,7 @@
     /* All facts live in the DOM, stacked in a single grid cell. The container is always as tall as the longest fact,
        so nothing below it (the light panel on mobile) moves when the rotation changes. */
     .facts { display: grid; }
-    .fact { grid-area: 1 / 1; min-width: 0; color: #fff; font-family: "Segoe UI",sans-serif; font-size: clamp(2rem,5vw,4.5rem); font-weight: 400; line-height: 1.2; opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity 700ms ease, transform 700ms ease; overflow-wrap: break-word; }
+    .fact { grid-area: 1 / 1; min-width: 0; color: #fff; font-family: var(--font); font-size: clamp(2rem,5vw,4.5rem); font-weight: 400; line-height: 1.2; opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity 700ms ease, transform 700ms ease; overflow-wrap: break-word; }
     .fact.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
     /* Without JS, show the first fact statically. */
     html:not(.js) .fact:first-child { opacity: 1; transform: none; pointer-events: auto; }
@@ -147,7 +147,7 @@
 
     /* ===== Projects ===== */
     :root { --a1: #101010; --a2: #101010; --a3: #101010; }
-    .work { font-family: "Segoe UI", sans-serif; position: relative; flex: 0 0 auto; width: 100%; padding: clamp(40px, 6vh, 64px) 0 clamp(56px, 9vh, 96px); background: #fff; color: #101010; text-align: center; overflow-anchor: none; }
+    .work { font-family: var(--font); position: relative; flex: 0 0 auto; width: 100%; padding: clamp(40px, 6vh, 64px) 0 clamp(56px, 9vh, 96px); background: #fff; color: #101010; text-align: center; overflow-anchor: none; }
 
     /* Centered project heading, matching the reference snippet. */
     .work-stage { width: min(100% - 6vw, 1280px, calc((100svh - 32px) * 16 / 9)); margin: 0 auto; }
@@ -192,7 +192,7 @@
     @media (prefers-reduced-motion: reduce) { .work-link::before, .work-link > span { transition: none; } }
 
     /* ===== Footer ===== */
-    .site-footer { flex: 0 0 auto; width: 100%; padding: 34px clamp(22px, 5vw, 72px) 22px; color: #f4f5f0; background-color: #050505; background-image: radial-gradient(circle, rgba(125,125,125,.28) 1px, transparent 1.1px), radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.035), transparent 72%); background-size: 5px 5px, 100% 100%; font-family: "Segoe UI", sans-serif; }
+    .site-footer { flex: 0 0 auto; width: 100%; padding: 34px clamp(22px, 5vw, 72px) 22px; color: #f4f5f0; background-color: #050505; background-image: radial-gradient(circle, rgba(125,125,125,.28) 1px, transparent 1.1px), radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.035), transparent 72%); background-size: 5px 5px, 100% 100%; font-family: var(--font); }
     .footer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px clamp(24px, 5vw, 72px); max-width: 1280px; margin: 0 auto; }
     .footer-column { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
     .footer-heading { margin: 0 0 2px; color: #fff; font-size: 15px; font-weight: 600; letter-spacing: .01em; }
