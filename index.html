@@ -203,6 +203,9 @@
     .footer-link, .footer-item { margin: 0; color: rgba(244,245,240,.78); font-size: 14px; font-weight: 400; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
     .footer-link { transition: color 180ms ease; }
     .footer-link:hover, .footer-link:focus-visible { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+    /* Premiere and Training: painted with the same gradient as the JOSHUA STAFKI name. Must stay after the .footer-link rules above. */
+    .footer-accent { color: var(--g2); background-image: var(--name-gradient); background-size: 100% 100%; background-repeat: no-repeat; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .footer-accent:hover, .footer-accent:focus-visible { color: var(--g2); }
     .footer-socials { display: flex; align-items: center; gap: 18px; margin-top: 12px; }
     .footer-socials a { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; min-height: 28px; color: rgba(244,245,240,.82); font-size: 20px; text-decoration: none; transition: color 180ms ease, transform 180ms ease; }
     .footer-socials a:hover, .footer-socials a:focus-visible { color: #fff; transform: translateY(-2px); }
@@ -288,8 +291,8 @@
         <a class="footer-link" href="https://www.jstafki.com/fintech/privacy/">- Privacy</a>
       </nav>
       <nav class="footer-column" aria-label="Premiere and social links">
-        <a class="footer-heading footer-link" href="https://www.jstafki.com/projects/premiere">Premiere</a>
-        <a class="footer-link" href="https://www.jstafki.com/training/">Training</a>
+        <a class="footer-heading footer-link footer-accent" href="https://www.jstafki.com/projects/premiere">Premiere</a>
+        <a class="footer-link footer-accent" href="https://www.jstafki.com/training/">Training</a>
         <a class="footer-link" href="https://my.flightradar24.com/joshstafki/">MyFlightRadar24</a>
         <a class="footer-link" href="https://substack.com/@joshstafki">Substack</a>
         <a class="footer-link" href="https://flipboard.com/@jstafki">Flipboard</a>
