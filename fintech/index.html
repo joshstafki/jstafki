@@ -1,722 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FINTECH — Personal. Finance. Reimagined.</title>
-  <link rel="icon" type="image/svg+xml" href="https://www.jstafki.com/assets/fintech/favicon.svg">
-  <meta name="description" content="A private, manual-entry personal finance dashboard — no bank linking, real-time sync, fully isolated per account.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.jstafki.com/projects/fintech/">
-  <meta property="og:title" content="FINTECH — Personal. Finance. Reimagined.">
-  <meta property="og:description" content="Track spending, monitor cash flow, and manage your finances with clarity — no bank linking required.">
-  <meta property="og:image" content="https://www.jstafki.com/assets/fintech/FINTECH.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:site_name" content="FINTECH">
-
-  <!-- Twitter/X -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://www.jstafki.com/projects/fintech/">
-  <meta name="twitter:title" content="FINTECH — Personal. Finance. Reimagined.">
-  <meta name="twitter:description" content="Track spending, monitor cash flow, and manage your finances with clarity — no bank linking required.">
-  <meta name="twitter:image" content="https://www.jstafki.com/assets/fintech/FINTECH.png">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --bg: #07111f;
-      --card: rgba(255, 255, 255, 0.08);
-      --card-border: rgba(255, 255, 255, 0.12);
-      --text: #eaf0ff;
-      --muted: rgba(234, 240, 255, 0.72);
-
-      --grad-violet: #7c3aed;
-      --grad-blue: #3b82f6;
-      --grad-teal: #2dd4bf;
-      --tile-a: #93c5fd;
-      --tile-b: #5eead4;
-      --ink: #0f172a;
-
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-      --radius: 24px;
-    }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-
-    @media (prefers-reduced-motion: no-preference) {
-      html { scroll-behavior: smooth; }
-    }
-
-    body {
-      margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(124, 58, 237, 0.22), transparent 32%),
-        radial-gradient(circle at top right, rgba(59, 130, 246, 0.20), transparent 30%),
-        radial-gradient(circle at bottom center, rgba(45, 212, 191, 0.16), transparent 36%),
-        linear-gradient(180deg, var(--bg) 0%, #08101d 45%, #050912 100%);
-      overflow-x: hidden;
-    }
-
-    .noise {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
-      background-size: 20px 20px;
-      opacity: 0.25;
-      mix-blend-mode: soft-light;
-    }
-
-    .wrap {
-      width: min(1180px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 24px 0 40px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 10px 0 26px;
-    }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      color: var(--text);
-    }
-
-    .mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--tile-a) 0%, var(--tile-b) 100%);
-      box-shadow: 0 14px 40px rgba(45, 212, 191, 0.2);
-      display: grid;
-      place-items: center;
-      color: var(--ink);
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 800;
-      font-size: 1.2rem;
-      flex: none;
-    }
-
-    .brand-word {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 800;
-      font-size: 1.1rem;
-      letter-spacing: 0.04em;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-
-    .nav a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .btn:focus-visible,
-    .nav a:focus-visible,
-    .brand:focus-visible {
-      outline: 2px solid var(--grad-teal);
-      outline-offset: 3px;
-      border-radius: 8px;
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 28px;
-      align-items: center;
-      min-height: calc(100vh - 120px);
-      padding: 24px 0 40px;
-    }
-
-    .headline {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: clamp(3rem, 6vw, 5.9rem);
-      line-height: 0.92;
-      letter-spacing: -0.04em;
-      margin: 0 0 18px;
-      max-width: 11ch;
-    }
-
-    .gradient {
-      background: linear-gradient(90deg, var(--grad-violet) 0%, var(--grad-blue) 50%, var(--grad-teal) 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .subcopy {
-      max-width: 58ch;
-      color: var(--muted);
-      font-size: 1.08rem;
-      line-height: 1.7;
-      margin: 0 0 28px;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      align-items: center;
-    }
-
-    .btn {
-      appearance: none;
-      border: 0;
-      border-radius: 999px;
-      padding: 15px 22px;
-      font-weight: 700;
-      font-size: 1rem;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
-      cursor: pointer;
-      will-change: transform;
-    }
-
-    .btn:hover { transform: translateY(-1px); }
-    .btn:active { transform: translateY(0); opacity: 0.95; }
-    .btn-primary {
-      color: var(--ink);
-      background: linear-gradient(135deg, var(--tile-a) 0%, var(--tile-b) 100%);
-      box-shadow: 0 18px 40px rgba(45, 212, 191, 0.22);
-    }
-
-    .btn-secondary {
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(12px);
-    }
-
-    .micro {
-      margin-top: 16px;
-      color: rgba(234, 240, 255, 0.54);
-      font-size: 0.92rem;
-    }
-
-    .panel {
-      position: relative;
-      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
-      overflow: hidden;
-    }
-
-    .dashboard {
-      padding: 20px;
-      transition: transform 220ms ease-out;
-      will-change: transform;
-    }
-
-    .mini-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-
-    .tag-mono {
-      font-family: 'JetBrains Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-size: 0.72rem;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: var(--muted);
-    }
-
-    .pill-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--grad-teal);
-      box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.6);
-      animation: pulseDot 2s infinite;
-    }
-
-    @keyframes pulseDot {
-      0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.6); }
-      70% { box-shadow: 0 0 0 6px rgba(45, 212, 191, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0); }
-    }
-
-    .balance-label {
-      font-family: 'JetBrains Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      font-size: 0.8rem;
-      color: var(--muted);
-      font-weight: 500;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .balance {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(2rem, 4vw, 3.2rem);
-      letter-spacing: -0.03em;
-      margin: 10px 0 8px;
-      font-weight: 700;
-    }
-
-    .balance #balanceValue {
-      font-variant-numeric: tabular-nums;
-    }
-
-    .chart {
-      height: 180px;
-      margin: 18px 0 18px;
-      border-radius: 20px;
-      background:
-        linear-gradient(180deg, rgba(124,58,237,0.08), rgba(45,212,191,0.08)),
-        linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* Graph-paper grid behind the SVG line */
-    .chart::before {
-      content: "";
-      position: absolute;
-      inset: 18px;
-      border-radius: 18px;
-      background:
-        linear-gradient(to right, rgba(255,255,255,0.10) 1px, transparent 1px) 0 0 / 20% 100%,
-        linear-gradient(to top, rgba(255,255,255,0.10) 1px, transparent 1px) 0 0 / 100% 20%;
-      opacity: 0.9;
-    }
-
-    .chart svg {
-      position: absolute;
-      inset: 18px;
-      width: calc(100% - 36px);
-      height: calc(100% - 36px);
-    }
-
-    .chart-line {
-      stroke-dasharray: 600;
-      stroke-dashoffset: 600;
-      animation: drawLine 1.6s ease-out 300ms forwards;
-    }
-
-    .chart-fill {
-      opacity: 0;
-      animation: fadeIn 800ms ease-out 1100ms forwards;
-    }
-
-    @keyframes drawLine {
-      to { stroke-dashoffset: 0; }
-    }
-
-    @keyframes fadeIn {
-      to { opacity: 1; }
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-
-    .stat {
-      padding: 16px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
-    }
-
-    .stat span {
-      display: block;
-      font-family: 'JetBrains Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      font-size: 0.74rem;
-      margin-bottom: 6px;
-    }
-
-    .stat strong {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.2rem;
-      letter-spacing: -0.02em;
-      font-weight: 700;
-    }
-
-    .features {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin: 0 0 30px;
-    }
-
-    .feature {
-      padding: 18px;
-      border-radius: 20px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.10);
-      transition: transform 200ms ease, border-color 200ms ease;
-    }
-
-    .feature:hover {
-      transform: translateY(-3px);
-      border-color: rgba(45, 212, 191, 0.35);
-    }
-
-    .feature .icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(45,212,191,0.2));
-      border: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 14px;
-      font-size: 1.2rem;
-    }
-
-    .feature h3 {
-      font-family: 'Space Grotesk', sans-serif;
-      margin: 0 0 8px;
-      font-size: 1.05rem;
-      font-weight: 700;
-    }
-
-    .feature p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.65;
-      font-size: 0.96rem;
-    }
-
-    /* Scroll reveal */
-    .reveal {
-      opacity: 0;
-      transform: translateY(18px);
-      transition: opacity 600ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .reveal.in {
-      opacity: 1;
-      transform: none;
-    }
-
-    .section {
-      margin-top: 24px;
-      padding: 0 0 28px;
-    }
-
-    .cta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      padding: 24px;
-      border-radius: 26px;
-      background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(45,212,191,0.10));
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: var(--shadow);
-    }
-
-    .cta h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      margin: 0 0 6px;
-      font-size: 1.45rem;
-      letter-spacing: -0.02em;
-      font-weight: 700;
-    }
-
-    .cta p {
-      margin: 0;
-      color: var(--muted);
-    }
-
-    footer {
-      padding: 22px 0 0;
-      color: rgba(234, 240, 255, 0.48);
-      font-size: 0.9rem;
-      text-align: center;
-    }
-
-    footer .footer-tagline {
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-size: 0.72rem;
-      margin-top: 6px;
-      opacity: 0.8;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .reveal {
-        opacity: 1;
-        transform: none;
-        transition: none;
-      }
-      .chart-line {
-        animation: none;
-        stroke-dashoffset: 0;
-      }
-      .chart-fill {
-        animation: none;
-        opacity: 1;
-      }
-      .pill-dot { animation: none; }
-      .btn, .feature, .dashboard { transition: none; }
-    }
-
-    @media (max-width: 980px) {
-      .hero,
-      .features,
-      .cta {
-        grid-template-columns: 1fr;
-        display: grid;
-      }
-
-      .hero { min-height: auto; padding-top: 10px; }
-      .headline { max-width: 12ch; }
-      .nav { display: none; }
-      .cards { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 640px) {
-      .wrap { width: min(100% - 20px, 1180px); }
-      .topbar { padding-bottom: 16px; }
-      .headline { font-size: clamp(2.7rem, 15vw, 4rem); }
-      .subcopy { font-size: 1rem; }
-      .btn { width: 100%; }
-      .actions { width: 100%; }
-      .cta { padding: 20px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FINTECH — Personal. Finance. Reimagined.</title>
+<meta name="description" content="A private, manual-entry personal finance dashboard — no bank linking, real-time sync, fully isolated per account.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0a0f1c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f7fb" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/svg+xml" href="https://www.jstafki.com/assets/fintech/favicon.svg">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.jstafki.com/projects/fintech/">
+<meta property="og:title" content="FINTECH — Personal. Finance. Reimagined.">
+<meta property="og:description" content="Track spending, monitor cash flow, and manage your finances with clarity — no bank linking required.">
+<meta property="og:image" content="https://www.jstafki.com/assets/fintech/FINTECH.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="FINTECH — a private personal finance dashboard">
+<meta property="og:site_name" content="FINTECH">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://www.jstafki.com/projects/fintech/">
+<meta name="twitter:title" content="FINTECH — Personal. Finance. Reimagined.">
+<meta name="twitter:description" content="Track spending, monitor cash flow, and manage your finances with clarity — no bank linking required.">
+<meta name="twitter:image" content="https://www.jstafki.com/assets/fintech/FINTECH.png">
+<meta name="twitter:image:alt" content="FINTECH — a private personal finance dashboard">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  color-scheme:dark light;
+  --accent:light-dark(#1d4ed8,#7c97ff);
+  --accent2:light-dark(#0ea5e9,#67d4ff);
+  --pos:light-dark(#0d9f6e,#3dd6a0);
+  --on-accent:light-dark(#fff,#0a0f1c);
+  --band:light-dark(#1d4ed8,#3548c9);
+  --bg:light-dark(#f5f7fb,#0a0f1c);
+  --ink:light-dark(#0d1424,#eef1f8);
+  --muted:light-dark(#566078,#9aa5bd);
+  --panel:light-dark(#fff,#121a2c);
+  --line:light-dark(#0d142417,#ffffff1c);
+  --font:"Bricolage Grotesque","Google Sans Flex","Google Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+body{margin:0;min-height:100dvh;font:400 1.0625rem/1.6 var(--font);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;text-wrap:pretty}
+::selection{background:var(--accent);color:var(--on-accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:8px}
+
+/* The thread: one gradient line that fills as you scroll */
+.thread{position:fixed;inset:0 auto 0 0;width:4px;z-index:5;background:linear-gradient(var(--accent),var(--accent2))}
+@supports (animation-timeline:scroll()){
+  .thread{transform-origin:top;animation:grow linear both;animation-timeline:scroll()}
+  @keyframes grow{from{transform:scaleY(0)}}
+}
+
+.wrap{width:min(1180px,100% - 40px);margin-inline:auto}
+header{display:flex;align-items:center;gap:16px;padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;font-weight:800;font-size:1.1rem;letter-spacing:.05em}
+.mark{display:block;flex:none;width:40px;height:40px;border-radius:13px}
+nav{display:flex;gap:6px;margin-inline:auto 8px}
+nav a{padding:8px 14px;border-radius:999px;color:var(--muted);text-decoration:none;font-weight:500;font-size:.95rem}
+nav a:hover{color:var(--ink);background:var(--line)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 26px;border-radius:999px;font:700 1rem var(--font);text-decoration:none;color:var(--on-accent);background:var(--accent);box-shadow:0 14px 34px -16px var(--accent);transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:none;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn.light{background:#fff;color:#1e1b4b;box-shadow:none}
+.btn.sm{padding:9px 18px;font-size:.92rem}
+
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(28px,5vw,72px);align-items:center;min-height:calc(100dvh - 160px);padding:32px 0 64px}
+h1{margin:0 0 22px;max-width:12ch;font-size:clamp(3.1rem,7.4vw,6.4rem);font-weight:800;line-height:.95;letter-spacing:-.035em;text-wrap:balance;color:var(--ink)}
+.lede{max-width:52ch;margin:0 0 30px;color:var(--muted);font-size:1.15rem}
+.actions{display:flex;flex-wrap:wrap;gap:12px}
+.note{margin:18px 0 0;color:var(--muted);font-size:.95rem}
+
+.panel{container-type:inline-size;padding:22px;border-radius:28px;border:1.5px solid transparent;
+  background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(140deg,var(--accent),var(--accent2)) border-box;
+  box-shadow:0 40px 100px -50px var(--accent)}
+.top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-weight:500}
+.live{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:var(--line);font-size:.85rem}
+.live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--pos);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--pos)}70%,100%{box-shadow:0 0 0 7px transparent}}
+.bal-label{display:block;margin-top:20px;color:var(--muted);font-weight:500}
+.bal{font-size:clamp(2.3rem,13cqi,3.8rem);font-weight:800;letter-spacing:-.035em;line-height:1.1;font-variant-numeric:tabular-nums}
+.chart{height:160px;margin:14px 0 16px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% 25%}
+.chart svg{display:block;width:100%;height:100%}
+.line{stroke-dasharray:600;stroke-dashoffset:600;animation:draw 1.6s ease-out .3s forwards}
+.fill{opacity:0;animation:show .8s ease-out 1.1s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes show{to{opacity:1}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@container (max-width:380px){.stats{grid-template-columns:1fr}}
+.stats div{padding:14px;border-radius:16px;background:var(--line)}
+.stats span{display:block;color:var(--muted);font-size:.85rem}
+.stats strong{font-size:1.35rem;font-weight:800;letter-spacing:-.02em}
+
+/* Ledger: the features, written as ledger lines */
+.ledger{padding:40px 0 72px}
+.ledger h2{margin:0 0 28px;max-width:20ch;font-size:clamp(1.8rem,3.4vw,2.6rem);line-height:1.1;letter-spacing:-.03em}
+.ledger ul{list-style:none;margin:0;padding:0}
+.ledger li{display:grid;grid-template-columns:1fr auto;gap:8px 32px;align-items:center;padding:28px 0;border-top:1px solid var(--line)}
+.ledger li:last-child{border-bottom:1px solid var(--line)}
+.ledger h3{margin:0 0 4px;font-size:1.35rem;letter-spacing:-.02em}
+.ledger p{margin:0;max-width:52ch;color:var(--muted)}
+.fig{text-align:right;font-variant-numeric:tabular-nums}
+.fig b{display:block;font-size:clamp(2.6rem,6vw,4.4rem);font-weight:800;line-height:1;letter-spacing:-.04em;color:var(--accent)}
+.fig small{color:var(--muted);font-size:.9rem}
+
+.cta{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px;padding:clamp(28px,5vw,52px);border-radius:32px;background:var(--band);color:#fff}
+.cta h2{margin:0 0 6px;font-size:clamp(1.9rem,4vw,3rem);line-height:1.05;letter-spacing:-.035em}
+.cta p{margin:0;font-weight:500;opacity:.88}
+footer{padding:32px 0 40px;text-align:center;color:var(--muted);font-size:.92rem}
+footer p{margin:4px 0 0}
+
+@media (max-width:900px){.hero{grid-template-columns:1fr;min-height:auto}nav{display:none}header .btn{margin-left:auto}}
+@media (max-width:600px){.actions .btn,.cta .btn{width:100%}.ledger li{grid-template-columns:1fr}.fig{text-align:left}}
+@media (prefers-reduced-motion:reduce){.line{animation:none;stroke-dashoffset:0}.fill{animation:none;opacity:1}.live::before{animation:none}.btn{transition:none}}
+</style>
 </head>
 <body>
-  <div class="noise" aria-hidden="true"></div>
+<div class="thread" aria-hidden="true"></div>
 
-  <div class="wrap">
-    <header class="topbar">
-      <a class="brand" href="#home" aria-label="FINTECH home">
-        <span class="mark">F</span>
-        <span class="brand-word">INTECH</span>
-      </a>
-      <nav class="nav" aria-label="Primary">
-        <a href="https://www.jstafki.com/fintech/version/">Version</a>
-        <a href="https://www.jstafki.com/fintech/features/">Features</a>
-        <a href="https://www.jstafki.com/fintech/pricing/">Pricing</a>
-        <a href="https://www.jstafki.com/fintech/privacy/">Privacy</a>
-        <a href="https://www.jstafki.com/contact/">Contact</a>
-      </nav>
-    </header>
+<div class="wrap">
+  <header>
+    <a class="brand" href="#home" aria-label="FINTECH home"><img class="mark" src="https://www.jstafki.com/assets/fintech/favicon.svg" alt="" width="40" height="40">INTECH</a>
+    <nav aria-label="Primary">
+      <a href="https://www.jstafki.com/fintech/version/">Version</a>
+      <a href="https://www.jstafki.com/fintech/features/">Features</a>
+      <a href="https://www.jstafki.com/fintech/pricing/">Pricing</a>
+      <a href="https://www.jstafki.com/fintech/privacy/">Privacy</a>
+      <a href="https://www.jstafki.com/contact/">Contact</a>
+    </nav>
+    <a class="btn sm" href="https://www.jstafki.com/fintech/onboarding/">Access</a>
+  </header>
 
-    <main id="home" class="hero">
-      <section>
-        <h1 class="headline"><span class="gradient">Personal finance</span>, reimagined.</h1>
-        <p class="subcopy">
-          A private ledger you actually control. Every entry is manual, on purpose — no bank
-          credentials shared with anyone, no automatic pulls. Sign in with Google and your
-          numbers sync in real time, visible to no one but you.
-        </p>
-
+  <main id="home">
+    <section class="hero">
+      <div>
+        <h1>Personal finance, reimagined.</h1>
+        <p class="lede">A private ledger you actually control. Every entry is manual, on purpose — no bank credentials shared, no automatic pulls. Sign in with Google and your numbers sync in real time, visible to no one but you.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="https://www.jstafki.com/fintech/onboarding/">Access FINTECH →</a>
-          <a class="btn btn-secondary" href="https://www.jstafki.com/fintech/demo/">Explore Demo</a>
+          <a class="btn" href="https://www.jstafki.com/fintech/onboarding/">Access FINTECH</a>
+          <a class="btn ghost" href="https://www.jstafki.com/fintech/demo/">Explore the demo</a>
         </div>
+        <p class="note">Private by design. No bank linking. Yours alone.</p>
+      </div>
 
-        <div class="micro">Private by design. No bank linking. Yours alone.</div>
-      </section>
-
-      <aside id="dashboard" class="panel dashboard" aria-label="Preview dashboard">
-        <div class="mini-header">
-          <span>Today's overview</span>
-          <span class="pill tag-mono"><span class="pill-dot"></span>Live</span>
-        </div>
-
-        <div class="balance">
-          <span class="balance-label">Accumulate</span>
-          <span id="balanceValue">$48,920.14</span>
-        </div>
-
+      <aside class="panel" aria-label="Preview dashboard">
+        <div class="top"><span>Today’s overview</span><span class="live">Live</span></div>
+        <span class="bal-label">Accumulate</span>
+        <div class="bal" id="bal">$48,920.14</div>
         <div class="chart" aria-hidden="true">
           <svg viewBox="0 0 400 160" preserveAspectRatio="none">
             <defs>
-              <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#7c3aed"/>
-                <stop offset="50%" stop-color="#3b82f6"/>
-                <stop offset="100%" stop-color="#2dd4bf"/>
-              </linearGradient>
-              <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="rgba(59,130,246,0.25)"/>
-                <stop offset="100%" stop-color="rgba(59,130,246,0)"/>
-              </linearGradient>
+              <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent2)"/></linearGradient>
+              <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--accent)" stop-opacity=".25"/><stop offset="1" style="stop-color:var(--accent)" stop-opacity="0"/></linearGradient>
             </defs>
-            <path class="chart-fill"
-                  d="M0,120 L48,107 96,115 156,88 208,96 264,61 320,70 400,29 L400,160 0,160 Z"
-                  fill="url(#fillGrad)"/>
-            <path class="chart-line"
-                  d="M0,120 L48,107 96,115 156,88 208,96 264,61 320,70 400,29"
-                  fill="none" stroke="url(#lineGrad)" stroke-width="3"
-                  stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="fill" d="M0,120 L48,107 96,115 156,88 208,96 264,61 320,70 400,29 L400,160 0,160 Z" fill="url(#fg)"/>
+            <path class="line" d="M0,120 L48,107 96,115 156,88 208,96 264,61 320,70 400,29" fill="none" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-
-        <div class="cards">
-          <div class="stat">
-            <span>Out-of-Pocket</span>
-            <strong>$612</strong>
-          </div>
-          <div class="stat">
-            <span>Fill-Ups</span>
-            <strong>$184</strong>
-          </div>
-          <div class="stat">
-            <span>Grocery Budget</span>
-            <strong>$340</strong>
-          </div>
+        <div class="stats">
+          <div><span>Out-of-pocket</span><strong>$612</strong></div>
+          <div><span>Fill-ups</span><strong>$184</strong></div>
+          <div><span>Grocery budget</span><strong>$340</strong></div>
         </div>
       </aside>
-    </main>
-
-    <section id="features" class="section">
-      <div class="features">
-        <article class="feature">
-          <div class="icon">⟡</div>
-          <h3>No bank linking, ever</h3>
-          <p>Every entry is manual, by design. Nothing connects to your bank — you decide what goes in and when.</p>
-        </article>
-
-        <article class="feature">
-          <div class="icon">↗</div>
-          <h3>Real-time, everywhere</h3>
-          <p>Edit on your laptop, see it update instantly on your phone. Built on live sync, not a save button.</p>
-        </article>
-
-        <article class="feature">
-          <div class="icon">◎</div>
-          <h3>Private by default</h3>
-          <p>Sign in with Google and that's it. Your ledger lives in its own private space — no one else can reach it.</p>
-        </article>
-      </div>
     </section>
 
-    <section id="access" class="section">
+    <section class="ledger" id="features" aria-labelledby="lh">
+      <h2 id="lh">Built to keep your numbers yours.</h2>
+      <ul>
+        <li>
+          <div><h3>No bank linking, ever</h3><p>Every entry is manual, by design. Nothing connects to your bank — you decide what goes in and when.</p></div>
+          <div class="fig"><b>0</b><small>bank connections</small></div>
+        </li>
+        <li>
+          <div><h3>Real-time, everywhere</h3><p>Edit on your laptop, see it update instantly on your phone. Built on live sync, not a save button.</p></div>
+          <div class="fig"><b>Live</b><small>on every device</small></div>
+        </li>
+        <li>
+          <div><h3>Private by default</h3><p>Sign in with Google and that’s it. Your ledger lives in its own private space — no one else can reach it.</p></div>
+          <div class="fig"><b>1</b><small>viewer: you</small></div>
+        </li>
+      </ul>
+    </section>
+
+    <section id="access" aria-label="Get started">
       <div class="cta">
-        <div>
-          <h2>Ready when you are.</h2>
-          <p>Sign in with Google and open your private ledger — nothing else required.</p>
-        </div>
-        <a class="btn btn-primary" href="https://www.jstafki.com/fintech/onboarding/">Launch FINTECH</a>
+        <div><h2>Ready when you are.</h2><p>Sign in with Google and open your private ledger — nothing else required.</p></div>
+        <a class="btn light" href="https://www.jstafki.com/fintech/onboarding/">Launch FINTECH</a>
       </div>
     </section>
+  </main>
 
-    <footer>
-      © 2026 FINTECH. All rights reserved.
-      <div class="footer-tagline">Personal. Finance. Reimagined.</div>
-    </footer>
-  </div>
+  <footer>
+    <p>© 2026 FINTECH. All rights reserved.</p>
+    <p>Personal. Finance. Reimagined.</p>
+  </footer>
+</div>
 
-  <script>
-    (() => {
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      /* ---------- Scroll reveal (features + CTA) ---------- */
-      const revealEls = document.querySelectorAll('.feature, .cta');
-      revealEls.forEach((el, i) => {
-        el.classList.add('reveal');
-        el.dataset.i = i % 3;
-      });
-
-      if (reduceMotion || !('IntersectionObserver' in window)) {
-        revealEls.forEach(el => el.classList.add('in'));
-      } else {
-        const io = new IntersectionObserver((entries) => {
-          entries.forEach(e => {
-            if (e.isIntersecting) {
-              e.target.style.transitionDelay = `${(e.target.dataset.i || 0) * 90}ms`;
-              e.target.classList.add('in');
-              io.unobserve(e.target);
-            }
-          });
-        }, { threshold: 0.15 });
-        revealEls.forEach(el => io.observe(el));
-      }
-
-      /* ---------- Balance count-up ---------- */
-      const balanceEl = document.getElementById('balanceValue');
-      if (balanceEl) {
-        const target = 48920.14;
-        const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-
-        if (reduceMotion) {
-          balanceEl.textContent = fmt.format(target);
-        } else {
-          const dur = 1400;
-          const start = performance.now();
-          const tick = (now) => {
-            const p = Math.min((now - start) / dur, 1);
-            const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
-            balanceEl.textContent = fmt.format(target * eased);
-            if (p < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-        }
-      }
-
-      /* ---------- Dashboard tilt (pointer devices only) ---------- */
-      const panel = document.querySelector('.dashboard');
-      const canTilt = panel
-        && !reduceMotion
-        && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-
-      if (canTilt) {
-        const MAX_DEG = 3;
-        panel.addEventListener('pointermove', (e) => {
-          const r = panel.getBoundingClientRect();
-          const x = (e.clientX - r.left) / r.width - 0.5;
-          const y = (e.clientY - r.top) / r.height - 0.5;
-          panel.style.transform =
-            `perspective(900px) rotateX(${(-y * MAX_DEG).toFixed(2)}deg) rotateY(${(x * MAX_DEG).toFixed(2)}deg)`;
-        });
-        panel.addEventListener('pointerleave', () => {
-          panel.style.transform = '';
-        });
-      }
-    })();
-  </script>
+<script>
+(()=>{
+  const el=document.getElementById('bal');
+  if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const t=48920.14,d=1400,s=performance.now(),f=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'});
+  (function k(n){const p=Math.min((n-s)/d,1);el.textContent=f.format(t*(1-(1-p)**3));if(p<1)requestAnimationFrame(k)})(s);
+})();
+</script>
 </body>
 </html>
