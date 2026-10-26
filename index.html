@@ -196,23 +196,18 @@
     @media (prefers-reduced-motion: reduce) { .work-link::before, .work-link > span { transition: none; } }
 
     /* ===== Sliding panels ===== */
-    .work-viewport { overflow:hidden; margin-bottom:-36px; transition:height 520ms cubic-bezier(.2,.8,.2,1); }
-    .work-track { display:flex; align-items:flex-start; width:100%; transition:transform 720ms cubic-bezier(.65,0,.2,1); }
-    .work-panel { flex:0 0 100%; min-width:0; padding-bottom:36px; }
-    .work[data-view="reading"] .work-track { transform:translateX(-50%); }
-    
-    /* Suggested Reading titles: fixed-width panel, gray at rest, gradient only on interaction; no bubble. */
-    .work-viewport { width:100%; }
-    .work-track { width:200%; }
-    .work-panel { flex-basis:50%; width:50%; }
-    .work-stage, .work-inner { box-sizing:border-box; }
+    .work-viewport { overflow:hidden; width:100%; margin-bottom:-36px; }
+    .work-track { display:grid; grid-template-columns:100% 100%; align-items:start; width:100%; transition:transform 720ms cubic-bezier(.65,0,.2,1); }
+    .work-panel { min-width:0; padding-bottom:36px; }
+    .work[data-view="reading"] .work-track { transform:translateX(-100%); }
+    #panel-reading .work-head h2 { max-width:13em; }
+
+    /* Suggested Reading titles: gray at rest, gradient only on interaction; no bubble, no underline. */
     .read-nav { display:flex; flex-wrap:wrap; justify-content:center; gap:6px clamp(28px,4.4vw,60px); }
     .read-link { position:relative; padding:8px 0; text-decoration:none; font-size:clamp(.9rem,1.4vw,1.05rem); font-weight:500; letter-spacing:-.01em; line-height:1.3; color:#5f6368; -webkit-tap-highlight-color:transparent; transition:color 220ms ease; }
-    .read-link::after { content:""; position:absolute; left:0; right:0; bottom:3px; height:1px; background:linear-gradient(110deg,var(--a1),var(--a2),var(--a3)); transform:scaleX(0); transform-origin:left; transition:transform 360ms cubic-bezier(.2,.8,.2,1); }
     .read-link:hover, .read-link:focus-visible, .read-link:active { color:transparent; background-image:linear-gradient(110deg,var(--a1),var(--a2),var(--a3)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
-    .read-link:hover::after, .read-link:focus-visible::after, .read-link:active::after { transform:scaleX(1); }
     .read-link:focus-visible { outline:2px solid #101010; outline-offset:4px; border-radius:4px; }
-    
+
     /* Side arrows */
     .work-arrow { position:absolute; top:50%; z-index:2; width:42px; height:42px; display:grid; place-items:center; padding:0; border:1px solid rgba(16,16,16,.12); border-radius:50%; background:#fff; color:rgba(16,16,16,.45); cursor:pointer; transform:translateY(-50%); box-shadow:0 1px 3px rgba(60,64,67,.1); transition:color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, opacity 300ms ease; -webkit-tap-highlight-color:transparent; }
     .work-arrow svg { width:18px; height:18px; transition:transform 260ms cubic-bezier(.2,.8,.2,1); }
@@ -224,7 +219,7 @@
     .work-arrow--prev { left:clamp(12px,3vw,40px); opacity:0; visibility:hidden; }
     .work[data-view="reading"] .work-arrow--next { opacity:0; visibility:hidden; }
     .work[data-view="reading"] .work-arrow--prev { opacity:1; visibility:visible; }
-    
+
     @media (max-width:800px) {
       .work-stage { width:min(100% - 12vw, 680px); }
       .work-head h2 { margin-top:18px; margin-bottom:28px; }
@@ -235,7 +230,7 @@
       .work-arrow--prev { left:6vw; }
     }
     @media (max-width:400px) { .work-nav { padding:4px; gap:0; } .work-link { padding:10px 12px; font-size:.85rem; } }
-    @media (prefers-reduced-motion:reduce) { .work-track, .work-viewport, .work-arrow, .work-arrow svg, .work-link::before, .work-link > span, .read-link::after { transition:none; } }
+    @media (prefers-reduced-motion:reduce) { .work-track, .work-arrow, .work-arrow svg, .work-link::before, .work-link > span { transition:none; } }
 
     /* ===== Footer ===== */
     .site-footer { flex: 0 0 auto; width: 100%; padding: 34px clamp(22px, 5vw, 72px) 22px; color: #f4f5f0; background-color: #050505; background-image: radial-gradient(circle, rgba(125,125,125,.28) 1px, transparent 1.1px), radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.035), transparent 72%); background-size: 5px 5px, 100% 100%; font-family: var(--font); }
@@ -299,48 +294,48 @@
     </div>
   </section>
   <section class="work" id="work" data-view="work" aria-label="Selected projects">
-  <div class="work-viewport">
-    <div class="work-track">
+    <div class="work-viewport">
+      <div class="work-track">
 
-      <div class="work-panel" id="panel-work">
-        <div class="work-stage">
-          <div class="work-head">
-            <div class="k">SCIENTIFIC PROGRESS</div>
-            <h2>Accelerating scientific<br>discovery to address society’s<br>biggest challenges</h2>
+        <div class="work-panel" id="panel-work">
+          <div class="work-stage">
+            <div class="work-head">
+              <div class="k">SCIENTIFIC PROGRESS</div>
+              <h2>Accelerating scientific<br>discovery to address society’s<br>biggest challenges</h2>
+            </div>
+          </div>
+          <div class="work-inner">
+            <nav class="work-nav" aria-label="Projects">
+              <a class="work-link" href="https://www.intrepidflights.com"><span class="work-link__base">Intrepid Flights</span><span class="work-link__ink" aria-hidden="true">Intrepid Flights</span></a>
+              <a class="work-link" href="https://www.jstafki.com/fintech"><span class="work-link__base">Fintech</span><span class="work-link__ink" aria-hidden="true">Fintech</span></a>
+              <a class="work-link" href="https://www.jstafki.com/projects/premiere"><span class="work-link__base">Premiere</span><span class="work-link__ink" aria-hidden="true">Premiere</span></a>
+            </nav>
           </div>
         </div>
-        <div class="work-inner">
-          <nav class="work-nav" aria-label="Projects">
-            <a class="work-link" href="https://www.intrepidflights.com"><span class="work-link__base">Intrepid Flights</span><span class="work-link__ink" aria-hidden="true">Intrepid Flights</span></a>
-            <a class="work-link" href="https://www.jstafki.com/fintech"><span class="work-link__base">Fintech</span><span class="work-link__ink" aria-hidden="true">Fintech</span></a>
-            <a class="work-link" href="https://www.jstafki.com/projects/premiere"><span class="work-link__base">Premiere</span><span class="work-link__ink" aria-hidden="true">Premiere</span></a>
-          </nav>
-        </div>
-      </div>
 
-      <div class="work-panel" id="panel-reading">
-        <div class="work-stage">
-          <div class="work-head">
-            <div class="k">Suggested Reading</div>
-            <h2>Knowing what great minds thought and learning how to think alongside them</h2>
+        <div class="work-panel" id="panel-reading">
+          <div class="work-stage">
+            <div class="work-head">
+              <div class="k">Suggested Reading</div>
+              <h2>Knowing what great minds thought and learning how to think alongside them</h2>
+            </div>
+          </div>
+          <div class="work-inner">
+            <nav class="read-nav" aria-label="Suggested reading">
+              <a class="read-link" href="https://drive.google.com/file/d/1MUNbHs2Y-5BCB86z3-v5AHL96yqhJGT4/view?usp=sharing" target="_blank" rel="noopener">Résumé</a>
+              <a class="read-link" href="https://digital.library.unt.edu/ark:/67531/metadc115152/m2/1/high_res_d/dissertation.pdf" target="_blank" rel="noopener" title="A New Vision of the Choral Instrument in the 21st Century — Brian A. Schmidt, B.M.E., M.M.">The Choral Music of Ola Gjeilo</a>
+              <a class="read-link" href="https://arxiv.org/pdf/2604.03136v6" target="_blank" rel="noopener" title="Investigating idiosyncrasies in AI fiction">StoryScope</a>
+              <a class="read-link" href="https://services.google.com/fh/files/misc/startup_technical_guide_genmedia.pdf" target="_blank" rel="noopener">Google for Startups: Generative Media</a>
+            </nav>
           </div>
         </div>
-        <div class="work-inner">
-          <nav class="read-nav" aria-label="Suggested reading">
-            <a class="read-link" href="https://drive.google.com/file/d/1MUNbHs2Y-5BCB86z3-v5AHL96yqhJGT4/view?usp=sharing" target="_blank" rel="noopener">Résumé</a>
-            <a class="read-link" href="https://digital.library.unt.edu/ark:/67531/metadc115152/m2/1/high_res_d/dissertation.pdf" target="_blank" rel="noopener" title="A New Vision of the Choral Instrument in the 21st Century — Brian A. Schmidt, B.M.E., M.M.">The Choral Music of Ola Gjeilo</a>
-            <a class="read-link" href="https://arxiv.org/pdf/2604.03136v6" target="_blank" rel="noopener" title="Investigating idiosyncrasies in AI fiction">StoryScope</a>
-            <a class="read-link" href="https://services.google.com/fh/files/misc/startup_technical_guide_genmedia.pdf" target="_blank" rel="noopener">Google for Startups: Generative Media</a>
-          </nav>
-        </div>
-      </div>
 
+      </div>
     </div>
-  </div>
 
-  <button class="work-arrow work-arrow--next" type="button" aria-label="Show suggested reading" aria-controls="panel-reading"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l6 6-6 6"/></svg></button>
-  <button class="work-arrow work-arrow--prev" type="button" aria-label="Back to selected work" aria-controls="panel-work"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4l-6 6 6 6"/></svg></button>
-</section>
+    <button class="work-arrow work-arrow--next" type="button" aria-label="Show suggested reading" aria-controls="panel-reading"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l6 6-6 6"/></svg></button>
+    <button class="work-arrow work-arrow--prev" type="button" aria-label="Back to selected work" aria-controls="panel-work"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4l-6 6 6 6"/></svg></button>
+  </section>
 
   <footer class="site-footer" aria-label="Site footer">
     <div class="footer-grid">
@@ -381,27 +376,21 @@
   <script>
 (() => {
   const sec = document.getElementById('work');
-  const vp = sec.querySelector('.work-viewport');
   const panels = [document.getElementById('panel-work'), document.getElementById('panel-reading')];
   const next = sec.querySelector('.work-arrow--next');
   const prev = sec.querySelector('.work-arrow--prev');
   let view = 'work';
-  const size = () => { vp.style.height = panels[view === 'work' ? 0 : 1].offsetHeight + 'px'; };
   function show(v) {
     view = v;
     sec.dataset.view = v;
     panels[0].inert = v !== 'work';
     panels[1].inert = v !== 'reading';
-    size();
     (v === 'reading' ? prev : next).focus({ preventScroll: true });
   }
   next.addEventListener('click', () => show('reading'));
   prev.addEventListener('click', () => show('work'));
   sec.addEventListener('keydown', (e) => { if (e.key === 'Escape' && view === 'reading') show('work'); });
-  window.addEventListener('resize', size, { passive: true });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(size);
   panels[1].inert = true;
-  size();
 })();
 </script>
 
