@@ -197,9 +197,10 @@
 
     /* ===== Sliding panels ===== */
     .work-viewport { overflow:hidden; width:100%; margin-bottom:-36px; }
-    .work-track { display:grid; grid-template-columns:100% 100%; align-items:start; width:100%; transition:transform 720ms cubic-bezier(.65,0,.2,1); }
+    .work-track { display:grid; grid-template-columns:100% 100% 100%; align-items:start; width:100%; transition:transform 720ms cubic-bezier(.65,0,.2,1); }
     .work-panel { min-width:0; padding-bottom:36px; }
     .work[data-view="reading"] .work-track { transform:translateX(-100%); }
+    .work[data-view="git"] .work-track { transform:translateX(-200%); }
     #panel-reading .work-head h2 { max-width:13em; }
 
     /* Suggested Reading titles: gray at rest, gradient only on interaction; no bubble, no underline. */
@@ -217,8 +218,8 @@
     .work-arrow:focus-visible { outline:2px solid #101010; outline-offset:3px; }
     .work-arrow--next { right:clamp(12px,3vw,40px); }
     .work-arrow--prev { left:clamp(12px,3vw,40px); opacity:0; visibility:hidden; }
-    .work[data-view="reading"] .work-arrow--next { opacity:0; visibility:hidden; }
-    .work[data-view="reading"] .work-arrow--prev { opacity:1; visibility:visible; }
+    .work[data-view="git"] .work-arrow--next { opacity:0; visibility:hidden; }
+    .work:not([data-view="work"]) .work-arrow--prev { opacity:1; visibility:visible; }
 
     @media (max-width:800px) {
       .work-stage { width:min(100% - 12vw, 680px); }
@@ -231,6 +232,19 @@
     }
     @media (max-width:400px) { .work-nav { padding:4px; gap:0; } .work-link { padding:10px 12px; font-size:.85rem; } }
     @media (prefers-reduced-motion:reduce) { .work-track, .work-arrow, .work-arrow svg, .work-link::before, .work-link > span { transition:none; } }
+
+    /* GitHub Commits panel (contribution graph): adds no height of its own, so the section stays the same size as the other two. */
+    .work-panel--git { display:flex; flex-direction:column; align-self:stretch; contain:size; }
+    .work-panel--git .work-head h2 { margin:30px auto 22px; }
+    .git-card { flex:1 1 0; min-height:0; width:min(100% - 12vw, 1100px); margin:0 auto; padding:18px; display:grid; place-content:center; overflow:hidden; border-radius:28px; background:#fff; border:1px solid rgba(60,64,67,.08); box-shadow:0 1px 3px rgba(60,64,67,.16), 0 6px 20px rgba(60,64,67,.12); }
+    .git-grid { display:grid; grid-template-rows:repeat(7, var(--cell, 14px)); grid-auto-flow:column; grid-auto-columns:var(--cell, 14px); gap:4px; }
+    .git-grid i { display:block; border-radius:24%; background:#f0f2f5; }
+    .git-grid i.l1 { background:#6dc075; }
+    .git-grid i.l2 { background:#52a35a; }
+    .git-grid i.l3 { background:#3b7d45; }
+    .git-grid i.l4 { background:#285f31; }
+    .git-grid i.gap { background:none; }
+    .git-note { margin:0; color:#5f6368; font-size:.95rem; }
 
     /* ===== Footer ===== */
     .site-footer { flex: 0 0 auto; width: 100%; padding: 34px clamp(22px, 5vw, 72px) 22px; color: #f4f5f0; background-color: #050505; background-image: radial-gradient(circle, rgba(125,125,125,.28) 1px, transparent 1.1px), radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.035), transparent 72%); background-size: 5px 5px, 100% 100%; font-family: var(--font); }
@@ -330,6 +344,11 @@
           </div>
         </div>
 
+        <div class="work-panel work-panel--git" id="panel-git">
+          <div class="work-stage"><div class="work-head"><h2>GitHub Commits</h2></div></div>
+          <div class="git-card" id="git-card"><p class="git-note" id="git-note">Loading contributions…</p><div class="git-grid" id="git-grid" role="img" aria-label="GitHub contribution graph for joshstafki"></div></div>
+        </div>
+
       </div>
     </div>
 
@@ -376,21 +395,77 @@
   <script>
 (() => {
   const sec = document.getElementById('work');
-  const panels = [document.getElementById('panel-work'), document.getElementById('panel-reading')];
+  const views = ['work', 'reading', 'git'];
+  const panels = views.map((v) => document.getElementById('panel-' + v));
   const next = sec.querySelector('.work-arrow--next');
   const prev = sec.querySelector('.work-arrow--prev');
-  let view = 'work';
-  function show(v) {
-    view = v;
-    sec.dataset.view = v;
-    panels[0].inert = v !== 'work';
-    panels[1].inert = v !== 'reading';
-    (v === 'reading' ? prev : next).focus({ preventScroll: true });
+  const last = views.length - 1;
+  let i = 0;
+  function show(n, from) {
+    i = Math.max(0, Math.min(last, n));
+    sec.dataset.view = views[i];
+    panels.forEach((p, k) => { p.inert = k !== i; });
+    next.setAttribute('aria-label', i === 0 ? 'Show suggested reading' : 'Show GitHub commits');
+    next.setAttribute('aria-controls', 'panel-' + views[Math.min(i + 1, last)]);
+    prev.setAttribute('aria-label', i === 2 ? 'Back to suggested reading' : 'Back to selected work');
+    prev.setAttribute('aria-controls', 'panel-' + views[Math.max(i - 1, 0)]);
+    (i === 0 ? next : i === last ? prev : from).focus({ preventScroll: true });
   }
-  next.addEventListener('click', () => show('reading'));
-  prev.addEventListener('click', () => show('work'));
-  sec.addEventListener('keydown', (e) => { if (e.key === 'Escape' && view === 'reading') show('work'); });
-  panels[1].inert = true;
+  next.addEventListener('click', () => show(i + 1, next));
+  prev.addEventListener('click', () => show(i - 1, prev));
+  sec.addEventListener('keydown', (e) => { if (e.key === 'Escape' && i > 0) show(i - 1, prev); });
+  panels.forEach((p, k) => { p.inert = k !== 0; });
+})();
+</script>
+
+<script>
+(() => {
+  const USER = 'joshstafki';
+  const sec = document.getElementById('work');
+  const card = document.getElementById('git-card');
+  const grid = document.getElementById('git-grid');
+  const note = document.getElementById('git-note');
+  const GAP = 4;
+  const fmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  let days = [], loadedAt = 0;
+
+  // Size the squares to the card's height, then show as many of the latest weeks as fit its width.
+  function render() {
+    if (!days.length) return;
+    const cells = Array(new Date(days[0].date + 'T00:00:00Z').getUTCDay()).fill(null).concat(days);
+    const cs = getComputedStyle(card);
+    const availW = card.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const availH = card.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const size = Math.max(8, Math.min(26, Math.floor((availH - GAP * 6) / 7)));
+    const total = Math.ceil(cells.length / 7);
+    const cols = Math.max(1, Math.min(total, Math.floor((availW + GAP) / (size + GAP))));
+    grid.style.setProperty('--cell', size + 'px');
+    grid.replaceChildren(...cells.slice((total - cols) * 7).map((d) => {
+      const el = document.createElement('i');
+      if (!d) { el.className = 'gap'; return el; }
+      el.className = 'l' + d.level;
+      el.title = d.count + (d.count === 1 ? ' contribution' : ' contributions') + ' on ' + fmt.format(new Date(d.date + 'T00:00:00Z'));
+      return el;
+    }));
+  }
+
+  async function load() {
+    loadedAt = Date.now();
+    try {
+      const res = await fetch('https://github-contributions-api.jogruber.de/v4/' + USER + '?y=last');
+      if (!res.ok) throw new Error(res.status);
+      days = (await res.json()).contributions || [];
+      note.hidden = days.length > 0;
+      if (!days.length) note.textContent = 'No contributions to show yet';
+      render();
+    } catch (err) {
+      if (!days.length) { note.hidden = false; note.textContent = 'GitHub isn’t responding. Try again in a minute.'; }
+    }
+  }
+
+  new ResizeObserver(render).observe(card);
+  new MutationObserver(() => { if (sec.dataset.view === 'git' && Date.now() - loadedAt > 600000) load(); }).observe(sec, { attributes: true, attributeFilter: ['data-view'] });
+  load();
 })();
 </script>
 
