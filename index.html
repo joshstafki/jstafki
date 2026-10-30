@@ -266,6 +266,19 @@
     @media (max-width: 620px) { .site-footer { padding: 30px 7vw 20px; } .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 22px; } .footer-column:last-child { grid-column: 1 / -1; } .footer-bottom { margin-top: 26px; } }
     @media (max-width: 360px) { .footer-grid { grid-template-columns: 1fr; } .footer-column:last-child { grid-column: auto; } }
     @media (prefers-reduced-motion: reduce) { .footer-link, .footer-socials a { transition: none; } .footer-socials a:hover { transform: none; } }
+
+    /* ===== Contact popup ===== */
+    html.contact-open { overflow: hidden; }
+    .contact-dialog { width: min(640px, calc(100vw - 24px)); height: min(860px, calc(100svh - 24px)); max-width: none; max-height: none; margin: auto; padding: 0; border: 0; border-radius: 20px; overflow: hidden; background: #fff; color: #101010; font-family: var(--font); box-shadow: 0 24px 80px rgba(0,0,0,.6); }
+    .contact-dialog[open] { display: flex; flex-direction: column; }
+    .contact-dialog::backdrop { background: rgba(5,5,5,.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    .contact-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 10px 10px 10px 20px; background: #050505; color: #f4f5f0; }
+    .contact-bar h2 { margin: 0; font-size: 16px; font-weight: 500; letter-spacing: -.01em; }
+    .contact-close { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: rgba(244,245,240,.8); font-size: 18px; cursor: pointer; transition: background 180ms ease, color 180ms ease; }
+    .contact-close:hover, .contact-close:focus-visible { background: rgba(255,255,255,.12); color: #fff; }
+    .contact-close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .contact-frame { flex: 1 1 auto; width: 100%; min-height: 0; border: 0; background: #fff; }
+    @media (prefers-reduced-motion: reduce) { .contact-close { transition: none; } }
   </style>
 </head>
 <body>
@@ -380,7 +393,7 @@
         <a class="footer-link" href="https://my.flightradar24.com/joshstafki/">MyFlightRadar24</a>
         <a class="footer-link" href="https://substack.com/@joshstafki">Substack</a>
         <a class="footer-link" href="https://flipboard.com/@jstafki">Flipboard</a>
-        <a class="footer-link" href="mailto:joshstafki@gmail.com" style="margin-top: 12px">Contact</a>
+        <a class="footer-link" id="contact-open" href="mailto:joshstafki@gmail.com" aria-haspopup="dialog" style="margin-top: 12px">Contact</a>
         <div class="footer-socials" aria-label="Social media">
           <a href="https://www.linkedin.com/in/joshstafki" aria-label="LinkedIn" title="LinkedIn"><i class="fa-brands fa-linkedin-in" aria-hidden="true"></i></a>
           <a href="https://www.instagram.com/shuastafki" aria-label="Instagram" title="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
@@ -392,6 +405,15 @@
     </div>
     <div class="footer-bottom">© Josh Stafki. Designed by Josh Stafki. All Rights Reserved</div>
   </footer>
+
+  <dialog class="contact-dialog" id="contact-dialog" aria-labelledby="contact-title">
+    <div class="contact-bar">
+      <h2 id="contact-title">Contact</h2>
+      <button class="contact-close" type="button" aria-label="Close contact form"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <iframe class="contact-frame" title="Contact form" data-src="https://docs.google.com/forms/d/e/1FAIpQLSdoNvF4_XXef197FJ05ZgomdBOumgj9B0xTz54KuWUXaHXx9A/viewform?embedded=true"></iframe>
+  </dialog>
+
   <script>
 (() => {
   const sec = document.getElementById('work');
@@ -631,5 +653,23 @@
       update();
     })();
   </script>
+
+  <script>
+(() => {
+  const link = document.getElementById('contact-open');
+  const dlg = document.getElementById('contact-dialog');
+  if (!link || !dlg || typeof dlg.showModal !== 'function') return; /* falls back to the mailto link */
+  const frame = dlg.querySelector('.contact-frame');
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!frame.getAttribute('src')) frame.src = frame.dataset.src;
+    document.documentElement.classList.add('contact-open');
+    dlg.showModal();
+  });
+  dlg.querySelector('.contact-close').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); }); /* click outside to close */
+  dlg.addEventListener('close', () => document.documentElement.classList.remove('contact-open'));
+})();
+</script>
 </body>
 </html>
