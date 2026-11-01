@@ -127,29 +127,6 @@
       align-items: center;
     }
 
-    /* Individual Letter Entry Animation */
-    .char {
-      display: inline-block;
-      opacity: 0;
-      transform: translateX(120vw);
-      animation: slideInLetter 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      animation-delay: calc(var(--char-index) * 0.09s);
-    }
-
-    @keyframes slideInLetter {
-      0% {
-        opacity: 0;
-        transform: translateX(120vw);
-      }
-      60% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
     .brand-base {
       color: var(--ink);
     }
@@ -161,52 +138,64 @@
       background-clip: text;
     }
 
-    /* Container attached to the right base of 'H' */
-    .h-wrapper {
+    /* Individual Letter Entry Animation */
+    .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateX(100vw);
+      animation: slideInLetter 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: calc(var(--char-index) * 0.08s);
+    }
+
+    @keyframes slideInLetter {
+      0% {
+        opacity: 0;
+        transform: translateX(100vw);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Relative Wrapper for 'H' to anchor the SVG Arrow */
+    .h-anchor {
       position: relative;
       display: inline-block;
     }
 
-    /* Jagged Dynamic Pulse Arrow */
+    /* Jagged Ascending SVG Arrow */
     .jagged-arrow {
       position: absolute;
-      left: calc(100% - 0.15em);
-      bottom: 0.08em;
-      width: 0.45em;
-      height: 0.65em;
+      left: calc(100% - 0.08em);
+      bottom: 0.05em;
+      width: 0.48em;
+      height: 0.68em;
       pointer-events: none;
       opacity: 0;
       transform-origin: bottom left;
-      transform: scale(0) translateY(10px);
-      animation: pulseJagged 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      /* Waits for all 7 letters to complete assembly (~1.1s total) */
-      animation-delay: 1.15s;
+      transform: translateY(20px) scale(0.6);
+      animation: ascendOnce 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      /* Waits for all 7 letters to slide in (~0.95s delay) */
+      animation-delay: 0.95s;
     }
 
     .jagged-arrow path {
-      stroke: url(#arrow-gradient);
+      stroke: url(#brand-arrow-gradient);
     }
 
-    @keyframes pulseJagged {
+    @keyframes ascendOnce {
       0% {
         opacity: 0;
-        transform: scale(0.4) translateY(12px);
+        transform: translateY(24px) scale(0.5);
       }
-      25% {
+      60% {
         opacity: 1;
-        transform: scale(1.1) translateY(-4px);
-      }
-      45% {
-        opacity: 0.9;
-        transform: scale(1) translateY(0);
-      }
-      70% {
-        opacity: 1;
-        transform: scale(1.15) translateY(-8px);
+        transform: translateY(-4px) scale(1.05);
       }
       100% {
-        opacity: 0;
-        transform: scale(0.5) translateY(-16px);
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
     }
 
@@ -293,12 +282,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .char {
-        animation: none;
-        opacity: 1;
-        transform: none;
-      }
-      .jagged-arrow {
+      .char, .jagged-arrow {
         animation: none;
         opacity: 1;
         transform: none;
@@ -310,10 +294,10 @@
   </style>
 </head>
 <body>
-  <!-- SVG Gradient Definitions -->
-  <svg width="0" height="0" style="position:absolute;">
+  <!-- SVG Brand Gradient Definition -->
+  <svg width="0" height="0" style="position:absolute; overflow:hidden;">
     <defs>
-      <linearGradient id="arrow-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <linearGradient id="brand-arrow-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
         <stop offset="0%" stop-color="#00f2fe" />
         <stop offset="60%" stop-color="#3a7bd5" />
         <stop offset="85%" stop-color="#4facfe" />
@@ -342,9 +326,9 @@
       </span>
       <span class="brand-accent">
         <span class="char" style="--char-index: 5;">C</span>
-        <span class="h-wrapper char" style="--char-index: 6;">
-          H
-          <svg class="jagged-arrow" viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <span class="h-anchor">
+          <span class="char" style="--char-index: 6;">H</span>
+          <svg class="jagged-arrow" viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M 6 54 L 14 36 L 24 44 L 34 8 M 34 8 L 22 12 M 34 8 L 32 20" 
                   stroke-width="5.5" 
                   stroke-linecap="round" 
