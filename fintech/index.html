@@ -36,9 +36,7 @@
     :root {
       --ink: #17232d;
       --charcoal: #2d3748;
-      /* Heading accent gradient */
       --brand-gradient: linear-gradient(135deg, #00f2fe 0%, #3a7bd5 60%, #4facfe 85%, #80ffdb 98%);
-      /* Single shade lighter blue gradient for the pill button */
       --btn-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
     }
 
@@ -86,7 +84,6 @@
       background: transparent;
     }
 
-    /* Clear Glassmorphic Bubble Selector for Hover and Active States */
     .nav-link:hover,
     .nav-link.active {
       background: rgba(255, 255, 255, 0.45);
@@ -131,7 +128,8 @@
       color: var(--ink);
     }
 
-    .brand-accent {
+    /* Apply gradient fill directly inside .brand-accent .char */
+    .brand-accent .char {
       background: var(--brand-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -158,30 +156,24 @@
       }
     }
 
-    /* Relative Wrapper for 'H' to anchor the SVG Arrow */
+    /* Inline anchor for H + Arrow positioning */
     .h-anchor {
       position: relative;
-      display: inline-block;
+      display: inline;
     }
 
     /* Jagged Ascending SVG Arrow */
     .jagged-arrow {
       position: absolute;
-      left: calc(100% - 0.08em);
-      bottom: 0.05em;
+      left: calc(100% - 0.05em);
+      bottom: 0.1em;
       width: 0.48em;
       height: 0.68em;
       pointer-events: none;
       opacity: 0;
       transform-origin: bottom left;
-      transform: translateY(20px) scale(0.6);
       animation: ascendOnce 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      /* Waits for all 7 letters to slide in (~0.95s delay) */
-      animation-delay: 0.95s;
-    }
-
-    .jagged-arrow path {
-      stroke: url(#brand-arrow-gradient);
+      animation-delay: 0.75s;
     }
 
     @keyframes ascendOnce {
@@ -199,7 +191,7 @@
       }
     }
 
-    /* Floating Pill Button - Extended Lengthwise */
+    /* Floating Pill Button */
     .pill-btn {
       position: fixed;
       bottom: 2.75rem;
@@ -225,7 +217,6 @@
       box-shadow: 0 16px 36px rgba(0, 242, 254, 0.55);
     }
 
-    /* Outlined Circle Wrapper */
     .arrow-circle {
       display: flex;
       align-items: center;
@@ -244,7 +235,6 @@
       color: var(--ink);
     }
 
-    /* Hover effect: The entire circle and arrow move up together */
     .pill-btn:hover .arrow-circle {
       transform: translateY(-6px);
     }
@@ -295,7 +285,7 @@
 </head>
 <body>
   <!-- SVG Brand Gradient Definition -->
-  <svg width="0" height="0" style="position:absolute; overflow:hidden;">
+  <svg width="0" height="0" style="position:absolute; overflow:hidden;" aria-hidden="true">
     <defs>
       <linearGradient id="brand-arrow-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
         <stop offset="0%" stop-color="#00f2fe" />
@@ -330,6 +320,7 @@
           <span class="char" style="--char-index: 6;">H</span>
           <svg class="jagged-arrow" viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M 6 54 L 14 36 L 24 44 L 34 8 M 34 8 L 22 12 M 34 8 L 32 20" 
+                  stroke="url(#brand-arrow-gradient)" 
                   stroke-width="5.5" 
                   stroke-linecap="round" 
                   stroke-linejoin="round"/>
@@ -337,7 +328,7 @@
         </span>
       </span>
     </h1>
-    
+
     <a href="https://www.jstafki.com/fintech/tech" class="pill-btn" aria-label="Next">
       <div class="arrow-circle">
         <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
