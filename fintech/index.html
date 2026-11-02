@@ -1,341 +1,96 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FINTECH — Personal. Finance. Reimagined.</title>
-  <meta name="description" content="A private, manual-entry personal finance dashboard — no bank linking, real-time sync, fully isolated per account.">
-  <meta name="color-scheme" content="dark light">
-  <meta name="theme-color" content="#0a0f1c" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#f5f7fb" media="(prefers-color-scheme: light)">
-  <link rel="icon" type="image/svg+xml" href="https://www.jstafki.com/assets/fintech/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5f5f5">
+    <title>Coming Soon</title>
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.jstafki.com/projects/fintech/">
-  <meta property="og:title" content="FINTECH — Personal. Finance. Reimagined.">
-  <meta property="og:description" content="Track spending, monitor cash flow, and manage your finances with clarity — no bank linking required.">
-  <meta property="og:image" content="https://www.jstafki.com/assets/fintech/FINTECH.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="FINTECH — a private personal finance dashboard">
-  <meta property="og:site_name" content="FINTECH">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://www.jstafki.com/projects/fintech/">
-  <meta name="twitter:title" content="FINTECH — Personal. Finance. Reimagined.">
-  <meta name="twitter:description" content="Track spending, monitor cash flow, and manage your finances with clarity — no bank linking required.">
-  <meta name="twitter:image" content="https://www.jstafki.com/assets/fintech/FINTECH.png">
-  <meta name="twitter:image:alt" content="FINTECH — a private personal finance dashboard">
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: #f5f5f5;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #222;
+        }
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --ink: #17232d;
-      --charcoal: #2d3748;
-      --brand-gradient: linear-gradient(135deg, #00f2fe 0%, #3a7bd5 60%, #4facfe 85%, #80ffdb 98%);
-      --btn-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-    }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
 
-    * { box-sizing: border-box; }
+        .construction-image {
+            display: block;
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            margin: 0 auto 30px;
+        }
 
-    html, body {
-      width: 100%;
-      min-height: 100%;
-      margin: 0;
-    }
+        .message {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #777;
+            margin-bottom: 18px;
+        }
 
-    body {
-      min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow: hidden;
-      background: #fff;
-      color: var(--ink);
-    }
+        .contact {
+            font-size: 15px;
+            color: #777;
+        }
 
-    /* Top Navigation Styling */
-    .top-nav {
-      position: fixed;
-      top: 2rem;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.35rem 0.5rem;
-      border-radius: 9999px;
-    }
+        .contact a {
+            color: #222;
+            font-weight: 600;
+            text-decoration: none;
+            border-bottom: 1px solid #d5a52b;
+            padding-bottom: 2px;
+            transition: color 0.2s ease;
+        }
 
-    .nav-link {
-      font-family: "Product Sans", "Google Sans", "Open Sans", sans-serif;
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: var(--charcoal);
-      text-decoration: none;
-      padding: 0.6rem 1.25rem;
-      border-radius: 9999px;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid transparent;
-      background: transparent;
-    }
-
-    .nav-link:hover,
-    .nav-link.active {
-      background: rgba(255, 255, 255, 0.45);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.06),
-                  inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
-                  inset 0 -1px 1px 0 rgba(0, 0, 0, 0.05);
-      color: #0f172a;
-    }
-
-    .stage {
-      position: relative;
-      isolation: isolate;
-      display: grid;
-      place-items: center;
-      width: 100%;
-      min-height: 100svh;
-      padding: 7vw;
-    }
-
-    h1 {
-      position: relative;
-      margin: 0;
-      font-family: "Manrope", "Avenir Next", Avenir, "Helvetica Neue", Arial, sans-serif;
-      font-size: clamp(4rem, 11vw, 10.25rem);
-      line-height: 1;
-      font-weight: 600;
-      letter-spacing: .115em;
-      padding-left: .115em;
-      text-align: center;
-      white-space: nowrap;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: geometricPrecision;
-      filter: drop-shadow(0 10px 18px rgba(23, 35, 45, 0.12));
-      display: inline-flex;
-      align-items: center;
-    }
-
-    .brand-base {
-      color: var(--ink);
-    }
-
-    /* Apply gradient fill directly inside .brand-accent .char */
-    .brand-accent .char {
-      background: var(--brand-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    /* Individual Letter Entry Animation */
-    .char {
-      display: inline-block;
-      opacity: 0;
-      transform: translateX(100vw);
-      animation: slideInLetter 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      animation-delay: calc(var(--char-index) * 0.08s);
-    }
-
-    @keyframes slideInLetter {
-      0% {
-        opacity: 0;
-        transform: translateX(100vw);
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    /* Inline anchor for H + Arrow positioning */
-    .h-anchor {
-      position: relative;
-      display: inline;
-    }
-
-    /* Jagged Ascending SVG Arrow */
-    .jagged-arrow {
-      position: absolute;
-      left: calc(100% - 0.05em);
-      bottom: 0.1em;
-      width: 0.48em;
-      height: 0.68em;
-      pointer-events: none;
-      opacity: 0;
-      transform-origin: bottom left;
-      animation: ascendOnce 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      animation-delay: 0.75s;
-    }
-
-    @keyframes ascendOnce {
-      0% {
-        opacity: 0;
-        transform: translateY(24px) scale(0.5);
-      }
-      60% {
-        opacity: 1;
-        transform: translateY(-4px) scale(1.05);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    /* Floating Pill Button */
-    .pill-btn {
-      position: fixed;
-      bottom: 2.75rem;
-      right: 2.75rem;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      width: 160px;
-      height: 64px;
-      padding-right: 8px;
-      border-radius: 9999px;
-      background: var(--btn-gradient);
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 12px 30px rgba(0, 242, 254, 0.4);
-      overflow: visible;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-      text-decoration: none;
-    }
-
-    .pill-btn:hover {
-      box-shadow: 0 16px 36px rgba(0, 242, 254, 0.55);
-    }
-
-    .arrow-circle {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: 2px solid var(--ink);
-      background: transparent;
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .arrow-icon {
-      width: 26px;
-      height: 26px;
-      color: var(--ink);
-    }
-
-    .pill-btn:hover .arrow-circle {
-      transform: translateY(-6px);
-    }
-
-    @media (max-width: 600px) {
-      .top-nav {
-        top: 1rem;
-        gap: 0.1rem;
-      }
-      .nav-link {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.85rem;
-      }
-      .stage { padding: 5vw; }
-      h1 {
-        font-size: clamp(3rem, 14vw, 5.4rem);
-        letter-spacing: .075em;
-        padding-left: .075em;
-      }
-      .pill-btn {
-        bottom: 1.75rem;
-        right: 1.75rem;
-        width: 130px;
-        height: 52px;
-        padding-right: 6px;
-      }
-      .arrow-circle {
-        width: 40px;
-        height: 40px;
-      }
-      .arrow-icon {
-        width: 20px;
-        height: 20px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .char, .jagged-arrow {
-        animation: none;
-        opacity: 1;
-        transform: none;
-      }
-      .pill-btn:hover .arrow-circle {
-        transform: none;
-      }
-    }
-  </style>
+        .contact a:hover {
+            color: #b58b22;
+        }
+    </style>
 </head>
+
 <body>
-  <!-- SVG Brand Gradient Definition -->
-  <svg width="0" height="0" style="position:absolute; overflow:hidden;" aria-hidden="true">
-    <defs>
-      <linearGradient id="brand-arrow-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#00f2fe" />
-        <stop offset="60%" stop-color="#3a7bd5" />
-        <stop offset="85%" stop-color="#4facfe" />
-        <stop offset="98%" stop-color="#80ffdb" />
-      </linearGradient>
-    </defs>
-  </svg>
 
-  <!-- Top Glassmorphic Navigation -->
-  <nav class="top-nav" aria-label="Main Navigation">
-    <a href="#version" class="nav-link active">Version</a>
-    <a href="#features" class="nav-link">Features</a>
-    <a href="#pricing" class="nav-link">Pricing</a>
-    <a href="#privacy" class="nav-link">Privacy</a>
-    <a href="#contact" class="nav-link">Contact</a>
-  </nav>
+    <main class="container">
 
-  <main class="stage" aria-label="FINTECH brand concept">
-    <h1>
-      <span class="brand-base">
-        <span class="char" style="--char-index: 0;">F</span>
-        <span class="char" style="--char-index: 1;">I</span>
-        <span class="char" style="--char-index: 2;">N</span>
-        <span class="char" style="--char-index: 3;">T</span>
-        <span class="char" style="--char-index: 4;">E</span>
-      </span>
-      <span class="brand-accent">
-        <span class="char" style="--char-index: 5;">C</span>
-        <span class="h-anchor">
-          <span class="char" style="--char-index: 6;">H</span>
-          <svg class="jagged-arrow" viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M 6 54 L 14 36 L 24 44 L 34 8 M 34 8 L 22 12 M 34 8 L 32 20" 
-                  stroke="url(#brand-arrow-gradient)" 
-                  stroke-width="5.5" 
-                  stroke-linecap="round" 
-                  stroke-linejoin="round"/>
-          </svg>
-        </span>
-      </span>
-    </h1>
+        <img
+            class="construction-image"
+            src="https://cdn.pixabay.com/photo/2017/10/26/17/51/under-construction-2891888_640.jpg"
+            alt="Construction illustration"
+        >
 
-    <a href="https://www.jstafki.com/fintech/tech" class="pill-btn" aria-label="Next">
-      <div class="arrow-circle">
-        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 12h14.5M13 5.5l6.5 6.5-6.5 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </a>
-  </main>
+        <p class="message">
+            We're currently working behind the scenes to bring
+            you something new. Please check back soon.
+        </p>
+
+        <p class="contact">
+            Questions?
+            <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSdoNvF4_XXef197FJ05ZgomdBOumgj9B0xTz54KuWUXaHXx9A/viewform?usp=header"
+                target="_blank"
+                rel="noopener noreferrer"
+            >Use this form to get in touch.</a>
+        </p>
+
+    </main>
+
 </body>
 </html>
