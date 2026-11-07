@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aggregate: Solutions for Fintech</title>
+<meta name="description" content="Aggregate (AGG) adds up the JSON records FINTECH sends to its database. One Σ, from i = m to n.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Aggregate">
+<meta property="og:title" content="Aggregate: the sum of every FINTECH record">
+<meta property="og:description" content="FINTECH writes the records. AGG adds them up.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Aggregate: the sum of every FINTECH record">
+<meta name="twitter:description" content="FINTECH writes the records. AGG adds them up.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0a'/%3E%3Cpath d='M46 16H20l16 16-16 16h26' fill='none' stroke='%23ffffff' stroke-width='6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,300..800;1,75..125,300..800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0a0a0a;--mut:#667085;--w:min(84vw,1000px);--lift:calc(var(--w)*-.05);color-scheme:light}
+*{box-sizing:border-box;margin:0}
+body{background:#fff;color:var(--ink);font:400 16px/1.45 Archivo,system-ui,sans-serif}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+main{position:relative;z-index:1;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.5svh,16px);text-align:center;padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+h1{line-height:0}
+.mark{fill:none;stroke:currentColor;stroke-width:13;stroke-linejoin:miter;stroke-miterlimit:10;overflow:visible;height:auto;animation:in 1s ease both}
+.mark.d{width:var(--w)}
+.mark.m{display:none;width:min(86vw,520px)}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+.shift{transform-box:view-box;transform-origin:415px 50px;transform:scale(1) translateX(-43.35px);animation:morph 1.4s cubic-bezier(.65,0,.35,1) 1.2s both}
+@keyframes morph{from{transform:scale(2) translateX(249.85px)}}
+.sg{opacity:0;transform:translateY(70px);animation:fall 1.1s cubic-bezier(.55,0,.9,.4) 1.1s both,vanish .7s ease-in 1.4s both}
+@keyframes fall{from{transform:none}}
+@keyframes vanish{from{opacity:1}}
+.L{animation:rise .7s cubic-bezier(.2,.7,.2,1) calc(1.9s + var(--i)*.09s) both}
+@keyframes rise{from{opacity:0;transform:translateY(-22px)}}
+.sub{display:grid;justify-items:center}
+.sub>*{grid-area:1/1}
+.formula{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0 6px;font-size:clamp(17px,2.1vw,26px);color:var(--mut);opacity:0;animation:eq 3s ease both}
+@keyframes eq{0%{opacity:0;transform:translateY(6px)}14%{opacity:1;transform:none}60%{opacity:1}100%{opacity:0}}
+.formula sub{font-size:.65em}
+var{font-style:italic;font-weight:600;color:var(--ink)}
+.mini{height:1.9em;width:auto;overflow:visible;fill:none;stroke:var(--ink);stroke-width:13;stroke-linejoin:miter;margin-right:2px}
+.lim{display:inline-flex;flex-direction:column;align-items:center;font-size:.62em;line-height:1.15;font-style:italic;margin-right:8px}
+.tag{font-size:clamp(20px,2.6vw,34px);font-weight:500;font-stretch:112%;letter-spacing:.01em;transform:translateY(var(--lift));animation:tag 1s ease 2.6s both}
+@keyframes tag{from{opacity:0;transform:translateY(0)}}
+@media(max-width:640px){:root{--lift:0px}.mark.d{display:none}.mark.m{display:block}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+<main>
+  <h1>
+    <svg class="mark d" viewBox="-10 -50 850 200" role="img" aria-label="AGG, short for Aggregate">
+      <defs><clipPath id="k1"><rect x="-300" y="0" width="1500" height="100"/></clipPath></defs>
+      <g class="shift">
+        <path class="sg" d="M70 6.5H8L42 50 8 93.5H70"/>
+        <g clip-path="url(#k1)">
+          <g transform="translate(85.8 0)"><path d="M1.1 106L32 6.5H48L78.9 106M14 68H66"/></g>
+          <g transform="translate(176.1 0)"><path d="M70 6.5H10V93.5H70V50H42"/></g>
+          <g transform="translate(259.1 0)"><path d="M70 6.5H10V93.5H70V50H42"/></g>
+          <g transform="translate(342.1 0)"><path class="L" style="--i:0" d="M10 93.5V6.5H64V50H10M36 50L74 106"/></g>
+          <g transform="translate(425.6 0)"><path class="L" style="--i:1" d="M70 6.5H10V93.5H70M10 50H58"/></g>
+          <g transform="translate(502.1 0)"><path class="L" style="--i:2" d="M70 6.5H10V93.5H70V50H42"/></g>
+          <g transform="translate(592.4 0)"><path class="L" style="--i:3" d="M1.1 106L32 6.5H48L78.9 106M14 68H66"/></g>
+          <g transform="translate(682.2 0)"><path class="L" style="--i:4" d="M4 6.5H76M40 6.5V106"/></g>
+          <g transform="translate(764.7 0)"><path class="L" style="--i:5" d="M70 6.5H10V93.5H70M10 50H58"/></g>
+        </g>
+      </g>
+    </svg>
+    <svg class="mark m" viewBox="-10 0 350 100" role="img" aria-label="Sigma AGG, short for Aggregate">
+      <defs><clipPath id="k2"><rect x="-20" y="0" width="400" height="100"/></clipPath></defs>
+      <path d="M70 6.5H8L42 50 8 93.5H70"/>
+      <g clip-path="url(#k2)">
+        <g transform="translate(85.8 0)"><path d="M1.1 106L32 6.5H48L78.9 106M14 68H66"/></g>
+        <g transform="translate(176.1 0)"><path d="M70 6.5H10V93.5H70V50H42"/></g>
+        <g transform="translate(259.1 0)"><path d="M70 6.5H10V93.5H70V50H42"/></g>
+      </g>
+    </svg>
+  </h1>
+  <div class="sub">
+    <p class="formula" role="img" aria-label="The sum from i equals m to n of a sub i equals a sub m plus a sub m plus 1 plus a sub m plus 2 plus dot dot dot plus a sub n">
+      <svg class="mini" viewBox="-8 0 90 100" aria-hidden="true"><path d="M70 6.5H8L42 50 8 93.5H70"/></svg>
+      <span class="lim" aria-hidden="true"><span>n</span><span>i=m</span></span>
+      <span aria-hidden="true"><var>a</var><sub><var>i</var></sub> = <var>a</var><sub><var>m</var></sub> + <var>a</var><sub><var>m</var>+1</sub> + <var>a</var><sub><var>m</var>+2</sub> + … + <var>a</var><sub><var>n</var></sub></span>
+    </p>
+    <p class="tag">Solutions For Fintech</p>
+  </div>
+</main>
+<script>
+(()=>{
+const cv=document.getElementById('fx'),ctx=cv.getContext('2d'),
+rm=matchMedia('(prefers-reduced-motion:reduce)').matches,
+seed=Math.random()*4294967296>>>0,CF=1.85;
+let W,H,F,ox,oy,g,S=[],done=false;
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function size(){
+ const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+ cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);
+ F=H*.84;ox=W/2;oy=-Math.min(W,H)*.03;g=H*2.4;
+ build();if(done||rm)draw(CF+1)}
+function build(){
+ const R=rng(seed),N=W<640?26:W<1100?40:54,mn=Math.min(W,H),xs=[];
+ for(let k=0;k<N;k++)xs.push(W*(k+.5+(R()-.5)*.7)/N);
+ for(let k=N-1;k>0;k--){const j=R()*(k+1)|0,t=xs[k];xs[k]=xs[j];xs[j]=t}
+ S=xs.map(x2=>{
+  const r=Math.max(4,mn*(.007+R()*.011)),land=R()<.55,dist=F-r-oy,v0=R()*H*.3,
+   vi=Math.sqrt(v0*v0+2*g*dist),T1=(v0+vi)/g,x1=ox+(x2-ox)*(.45+.2*R()),
+   dl=.05+R()*.45,age=.14+R()*.26,f0=.4+R()*.5;
+  let T2f=land?CF-dl-age-T1:(CF-dl-T1)/f0,T,s;
+  const e=Math.min(.6,Math.max(.3,g*T2f/(2*vi)));T2f=2*e*vi/g;
+  if(land){T=T1+T2f;s=Math.max(.02,CF-T-age)}
+  else{const f=Math.min(.95,(CF-dl-T1)/T2f);T=T1+f*T2f;s=Math.max(.02,CF-T);T=Math.min(T,CF-s)}
+  return{r,land,v0,T1,T,s,x1,x2,vx1:(x1-ox)/T1,vx2:(x2-x1)/(T-T1),vb:e*vi}})}
+function at(b,c){
+ const t=Math.min(c-b.s,b.T);if(t<0)return null;
+ if(t<=b.T1)return{x:ox+b.vx1*t,y:oy-b.v0*t+.5*g*t*t,t,r:b.r,b};
+ const u=t-b.T1;return{x:b.x1+b.vx2*u,y:F-b.r-(b.vb*u-.5*g*u*u),t,r:b.r,b}}
+function ring(x,r,age,a,k){
+ const rx=r*1.3+age*W*.11*k;ctx.strokeStyle=`rgba(90,110,140,${a})`;
+ ctx.beginPath();ctx.ellipse(x,F+3,rx,rx*.2,0,0,7);ctx.stroke()}
+function ball(p,refl){
+ const x=p.x,y=p.y,r=p.r,gr=ctx.createRadialGradient(x-r*.35,y-r*.4,r*.1,x,y,r);
+ gr.addColorStop(0,'#fff');gr.addColorStop(.5,'#e9eef5');gr.addColorStop(1,'#aeb9ca');
+ ctx.beginPath();ctx.arc(x,y,r,0,7);
+ if(!refl){ctx.shadowColor='rgba(120,140,175,.55)';ctx.shadowBlur=r*1.5}
+ ctx.fillStyle=gr;ctx.fill();ctx.shadowBlur=0;
+ ctx.beginPath();ctx.ellipse(x-r*.34,y-r*.42,r*.2,r*.12,-.6,0,7);ctx.fillStyle='rgba(255,255,255,.95)';ctx.fill()}
+function draw(c){
+ ctx.clearRect(0,0,W,H);
+ const fg=ctx.createLinearGradient(0,F,0,H);fg.addColorStop(0,'rgba(226,231,240,.9)');fg.addColorStop(1,'rgba(255,255,255,0)');
+ ctx.fillStyle=fg;ctx.fillRect(0,F,W,H-F);
+ ctx.fillStyle='rgba(190,200,215,.8)';ctx.fillRect(0,F,W,1);
+ const P=[];for(const b of S){const p=at(b,c);if(p)P.push(p)}
+ ctx.lineWidth=1;
+ for(const p of P){const b=p.b,a1=p.t-b.T1;
+  if(a1>0&&a1<.45)ring(b.x1,b.r,a1,.16*(1-a1/.45),.6);
+  if(b.land){const a2=Math.min(c,CF)-(b.s+b.T);
+   if(a2>0){const k=Math.max(0,1-a2/1.4);ring(b.x2,b.r,a2,.3*k,1);ring(b.x2,b.r,a2*.55,.2*k,1)}}}
+ for(const p of P){
+  const h=Math.max(0,F-p.y-p.r),s=Math.max(0,1-h/(H*.5));
+  ctx.fillStyle=`rgba(25,35,55,${.2*s})`;ctx.beginPath();
+  ctx.ellipse(p.x,F+2,p.r*(.5+.9*s),p.r*.2*(.4+.6*s),0,0,7);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.rect(0,F,W,H-F);ctx.clip();ctx.translate(0,2*F);ctx.scale(1,-1);
+  ctx.globalAlpha=.3*s;ball(p,1);ctx.restore()}
+ for(const p of P)ball(p,0)}
+size();addEventListener('resize',size);
+if(!rm){const t0=performance.now();
+ const frame=now=>{const c=(now-t0)/1000;
+  if(c>=CF){done=true;draw(CF+1);return}
+  draw(c);requestAnimationFrame(frame)};
+ requestAnimationFrame(frame)}
+})();
+</script>
+</body>
+</html>
