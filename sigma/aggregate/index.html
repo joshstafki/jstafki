@@ -1,0 +1,1394 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://www.gstatic.com; frame-src 'self' https://*.firebaseapp.com https://apis.google.com;">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="color-scheme" content="light">
+<title>Σ AGG · Session Recall</title>
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f1a'/%3E%3Ctext x='32' y='47' font-size='42' text-anchor='middle' fill='white' font-family='sans-serif'%3EΣ%3C/text%3E%3C/svg%3E">
+
+<style>
+:root {
+  --ink:#0b0f1a;
+  --mut:#6b7280;
+  --line:#e5e7eb;
+  --blue:#3b82f6;
+  --violet:#8b5cf6;
+  --mint:#2dd4bf;
+  --orange:#fb923c;
+  --pink:#f472b6;
+}
+
+* {
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body {
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:#fff;
+  color:var(--ink);
+  padding:env(safe-area-inset-top) 16px calc(48px + env(safe-area-inset-bottom));
+}
+
+.wrap {
+  max-width:720px;
+  margin:0 auto;
+}
+
+[hidden] {
+  display:none!important;
+}
+
+.sr {
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+}
+
+.top {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:16px 0 6px;
+}
+
+.mark {
+  display:flex;
+  align-items:baseline;
+  gap:.18em;
+  font-weight:800;
+  font-size:2rem;
+  letter-spacing:.04em;
+  line-height:1;
+}
+
+.who {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  font-size:.8rem;
+  color:var(--mut);
+}
+
+.who span {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.link {
+  min-height:44px;
+  padding:0 6px;
+  border:0;
+  background:none;
+  font:inherit;
+  font-weight:600;
+  color:var(--ink);
+  cursor:pointer;
+}
+
+#signin {
+  text-align:center;
+  padding:18vh 0 0;
+}
+
+#signin .mark {
+  justify-content:center;
+  font-size:4.5rem;
+}
+
+#signin p {
+  margin:14px auto 26px;
+  max-width:300px;
+  color:var(--mut);
+}
+
+.go {
+  min-height:48px;
+  padding:0 24px;
+  border:0;
+  border-radius:12px;
+  background:var(--ink);
+  color:#fff;
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+}
+
+#err,#msg {
+  margin-top:16px;
+  text-align:center;
+  color:var(--mut);
+}
+
+.pick {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:6px;
+}
+
+.pick label {
+  font-size:1.6rem;
+  font-weight:800;
+  line-height:1;
+}
+
+.pick select {
+  flex:1;
+  min-width:0;
+  min-height:44px;
+  padding:0 10px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  color:var(--ink);
+  font:inherit;
+}
+
+.tabs {
+  position:sticky;
+  top:0;
+  z-index:5;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  margin-top:10px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+}
+
+.tabs button {
+  min-height:48px;
+  border:0;
+  border-bottom:3px solid transparent;
+  background:none;
+  font:inherit;
+  font-weight:700;
+  color:var(--mut);
+  cursor:pointer;
+}
+
+.tabs button[aria-selected=true] {
+  color:var(--ink);
+  border-bottom-color:var(--ink);
+}
+
+.card {
+  margin-top:14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.card h3 {
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  background:#f9fafb;
+  font-size:.75rem;
+  font-weight:600;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--mut);
+}
+
+.row {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 14px;
+  border-bottom:1px solid var(--line);
+  font-size:.92rem;
+}
+
+.row:last-child {
+  border-bottom:0;
+}
+
+.neg {
+  color:#dc2626;
+}
+
+.scroll {
+  overflow-x:auto;
+}
+
+table {
+  width:100%;
+  min-width:300px;
+  border-collapse:collapse;
+}
+
+th,td {
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--line);
+  font-size:.92rem;
+}
+
+th {
+  font-size:.7rem;
+  font-weight:600;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--mut);
+}
+
+tbody tr:last-child td {
+  border-bottom:0;
+}
+
+tfoot td {
+  background:#f9fafb;
+  font-weight:700;
+}
+
+tfoot tr:last-child td {
+  border-bottom:0;
+}
+
+.r {
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+.mut {
+  color:var(--mut);
+}
+
+.badge {
+  display:inline-block;
+  padding:2px 9px;
+  border-radius:999px;
+  font-size:.7rem;
+  font-weight:700;
+}
+
+.ok {
+  background:#d1fae5;
+  color:#065f46;
+}
+
+.no {
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+pre {
+  padding:14px;
+  white-space:pre-wrap;
+  word-break:break-word;
+  font:inherit;
+  font-size:.92rem;
+}
+
+.dk {
+  margin-top:14px;
+  padding:18px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  color:#fff;
+  background:
+    radial-gradient(120% 90% at 0% 0%,rgba(59,130,246,.24),transparent 55%),
+    radial-gradient(100% 80% at 100% 100%,rgba(45,212,191,.16),transparent 55%),
+    #0b1020;
+  box-shadow:0 12px 40px -14px rgba(59,130,246,.6);
+}
+
+.dk h3 {
+  margin-bottom:14px;
+  font-size:.72rem;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.6);
+}
+
+.ring {
+  display:block;
+  width:min(270px,72vw);
+  margin:0 auto;
+  overflow:visible;
+}
+
+#arc {
+  transition:stroke-dashoffset 1.3s cubic-bezier(.2,.8,.2,1);
+}
+
+.cap {
+  margin-top:12px;
+  text-align:center;
+  font-size:.88rem;
+  color:rgba(255,255,255,.7);
+}
+
+.kpis {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.k small {
+  display:block;
+  font-size:.7rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.55);
+}
+
+.k b {
+  display:block;
+  margin-top:4px;
+  font-size:1.6rem;
+  background:linear-gradient(90deg,#93c5fd,#5eead4);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  filter:drop-shadow(0 0 8px rgba(94,234,212,.4));
+}
+
+.stack {
+  display:flex;
+  gap:3px;
+  height:22px;
+}
+
+.seg {
+  display:block;
+  width:0;
+  min-width:0;
+  border-radius:11px;
+  background-color:var(--c);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0));
+  box-shadow:0 0 14px var(--c);
+  transition:width 1s cubic-bezier(.2,.8,.2,1);
+}
+
+.leg {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 16px;
+  margin-top:14px;
+  list-style:none;
+  font-size:.82rem;
+  color:rgba(255,255,255,.75);
+}
+
+.leg i {
+  display:inline-block;
+  width:9px;
+  height:9px;
+  margin-right:6px;
+  border-radius:50%;
+  background:var(--c);
+  box-shadow:0 0 8px var(--c);
+}
+
+.leg b {
+  color:#fff;
+}
+
+.rw+.rw {
+  margin-top:14px;
+}
+
+.rl {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:6px;
+  font-size:.88rem;
+}
+
+.rl span {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.bar {
+  height:10px;
+  border-radius:5px;
+  background:rgba(255,255,255,.08);
+}
+
+.fill {
+  display:block;
+  width:0;
+  height:100%;
+  border-radius:5px;
+  background:linear-gradient(90deg,var(--blue),var(--mint));
+  box-shadow:0 0 12px rgba(45,212,191,.6);
+  transition:width 1s cubic-bezier(.2,.8,.2,1);
+}
+
+.area {
+  display:block;
+  width:100%;
+  overflow:visible;
+}
+
+.axis {
+  display:flex;
+  justify-content:space-between;
+  margin-top:8px;
+  font-size:.75rem;
+  color:rgba(255,255,255,.6);
+}
+
+@media (prefers-reduced-motion:reduce) {
+  #arc,.seg,.fill {
+    transition:none;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <linearGradient id="gr" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#3b82f6"/>
+    <stop offset=".55" stop-color="#8b5cf6"/>
+    <stop offset="1" stop-color="#2dd4bf"/>
+  </linearGradient>
+
+  <linearGradient id="ga" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#3b82f6" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#3b82f6" stop-opacity="0"/>
+  </linearGradient>
+
+  <filter id="gl" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="4" result="b"/>
+    <feMerge>
+      <feMergeNode in="b"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+</defs>
+</svg>
+
+<div class="wrap">
+
+<header class="top">
+  <div class="mark" aria-label="Sigma AGG">
+    <span>Σ</span><span>AGG</span>
+  </div>
+
+  <div class="who" id="who" hidden>
+    <span id="email"></span>
+    <button type="button" class="link" id="out">Sign out</button>
+  </div>
+</header>
+
+<section id="signin" hidden>
+  <div class="mark" aria-hidden="true">
+    <span>Σ</span><span>AGG</span>
+  </div>
+
+  <p>Sign in with the Google account you use for FINTECH.</p>
+
+  <button type="button" class="go" id="in">
+    Sign in with Google
+  </button>
+
+  <div id="err" role="alert"></div>
+</section>
+
+<div id="msg" role="status"></div>
+
+<main id="main" hidden>
+
+  <div class="pick">
+    <label for="pick">
+      <span aria-hidden="true">Σ</span>
+      <span class="sr">Session</span>
+    </label>
+    <select id="pick"></select>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Session views">
+    <button
+      type="button"
+      role="tab"
+      id="t-data"
+      aria-selected="true"
+      aria-controls="p-data">
+      Session Data
+    </button>
+
+    <button
+      type="button"
+      role="tab"
+      id="t-ana"
+      aria-selected="false"
+      aria-controls="p-ana"
+      tabindex="-1">
+      Analysis
+    </button>
+  </div>
+
+  <section id="p-data" role="tabpanel" aria-labelledby="t-data"></section>
+  <section id="p-ana" role="tabpanel" aria-labelledby="t-ana" hidden></section>
+
+</main>
+</div>
+
+<script type="module">
+
+/* ---------- Firebase imports ---------- */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  query,
+  orderBy,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+
+/* ---------- Firebase configuration ---------- */
+
+const app = initializeApp({
+  apiKey: "AIzaSyCy-TtJUv-lqhNd_aiadEoiLSveYSTatVA",
+  authDomain: "fintech-dashboard-ff65f.firebaseapp.com",
+  projectId: "fintech-dashboard-ff65f",
+  storageBucket: "fintech-dashboard-ff65f.firebasestorage.app",
+  messagingSenderId: "447875559759",
+  appId: "1:447875559759:web:93cd3a61024ed62336953a"
+});
+
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+
+/* ---------- Helpers ---------- */
+
+const $ = (id) => document.getElementById(id);
+
+const esc = (s) =>
+  String(s ?? '').replace(/[&<>"']/g, (c) => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
+
+const n = (v) => Number.isFinite(+v) ? +v : 0;
+
+const money = (v) =>
+  (n(v) < 0 ? '-' : '') +
+  '$' +
+  Math.abs(n(v)).toLocaleString('en-US', {
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  });
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+const fmt = (d) =>
+  d.toLocaleDateString('en-US', {
+    month:'short',
+    day:'numeric',
+    year:'numeric'
+  });
+
+const day = (s) =>
+  DAY.test(s)
+    ? fmt(new Date(
+        +s.slice(0,4),
+        +s.slice(5,7)-1,
+        +s.slice(8,10)
+      ))
+    : '—';
+
+const list = (a) => Array.isArray(a) ? a : [];
+
+const sum = (a, f = (x) => x) =>
+  a.reduce((t,x) => t + n(f(x)), 0);
+
+const badge = (s) =>
+  s
+    ? `<span class="badge ${s === 'PAID' ? 'ok' : 'no'}">${esc(s)}</span>`
+    : '';
+
+const saved = (s) =>
+  s.savedAt?.toDate
+    ? fmt(s.savedAt.toDate())
+    : '—';
+
+const label = (s) =>
+  DAY.test(s.session?.start) && DAY.test(s.session?.end)
+    ? `${day(s.session.start)} – ${day(s.session.end)}`
+    : `Undated · saved ${saved(s)}`;
+
+
+/* ---------- Table helper ---------- */
+
+const tbl = (title, head, body, foot) => `
+<div class="card">
+  <h3>${title}</h3>
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr>
+      </thead>
+
+      <tbody>
+        ${body || `<tr><td class="mut" colspan="${head.length}">None</td></tr>`}
+      </tbody>
+
+      ${foot || ''}
+    </table>
+  </div>
+</div>`;
+
+
+/* ---------- Session Data tab ---------- */
+
+function renderData(s) {
+
+  const T = s.totals || {};
+  const E = s.entries || {};
+  const R = s.reconciliation || {};
+  const G = s.goal || {};
+  const se = s.session || {};
+
+  const row = (k,v,neg) => `
+    <div class="row">
+      <span>${k}</span>
+      <b${neg && n(v) < 0 ? ' class="neg"' : ''}>${v}</b>
+    </div>`;
+
+  const exp = (title, rows) => {
+
+    rows = list(rows);
+
+    return tbl(
+      title,
+      ['Date','Name','Amount','Status'],
+
+      rows.map((r) => `
+        <tr>
+          <td>${day(r.date)}</td>
+          <td>${esc(r.name)}</td>
+          <td class="r">${money(r.amount)}</td>
+          <td>${badge(r.status)}</td>
+        </tr>
+      `).join(''),
+
+      `<tfoot>
+        <tr>
+          <td colspan="2">Σ Total</td>
+          <td class="r">${money(sum(rows,(r) => r.amount))}</td>
+          <td></td>
+        </tr>
+      </tfoot>`
+    );
+  };
+
+  const rec = (title, rows, r = {}) =>
+    tbl(
+      title,
+      ['Name','Deducted'],
+
+      list(rows).map((x) => `
+        <tr>
+          <td>${esc(x.name)}</td>
+          <td class="r">-${money(Math.abs(n(x.amount)))}</td>
+        </tr>
+      `).join(''),
+
+      `<tfoot>
+        <tr>
+          <td>Starting balance</td>
+          <td class="r">${money(r.startingBalance)}</td>
+        </tr>
+
+        <tr>
+          <td>
+            Ending balance
+            <span class="badge ${r.reconciled ? 'ok' : 'no'}">
+              ${r.reconciled ? 'RECONCILED' : 'NOT RECONCILED'}
+            </span>
+          </td>
+          <td class="r">${money(r.endingBalance)}</td>
+        </tr>
+      </tfoot>`
+    );
+
+  const fills = list(E.fillUps);
+
+  return `
+
+    <div class="card">
+      <h3>Σ Session</h3>
+      ${row('Dates',esc(label(s)))}
+      ${row('Length',se.days ? se.days + (se.days === 1 ? ' day' : ' days') : '—')}
+      ${row('Saved',saved(s))}
+    </div>
+
+    <div class="card">
+      <h3>Summary</h3>
+      ${row('Total Spendable Income',money(T.spendableIncome))}
+      ${row('Out of Pocket',money(T.outOfPocket))}
+      ${row('Bank Initiated',money(T.bankInitiated))}
+      ${row('Est. Gas',money(T.estGas))}
+      ${row('Est. Groceries',money(T.estGroceries))}
+      ${row('Actual Total Revenue',money(T.actualRevenue),1)}
+      ${row('True Net Revenue',money(T.trueNetRevenue),1)}
+      ${row('Burn per Day',T.burnPerDay == null ? '—' : money(T.burnPerDay))}
+    </div>
+
+    ${exp('Out of Pocket Expenses',E.outOfPocket)}
+
+    ${exp('Bank Initiated Expenses',E.bankInitiated)}
+
+    ${tbl(
+      'Fill Ups',
+      ['Date','Name','Status'],
+      fills.map((r) => `
+        <tr>
+          <td>${day(r.date)}</td>
+          <td>${esc(r.name)}</td>
+          <td>${badge(r.status)}</td>
+        </tr>
+      `).join('')
+    )}
+
+    ${rec('Bank Reconciliation',E.bankReconciliation,R.bank)}
+
+    ${rec('Grocery Budget',E.groceryBudget,R.grocery)}
+
+    ${
+      n(G.target) > 0 || G.name
+        ? `
+          <div class="card">
+            <h3>Σ ${esc(G.name || 'Goal')}</h3>
+            ${row('Progress',`${money(G.current)} of ${money(G.target)}`)}
+          </div>
+        `
+        : ''
+    }
+
+    ${
+      s.scratchpad
+        ? `
+          <div class="card">
+            <h3>Pending / Uncleared Scratchpad</h3>
+            <pre>${esc(s.scratchpad)}</pre>
+          </div>
+        `
+        : ''
+    }
+
+  `;
+}
+
+
+/* ---------- Analysis helpers ---------- */
+
+const stack = (parts, denom) => {
+
+  parts = parts.filter((p) => p[1] > 0);
+
+  if (!parts.length) {
+    return '<p class="cap">Nothing to chart.</p>';
+  }
+
+  return `
+    <div class="stack">
+      ${parts.map((p) => `
+        <i
+          class="seg"
+          style="--c:${p[2]}"
+          data-w="${(p[1] / (denom || 1) * 100).toFixed(2)}%">
+        </i>
+      `).join('')}
+    </div>
+
+    <ul class="leg">
+      ${parts.map((p) => `
+        <li>
+          <i style="--c:${p[2]}"></i>
+          ${p[0]} <b>${money(p[1])}</b>
+        </li>
+      `).join('')}
+    </ul>
+  `;
+};
+
+
+/* ---------- Analysis tab ---------- */
+
+function renderAna(s) {
+
+  const T = s.totals || {};
+  const E = s.entries || {};
+  const G = s.goal || {};
+  const R = s.reconciliation || {};
+  const se = s.session || {};
+
+  const exps = [
+    ...list(E.outOfPocket),
+    ...list(E.bankInitiated)
+  ];
+
+  const income = n(T.spendableIncome);
+  const net = n(T.trueNetRevenue);
+
+  const spent =
+    n(T.totalExpenses) +
+    n(T.estGas) +
+    n(T.estGroceries);
+
+  const C = 2 * Math.PI * 78;
+  const share = income > 0 ? spent / income : 0;
+
+
+  /* Net position */
+
+  const hero = `
+    <div class="dk">
+      <h3>Σ Net position</h3>
+
+      <svg
+        class="ring"
+        viewBox="0 0 200 200"
+        role="img"
+        aria-label="True net revenue ${money(net)}; spent ${Math.round(share * 100)} percent of income">
+
+        <circle
+          cx="100"
+          cy="100"
+          r="78"
+          fill="none"
+          stroke="rgba(255,255,255,.08)"
+          stroke-width="16"/>
+
+        <circle
+          id="arc"
+          cx="100"
+          cy="100"
+          r="78"
+          fill="none"
+          stroke="url(#gr)"
+          stroke-width="16"
+          stroke-linecap="round"
+          stroke-dasharray="${C}"
+          stroke-dashoffset="${C}"
+          data-to="${C * (1 - Math.min(share,1))}"
+          transform="rotate(-90 100 100)"
+          filter="url(#gl)"/>
+
+        <text
+          x="100"
+          y="86"
+          text-anchor="middle"
+          font-size="34"
+          fill="#fff"
+          opacity=".9">Σ</text>
+
+        <text
+          x="100"
+          y="118"
+          text-anchor="middle"
+          font-size="22"
+          font-weight="700"
+          fill="${net < 0 ? '#f87171' : '#5eead4'}">
+          ${money(net)}
+        </text>
+
+        <text
+          x="100"
+          y="138"
+          text-anchor="middle"
+          font-size="10"
+          letter-spacing="1"
+          fill="rgba(255,255,255,.6)">
+          TRUE NET REVENUE
+        </text>
+      </svg>
+
+      <p class="cap">
+        Spent ${Math.round(share * 100)}% of ${money(income)} income
+      </p>
+    </div>
+  `;
+
+
+  /* Key performance indicators */
+
+  const rc = [R.bank,R.grocery]
+    .filter((r) => r && r.reconciled).length;
+
+  const kpis = `
+    <div class="dk">
+      <div class="kpis">
+
+        ${[
+          ['Burn / day',T.burnPerDay == null ? '—' : money(T.burnPerDay)],
+          ['Days',se.days ?? '—'],
+          ['Transactions',exps.length],
+          ['Reconciled',rc + '/2']
+        ].map((k) => `
+          <div class="k">
+            <small>${k[0]}</small>
+            <b>${esc(k[1])}</b>
+          </div>
+        `).join('')}
+
+      </div>
+    </div>
+  `;
+
+
+  /* Where it went */
+
+  const parts = [
+    ['Out of pocket',n(T.outOfPocket),'#3b82f6'],
+    ['Bank initiated',n(T.bankInitiated),'#8b5cf6'],
+    ['Gas',n(T.estGas),'#fb923c'],
+    ['Groceries',n(T.estGroceries),'#f472b6'],
+    ['Remaining',Math.max(0,income-spent),'#2dd4bf']
+  ];
+
+  const where = `
+    <div class="dk">
+      <h3>Where it went</h3>
+      ${stack(parts,Math.max(income,spent))}
+    </div>
+  `;
+
+
+  /* Biggest expenses */
+
+  const top = exps
+    .filter((e) => n(e.amount) > 0)
+    .sort((a,b) => n(b.amount)-n(a.amount))
+    .slice(0,5);
+
+  const mx = n(top[0]?.amount) || 1;
+
+  const biggest = `
+    <div class="dk">
+      <h3>Biggest expenses</h3>
+
+      ${
+        top.length
+          ? top.map((e) => `
+              <div class="rw">
+                <div class="rl">
+                  <span>${esc(e.name)}</span>
+                  <b>${money(e.amount)}</b>
+                </div>
+
+                <div class="bar">
+                  <i
+                    class="fill"
+                    data-w="${(n(e.amount)/mx*100).toFixed(1)}%">
+                  </i>
+                </div>
+              </div>
+            `).join('')
+          : '<p class="cap">No expenses logged.</p>'
+      }
+    </div>
+  `;
+
+
+  /* Spending over time */
+
+  const byDay = {};
+
+  exps.forEach((e) => {
+    if (DAY.test(e.date)) {
+      byDay[e.date] =
+        (byDay[e.date] || 0) + n(e.amount);
+    }
+  });
+
+  const days = Object.keys(byDay).sort();
+
+  let run = 0;
+
+  const pts = days.map((d) => (
+    run += byDay[d]
+  ));
+
+  let trend = `
+    <p class="cap">
+      ${pts.length ? 'All spending was logged on one day.' : 'No dated expenses.'}
+    </p>
+  `;
+
+  if (pts.length > 1 && run > 0) {
+
+    const xy = pts.map((v,i) => [
+      12 + i * 296 / (pts.length - 1),
+      122 - v / run * 104
+    ]);
+
+    const line = xy.map((p,i) =>
+      (i ? 'L' : 'M') +
+      p[0].toFixed(1) + ' ' +
+      p[1].toFixed(1)
+    ).join(' ');
+
+    const last = xy[xy.length-1];
+
+    trend = `
+      <svg
+        class="area"
+        viewBox="0 0 320 140"
+        role="img"
+        aria-label="Cumulative spending over the session">
+
+        <path
+          d="${line} L${last[0].toFixed(1)} 122 L12 122 Z"
+          fill="url(#ga)"/>
+
+        <path
+          d="${line}"
+          fill="none"
+          stroke="url(#gr)"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          filter="url(#gl)"/>
+
+        <circle
+          cx="${last[0].toFixed(1)}"
+          cy="${last[1].toFixed(1)}"
+          r="5"
+          fill="#fff"
+          filter="url(#gl)"/>
+      </svg>
+
+      <div class="axis">
+        <span>${day(days[0])}</span>
+        <span>${money(run)}</span>
+        <span>${day(days[days.length-1])}</span>
+      </div>
+    `;
+  }
+
+  const trendCard = `
+    <div class="dk">
+      <h3>Spending over time</h3>
+      ${trend}
+    </div>
+  `;
+
+
+  /* Paid vs owed */
+
+  const paid = sum(
+    exps.filter((e) => e.status === 'PAID'),
+    (e) => e.amount
+  );
+
+  const owed = sum(
+    exps.filter((e) => e.status === 'UNPAID'),
+    (e) => e.amount
+  );
+
+  const status = `
+    <div class="dk">
+      <h3>Paid vs still owed</h3>
+      ${stack([
+        ['Paid',paid,'#2dd4bf'],
+        ['Still owed',owed,'#fb923c']
+      ],paid+owed)}
+    </div>
+  `;
+
+
+  /* Goal progress */
+
+  const goal = n(G.target) > 0
+    ? `
+      <div class="dk">
+        <h3>Σ ${esc(G.name || 'Goal')}</h3>
+
+        <div class="rl">
+          <span>${money(G.current)}</span>
+          <b>of ${money(G.target)}</b>
+        </div>
+
+        <div class="bar">
+          <i
+            class="fill"
+            data-w="${Math.min(n(G.current)/n(G.target),1)*100}%">
+          </i>
+        </div>
+      </div>
+    `
+    : '';
+
+
+  /* Render analysis */
+
+  const root = $('p-ana');
+
+  root.innerHTML =
+    hero +
+    kpis +
+    where +
+    biggest +
+    trendCard +
+    status +
+    goal;
+
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+
+      root.querySelectorAll('[data-w]').forEach((el) => {
+        el.style.width = el.dataset.w;
+      });
+
+      const a = $('arc');
+
+      if (a) {
+        a.style.strokeDashoffset = a.dataset.to;
+      }
+    })
+  );
+}
+
+
+/* ---------- Application state ---------- */
+
+let sessions = [];
+let curId = null;
+let tab = 'data';
+let unsub = null;
+
+const cur = () =>
+  sessions.find((s) => s.id === curId) || null;
+
+
+function paint() {
+
+  const s = cur();
+
+  if (!s) return;
+
+  if (tab === 'data') {
+    $('p-data').innerHTML = renderData(s);
+  } else {
+    renderAna(s);
+  }
+}
+
+
+function show(t) {
+
+  tab = t;
+
+  ['data','ana'].forEach((k) => {
+
+    $('t-' + k).setAttribute(
+      'aria-selected',
+      String(k === t)
+    );
+
+    $('t-' + k).tabIndex =
+      k === t ? 0 : -1;
+
+    $('p-' + k).hidden =
+      k !== t;
+  });
+
+  paint();
+}
+
+
+/* ---------- Tab interactions ---------- */
+
+$('t-data').addEventListener('click',() => show('data'));
+
+$('t-ana').addEventListener('click',() => show('ana'));
+
+document.querySelector('.tabs').addEventListener('keydown',(e) => {
+
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+    return;
+  }
+
+  const t = tab === 'data' ? 'ana' : 'data';
+
+  show(t);
+
+  $('t-' + t).focus();
+});
+
+
+/* ---------- Session selector ---------- */
+
+$('pick').addEventListener('change',(e) => {
+
+  curId = e.target.value;
+
+  paint();
+});
+
+
+/* ---------- Google authentication ---------- */
+
+$('in').addEventListener('click',async () => {
+
+  $('err').textContent = '';
+
+  try {
+
+    await signInWithPopup(
+      auth,
+      new GoogleAuthProvider()
+    );
+
+  } catch (err) {
+
+    console.error(err);
+
+    $('err').textContent = 'Sign-in failed.';
+  }
+});
+
+
+$('out').addEventListener('click',() => {
+
+  signOut(auth).catch((err) => {
+    console.error('Sign-out failed:',err);
+  });
+
+});
+
+
+/* ---------- Firebase authentication state ---------- */
+
+onAuthStateChanged(auth,(u) => {
+
+  /* Stop previous listener */
+
+  if (unsub) {
+    unsub();
+    unsub = null;
+  }
+
+  /* Reset session state */
+
+  sessions = [];
+  curId = null;
+
+  $('signin').hidden = !!u;
+  $('who').hidden = !u;
+  $('main').hidden = true;
+
+  $('msg').textContent =
+    u ? 'Loading your sessions…' : '';
+
+  if (!u) return;
+
+  $('email').textContent = u.email || '';
+
+
+  /* ---------- Live Firestore session retrieval ---------- */
+
+  const sessionsRef = collection(
+    db,
+    'users',
+    u.uid,
+    'sessions'
+  );
+
+  const sessionsQuery = query(
+    sessionsRef,
+    orderBy('savedAt','desc')
+  );
+
+
+  /* Subscribe to live updates */
+
+  unsub = onSnapshot(
+    sessionsQuery,
+
+    (snap) => {
+
+      sessions = snap.docs.map((d) => ({
+        id:d.id,
+        ...d.data()
+      }));
+
+      /* Preserve selected session when possible */
+
+      if (!sessions.some((s) => s.id === curId)) {
+        curId = sessions[0]?.id ?? null;
+      }
+
+      /* Empty-state message */
+
+      $('msg').textContent = sessions.length
+        ? ''
+        : 'No sessions yet. Tap Σ SUM in FINTECH to send one.';
+
+      $('main').hidden = !sessions.length;
+
+
+      /* Populate session selector */
+
+      $('pick').innerHTML = sessions.map((s) => `
+        <option
+          value="${esc(s.id)}"
+          ${s.id === curId ? 'selected' : ''}>
+          ${esc(label(s))}
+        </option>
+      `).join('');
+
+
+      /* Render selected session */
+
+      paint();
+
+    },
+
+    (err) => {
+
+      console.error('Firestore read error:',err);
+
+      $('main').hidden = true;
+
+      $('msg').textContent =
+        "Couldn't load your sessions. Check your connection and sign in again.";
+
+    }
+  );
+
+});
+
+</script>
+
+</body>
+</html>
