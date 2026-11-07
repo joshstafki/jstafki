@@ -1096,7 +1096,7 @@
     <!-- Application Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-        import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
         /* --- 1. UTILITIES --- */
@@ -1396,28 +1396,46 @@
             URL.revokeObjectURL(url);
         };
 
+        // Local calendar day (YYYY-MM-DD). One new session per day; existing sessions can be overwritten any time.
+        const localDayKey = (d = new Date()) =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         let sumBusy = false;
         const sendSum = async () => {
             if (sumBusy) return;
             const user = auth.currentUser;
             if (!user) { alert('Please sign in first.'); return; }
             const data = buildSessionJSON();
-            const msg = data.session.start && data.session.end
-                ? `Send this session (${data.session.start} to ${data.session.end}) to Aggregate?\n\nSending the same dates again updates the saved copy.`
-                : 'No session dates are set, so this will be saved as a separate record each time.\n\nSend it to Aggregate anyway?';
-            if (!confirm(msg)) return;
+            const { start, end } = data.session;
+            if (!start || !end) { alert('Set the session start and end dates before sending to Aggregate.'); return; }
+            if (start > end) { alert('Session start must be on or before the end date.'); return; }
+
+            const sessionId = `${start}_${end}`;
+            const ref = doc(db, 'users', user.uid, 'sessions', sessionId);
+            const quotaRef = doc(db, 'users', user.uid, 'meta', 'sumQuota');
+            const today = localDayKey();
+
+            if (!confirm(`Send this session (${start} to ${end}) to Aggregate?\n\nSending the same dates again updates the saved copy. Only one new session can be saved per day.`)) return;
+
             sumBusy = true;
             try {
-                // users/{uid}/sessions/{start_end}: same dates overwrite; no dates = a new auto-ID record each time.
-                const sessionsCol = collection(db, 'users', user.uid, 'sessions');
-                const ref = data.session.start && data.session.end
-                    ? doc(sessionsCol, `${data.session.start}_${data.session.end}`)
-                    : doc(sessionsCol);
-                await setDoc(ref, { ...data, savedAt: serverTimestamp() });
+                await runTransaction(db, async (tx) => {
+                    const existing = await tx.get(ref);
+                    const quota = await tx.get(quotaRef);
+                    if (!existing.exists()) {
+                        const q = quota.exists() ? quota.data() : null;
+                        if (q && q.day === today) throw new Error('DAILY_LIMIT');
+                        tx.set(quotaRef, { day: today, sessionId, at: serverTimestamp() });
+                    }
+                    tx.set(ref, { ...data, savedAt: serverTimestamp() });
+                });
                 alert('Session sent to Aggregate.');
             } catch (err) {
-                console.error(err);
-                alert("Couldn't send to Aggregate — check your connection and try again.");
+                if (err.message === 'DAILY_LIMIT') {
+                    alert('A new session was already saved today. You can still update that one; a different date range can be sent after midnight.');
+                } else {
+                    console.error(err);
+                    alert("Couldn't send to Aggregate — check your connection and try again.");
+                }
             } finally { sumBusy = false; }
         };
 
