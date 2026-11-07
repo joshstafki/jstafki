@@ -119,7 +119,7 @@
         .card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .card-header { padding: 1rem 1.25rem; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
           .table-title-with-sigma { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
-          .table-title-with-sigma .table-sigma { font: inherit; color: inherit; line-height: 1; }
+          .table-title-with-sigma .table-sigma { font: inherit; color: inherit; line-height: 1; text-decoration: none; cursor: pointer; padding: 0.25rem; margin: -0.25rem; }
         
         .header-blue { background-color: var(--header-blue); color: #1d4ed8; }
         .header-red { background-color: var(--header-red); color: #b91c1c; }
@@ -639,7 +639,7 @@
             <!-- Column 1: Expenses & Scratchpad -->
             <div>
                 <div class="card">
-                    <div class="card-header header-blue table-title-with-sigma"><span>Out of Pocket Expenses</span><span class="table-sigma" aria-hidden="true">Σ</span></div>
+                    <div class="card-header header-blue table-title-with-sigma"><span>Out of Pocket Expenses</span><a class="table-sigma" href="https://www.jstafki.com/sigma/aggregate/" target="_blank" rel="noopener noreferrer" title="https://www.jstafki.com/sigma/aggregate/" aria-label="Open Sigma Aggregate">Σ</a></div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table>
@@ -652,7 +652,7 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header header-red table-title-with-sigma"><span>Bank Initiated Expenses</span><span class="table-sigma" aria-hidden="true">Σ</span></div>
+                    <div class="card-header header-red table-title-with-sigma"><span>Bank Initiated Expenses</span><a class="table-sigma" href="https://www.jstafki.com/sigma/aggregate/" target="_blank" rel="noopener noreferrer" title="https://www.jstafki.com/sigma/aggregate/" aria-label="Open Sigma Aggregate">Σ</a></div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table>
