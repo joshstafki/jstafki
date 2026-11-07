@@ -1337,7 +1337,6 @@
         };
 
         /* --- SESSION JSON + SUM (Aggregate) --- */
-        const SUM_ENDPOINT = '/api/sum'; // same origin, so the CSP needs no change
         const r2 = (n) => Math.round(n * 100) / 100;
         const entryDate = (item) => {
             if (item.createdAt?.toDate) return item.createdAt.toDate().toISOString().split('T')[0];
@@ -1409,12 +1408,12 @@
             if (!confirm(msg)) return;
             sumBusy = true;
             try {
-                const res = await fetch(SUM_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + await user.getIdToken() },
-                    body: JSON.stringify(data)
-                });
-                if (!res.ok) throw new Error('HTTP ' + res.status);
+                // users/{uid}/sessions/{start_end}: same dates overwrite; no dates = a new auto-ID record each time.
+                const sessionsCol = collection(db, 'users', user.uid, 'sessions');
+                const ref = data.session.start && data.session.end
+                    ? doc(sessionsCol, `${data.session.start}_${data.session.end}`)
+                    : doc(sessionsCol);
+                await setDoc(ref, { ...data, savedAt: serverTimestamp() });
                 alert('Session sent to Aggregate.');
             } catch (err) {
                 console.error(err);
