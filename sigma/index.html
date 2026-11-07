@@ -23,7 +23,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0a'/%3E%3Cpath d='M46 16H20l16 16-16 16h26' fill='none' stroke='%23ffffff' stroke-width='6'/%3E%3C/svg%3E">
 <script>
 /* ENTER_URL: set later to reveal the quiet entry link. AUTO_DARK: follow the visitor's system theme. ?theme=dark forces dark, ?theme=light forces light. */
-var ENTER_URL='',AUTO_DARK=false;
+var ENTER_URL='https://www.jstafki.com/sigma/aggregate/',AUTO_DARK=false;
 (function(d){var q=new URLSearchParams(location.search).get('theme');d.classList.add('js');
 if(q==='dark'||(q!=='light'&&AUTO_DARK&&matchMedia('(prefers-color-scheme:dark)').matches))d.dataset.theme='dark'})(document.documentElement);
 </script>
@@ -61,7 +61,7 @@ var{font-style:normal;font-weight:600;color:var(--ink);display:inline-block;tran
 .tag{display:flex;align-items:center;gap:.55em;font-size:clamp(20px,2.6vw,34px);font-weight:500;font-stretch:112%;letter-spacing:.01em;transform:translateY(var(--lift));animation:tag 1s ease 2.6s both}
 @keyframes tag{from{opacity:0;transform:translateY(0)}}
 .tsig{height:.95em;width:auto;overflow:visible;fill:none;stroke:var(--ink);stroke-width:13;stroke-linejoin:miter}
-.enter{font-size:15px;color:var(--mut);text-decoration:underline;text-underline-offset:4px;transform:translateY(var(--lift));animation:fadein 1s ease 3.6s both}
+.enter{font-size:13px;letter-spacing:.04em;color:var(--mut);text-decoration:none;transform:translateY(var(--lift));animation:fadein 1s ease 3.6s both}
 .enter:hover{color:var(--ink)}
 .enter:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
 @keyframes fadein{from{opacity:0}}
@@ -108,7 +108,7 @@ var{font-style:normal;font-weight:600;color:var(--ink);display:inline-block;tran
     </p>
     <p class="tag"><svg class="tsig" viewBox="-8 0 90 100" aria-hidden="true"><path d="M70 6.5H8L42 50 8 93.5H70"/></svg><span>Solutions For Fintech</span></p>
   </div>
-  <a class="enter" id="enter" hidden>Open Aggregate</a>
+  <a class="enter" id="enter" target="_blank" rel="noopener noreferrer" hidden>access</a>
 </main>
 <script>
 (()=>{
