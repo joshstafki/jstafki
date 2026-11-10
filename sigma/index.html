@@ -27,19 +27,16 @@ var ENTER_URL='https://www.jstafki.com/sigma/aggregate/',AUTO_DARK=false;
 (function(d){var q=new URLSearchParams(location.search).get('theme');d.classList.add('js');
 if(q==='dark'||(q!=='light'&&AUTO_DARK&&matchMedia('(prefers-color-scheme:dark)').matches))d.dataset.theme='dark'})(document.documentElement);
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,300..800;1,75..125,300..800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#fff;--ink:#0a0a0a;--mut:#667085;--w:min(84vw,1000px);--lift:calc(var(--w)*-.05);color-scheme:light}
 :root[data-theme=dark]{--bg:#06080d;--ink:#f2f5fa;--mut:#9aa6b8;color-scheme:dark}
 html.js:not(.go) :is(.shift,.sg,.L,.formula,.tag,.enter){animation-play-state:paused!important}
 *{box-sizing:border-box;margin:0}
-body{background:var(--bg);color:var(--ink);font:400 16px/1.45 Archivo,system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.45 "Arial Rounded MT Bold","Arial Rounded MT","Helvetica Rounded",Arial,system-ui,sans-serif}
 #fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 main{position:relative;z-index:1;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.5svh,16px);text-align:center;padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 h1{line-height:0}
-.mark{fill:none;stroke:currentColor;stroke-width:13;stroke-linejoin:miter;stroke-miterlimit:10;overflow:visible;height:auto;animation:in 1s ease both}
+.mark{fill:none;stroke:currentColor;stroke-width:13;stroke-linejoin:miter;stroke-miterlimit:10;overflow:visible;height:auto;animation:in 1.2s cubic-bezier(.22,.8,.3,1) both}
 .mark.d{width:var(--w)}
 .mark.m{display:none;width:min(86vw,520px)}
 @keyframes in{from{opacity:0;transform:translateY(10px)}}
@@ -48,20 +45,20 @@ h1{line-height:0}
 .sg{opacity:0;transform:translateY(70px);animation:fall 1.1s cubic-bezier(.55,0,.9,.4) 1.1s both,vanish .7s ease-in 1.4s both}
 @keyframes fall{from{transform:none}}
 @keyframes vanish{from{opacity:1}}
-.L{animation:rise .7s cubic-bezier(.2,.7,.2,1) calc(1.9s + var(--i)*.09s) both}
+.L{animation:rise .9s cubic-bezier(.22,.8,.3,1) calc(1.9s + var(--i)*.11s) both}
 @keyframes rise{from{opacity:0;transform:translateY(-22px)}}
 .sub{display:grid;justify-items:center}
 .sub>*{grid-area:1/1}
-.formula{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0 6px;font-size:clamp(17px,2.1vw,26px);color:var(--mut);opacity:0;animation:eq 3s ease both}
-@keyframes eq{0%{opacity:0;transform:translateY(6px)}14%{opacity:1;transform:none}60%{opacity:1}100%{opacity:0}}
+.formula{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0 6px;font-size:clamp(17px,2.1vw,26px);color:var(--mut);opacity:0;animation:eq 3.2s ease-in-out both}
+@keyframes eq{0%{opacity:0;transform:translateY(8px);filter:blur(6px)}16%{opacity:1;transform:none;filter:none}58%{opacity:1;filter:none}100%{opacity:0;filter:blur(4px)}}
 .formula sub{font-size:.65em}
-var{font-style:normal;font-weight:600;color:var(--ink);display:inline-block;transform:skewX(-11deg)}
+var{font-style:normal;font-weight:400;color:var(--ink);display:inline-block;transform:skewX(-11deg)}
 .mini{height:1.9em;width:auto;overflow:visible;fill:none;stroke:var(--ink);stroke-width:13;stroke-linejoin:miter;margin-right:2px}
 .lim{display:inline-flex;flex-direction:column;align-items:center;font-size:.62em;line-height:1.15;font-style:italic;margin-right:8px}
-.tag{display:flex;align-items:center;gap:.55em;font-size:clamp(20px,2.6vw,34px);font-weight:500;font-stretch:112%;letter-spacing:.01em;transform:translateY(var(--lift));animation:tag 1s ease 2.6s both}
-@keyframes tag{from{opacity:0;transform:translateY(0)}}
+.tag{display:flex;align-items:center;gap:.55em;font-size:clamp(20px,2.6vw,34px);font-weight:400;letter-spacing:.01em;transform:translateY(var(--lift));animation:tag 1.5s cubic-bezier(.22,.7,.25,1) 2.7s both}
+@keyframes tag{from{opacity:0;transform:translateY(0);filter:blur(8px)}}
 .tsig{height:.95em;width:auto;overflow:visible;fill:none;stroke:var(--ink);stroke-width:13;stroke-linejoin:miter}
-.enter{font-size:13px;letter-spacing:.04em;color:var(--mut);text-decoration:none;transform:translateY(var(--lift));animation:fadein 1s ease 3.6s both}
+.enter{font-size:13px;letter-spacing:.04em;color:var(--mut);text-decoration:none;transform:translateY(var(--lift));animation:fadein 1.4s ease 3.9s both}
 .enter:hover{color:var(--ink)}
 .enter:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
 @keyframes fadein{from{opacity:0}}
@@ -115,16 +112,27 @@ var{font-style:normal;font-weight:600;color:var(--ink);display:inline-block;tran
 const cv=document.getElementById('fx'),ctx=cv.getContext('2d'),
 rm=matchMedia('(prefers-reduced-motion:reduce)').matches,
 DK=document.documentElement.dataset.theme==='dark',
-PAL=DK?{fl:'255,255,255',fa:.09,ln:'rgba(255,255,255,.2)',rg:'205,220,245',rk:1.5,sh:'0,0,0',sa:.55,st:['#ffffff','#f1f5fb','#8b9bb3'],gl:'200,220,255',ga:.6,gb:2.4,ov:'255,255,255',ok:.5}
- :{fl:'226,231,240',fa:.9,ln:'rgba(190,200,215,.8)',rg:'90,110,140',rk:1,sh:'25,35,55',sa:.2,st:['#ffffff','#e9eef5','#aeb9ca'],gl:'120,140,175',ga:.55,gb:1.5,ov:'150,185,255',ok:.4},
-seed=Math.random()*4294967296>>>0,CF=1.85,GL=1.2;
-let W,H,F,ox,oy,g,S=[],done=false,started=false,t0=0;
+PAL=DK?{fl:'255,255,255',fa:.09,ln:'rgba(255,255,255,.2)',rh:[215,228,250],ha:.8,rl:[0,0,0],la:.6,sh:'0,0,0',sa:.55,st:['#ffffff','#f1f5fb','#8b9bb3'],gl:'200,220,255',ga:.6,gb:2.4,ov:'255,255,255',ok:.5}
+ :{fl:'226,231,240',fa:.9,ln:'rgba(190,200,215,.8)',rh:[255,255,255],ha:.95,rl:[70,90,125],la:.5,sh:'25,35,55',sa:.2,st:['#ffffff','#e9eef5','#aeb9ca'],gl:'120,140,175',ga:.55,gb:1.5,ov:'150,185,255',ok:.4},
+seed=Math.random()*4294967296>>>0,CF=1.85,GL=1.6,END=CF+GL+.3,RE=CF+.45,
+K=.2,DT=1/120,R2=(52.5*DT)**2,DM=1-3*DT,WW=44,RIP=.28,GAIN=2.4;
+const wc=document.createElement('canvas'),wx=wc.getContext('2d');
+let W,H,F,ox,oy,g,S=[],done=false,started=false,t0=0,
+ CELL,gw,gz,bt,bhs,CX,CY,zc,u,p,nx,sp,im,simT=null,ev=-1,SRC=[];
+const sm=v=>v<=0?0:v>=1?1:v*v*(3-2*v);
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function size(){
  const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
  cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);
  F=H*.84;ox=W/2;oy=-Math.min(W,H)*.03;g=H*2.4;
- build();if(done||rm)draw(CF+9);else if(!started)draw(-1)}
+ grid();build();if(done||rm)draw(CF+9);else if(!started)draw(-1)}
+function grid(){
+ CELL=Math.max(4,Math.round(W/360));
+ gw=Math.ceil(W/CELL)+2;bt=F-H*.05;bhs=H-bt;gz=Math.ceil(bhs/(K*CELL))+2;
+ CX=W/gw;CY=bhs/gz;zc=(F-bt)/CY;
+ u=new Float32Array(gw*gz);p=new Float32Array(gw*gz);nx=new Float32Array(gw*gz);sp=new Float32Array(gw*gz);
+ for(let j=0;j<gz;j++)for(let i=0;i<gw;i++){const d=Math.min(i,gw-1-i,j,gz-1-j);sp[j*gw+i]=d<14?1-.3*(1-d/14)**2:1}
+ wc.width=gw;wc.height=gz;im=wx.createImageData(gw,gz)}
 function build(){
  const R=rng(seed),N=W<640?26:W<1100?40:54,mn=Math.min(W,H),xs=[];
  for(let k=0;k<N;k++)xs.push(W*(k+.5+(R()-.5)*.7)/N);
@@ -137,14 +145,59 @@ function build(){
   const e=Math.min(.6,Math.max(.3,g*T2f/(2*vi)));T2f=2*e*vi/g;
   if(land){T=T1+T2f;s=Math.max(.02,CF-T-age)}
   else{const f=Math.min(.95,(CF-dl-T1)/T2f);T=T1+f*T2f;s=Math.max(.02,CF-T);T=Math.min(T,CF-s)}
-  return{r,land,v0,T1,T,s,x1,x2,vx1:(x1-ox)/T1,vx2:(x2-x1)/(T-T1),vb:e*vi}})}
+  return{r,land,v0,T1,T,s,x1,x2,vx1:(x1-ox)/T1,vx2:(x2-x1)/(T-T1),vb:e*vi,D:Math.max(0,Math.min(.28,(T-T1)*.5)),j:Array.from({length:8},R)}})}
 function at(b,c){
- const t=Math.min(c-b.s,b.T);if(t<0)return null;
+ let t=Math.min(c-b.s,b.T);if(t<0)return null;
+ if(!b.land&&b.D>0&&t>b.T-b.D){const u=(t-b.T+b.D)/b.D;t=b.T-b.D+b.D*(u-u*u/2)}
  if(t<=b.T1)return{x:ox+b.vx1*t,y:oy-b.v0*t+.5*g*t*t,t,r:b.r,b};
  const u=t-b.T1;return{x:b.x1+b.vx2*u,y:F-b.r-(b.vb*u-.5*g*u*u),t,r:b.r,b}}
-function ring(x,r,age,a,k){
- const rx=r*1.3+age*W*.11*k;ctx.strokeStyle=`rgba(${PAL.rg},${a*PAL.rk})`;
- ctx.beginPath();ctx.ellipse(x,F+3,rx,rx*.2,0,0,7);ctx.stroke()}
+/* water: a sparse 2D wave simulation. Only some impacts ripple, each with its own size, speed and ring count (one or two). */
+function src(x,t,b,k,a,f,n){
+ if(k>=RIP)return;
+ const w=WW*(.8+.4*f),m=n<.35?2:1;
+ SRC.push({x,t,r:b.r,w,len:m*6.283/w,a:(.55+b.r/12)*.075*(.6+.8*a)})}
+function emit(c){
+ for(const b of S){const j=b.j;
+  let a=b.s+b.T1;if(a>ev&&a<=c)src(b.x1,a,b,j[0],j[1],j[2],j[3]);
+  if(b.land){a=b.s+b.T;if(a>ev&&a<=c)src(b.x2,a,b,j[4],j[5],j[6],j[7])}}
+ ev=c}
+function advance(ts){
+ for(const s of SRC){const q=ts-s.t;if(q<0||q>s.len)continue;
+  const v=-s.a*Math.sin(s.w*q)*Math.sin(Math.PI*q/s.len)**2,rad=Math.max(1.7,s.r/CX*.9),ci=s.x/CX,
+   i0=Math.max(1,Math.floor(ci-rad*2.5)),i1=Math.min(gw-2,Math.ceil(ci+rad*2.5)),
+   j0=Math.max(1,Math.floor(zc-rad*2.5)),j1=Math.min(gz-2,Math.ceil(zc+rad*2.5));
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const d=((i-ci)**2+(j-zc)**2)/(rad*rad);u[j*gw+i]+=v*Math.exp(-d)}}
+ const w=gw;
+ for(let j=1;j<gz-1;j++)for(let i=1;i<w-1;i++){const k=j*w+i;
+  nx[k]=(2*u[k]-p[k]+R2*(u[k-1]+u[k+1]+u[k-w]+u[k+w]-4*u[k]))*DM*sp[k]}
+ const t=p;p=u;u=nx;nx=t}
+function sim(c){
+ emit(c);if(simT===null)simT=c-DT;
+ let n=0;while(simT+DT<=c&&n<12){simT+=DT;n++;advance(simT)}
+ if(simT+DT<=c)simT=c}
+function paint(fade){
+ const d=im.data,w=gw;
+ for(let j=1;j<gz-1;j++){const fz=j<zc?.35+.65*(j/zc)**2:1;
+  for(let i=1;i<w-1;i++){const k=j*w+i,q=k*4,
+   s=((u[k+1]-u[k-1])*.5+(u[k+w]-u[k-w])*.85)*GAIN,a=1-Math.exp(-Math.abs(s));
+   if(a<.004){d[q+3]=0;continue}
+   const col=s>0?PAL.rh:PAL.rl;
+   d[q]=col[0];d[q+1]=col[1];d[q+2]=col[2];d[q+3]=255*a*(s>0?PAL.ha:PAL.la)*fz*fade}}
+ wx.putImageData(im,0,0);
+ /* clip to the floor: nothing may draw above the horizon line */
+ ctx.save();ctx.beginPath();ctx.rect(0,F+1,W,H-F-1);ctx.clip();
+ ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+ ctx.drawImage(wc,0,bt,W,bhs);ctx.restore()}
+/* the small meniscus dent where a sphere touches the wet floor; stays after the freeze */
+function dent(x,r,a){
+ if(a<.01)return;
+ ctx.save();ctx.beginPath();ctx.rect(0,F+1,W,H-F-1);ctx.clip();
+ ctx.translate(x,F+2);ctx.scale(1,.22);
+ const gr=ctx.createRadialGradient(0,0,r*.9,0,0,r*2);
+ gr.addColorStop(0,`rgba(${PAL.rl.join(',')},${.22*a})`);
+ gr.addColorStop(.55,`rgba(${PAL.rh.join(',')},${.4*a})`);
+ gr.addColorStop(1,`rgba(${PAL.rh.join(',')},0)`);
+ ctx.fillStyle=gr;ctx.beginPath();ctx.arc(0,0,r*2,0,7);ctx.fill();ctx.restore()}
 function ball(p,refl){
  const x=p.x,y=p.y,r=p.r,k=p.k||0,gr=ctx.createRadialGradient(x-r*.35,y-r*.4,r*.1,x,y,r);
  gr.addColorStop(0,PAL.st[0]);gr.addColorStop(.5,PAL.st[1]);gr.addColorStop(1,PAL.st[2]);
@@ -158,23 +211,26 @@ function draw(c){
  const fg=ctx.createLinearGradient(0,F,0,H);fg.addColorStop(0,`rgba(${PAL.fl},${PAL.fa})`);fg.addColorStop(1,`rgba(${PAL.fl},0)`);
  ctx.fillStyle=fg;ctx.fillRect(0,F,W,H-F);
  ctx.fillStyle=PAL.ln;ctx.fillRect(0,F,W,1);
- const gp=(c-CF)/GL,sw=-.15*W+gp*1.3*W,P=[];
- for(const b of S){const p=at(b,c);if(p){p.k=gp>0&&gp<1?Math.exp(-(((p.x-sw)/(W*.07))**2)):0;P.push(p)}}
- ctx.lineWidth=1;
- for(const p of P){const b=p.b,a1=p.t-b.T1;
-  if(a1>0&&a1<.45)ring(b.x1,b.r,a1,.16*(1-a1/.45),.6);
-  if(b.land){const a2=Math.min(c,CF)-(b.s+b.T);
-   if(a2>0){const k=Math.max(0,1-a2/1.4);ring(b.x2,b.r,a2,.3*k,1);ring(b.x2,b.r,a2*.55,.2*k,1)}}}
- for(const p of P){
-  const h=Math.max(0,F-p.y-p.r),s=Math.max(0,1-h/(H*.5));
+ const live=c>=0&&c<RE,f=1-sm((c-CF)/.45),
+  gp=(c-CF)/GL,ge=.5-.5*Math.cos(Math.PI*Math.min(1,Math.max(0,gp))),
+  env=gp>0&&gp<1?Math.sin(Math.PI*gp):0,sw=-.15*W+ge*1.3*W,P=[];
+ if(live){sim(c);paint(f)}
+ for(const b of S){const q=at(b,c);if(q){q.k=env*Math.exp(-(((q.x-sw)/(W*.09))**2));P.push(q)}}
+ for(const q of P){
+  const h=Math.max(0,F-q.y-q.r),s=sm(1-h/(H*.5)),d=sm(1-h/(q.r*1.5));
+  let wob=0;
+  if(live){const i=Math.min(gw-2,Math.max(1,q.x/CX|0)),j=Math.min(gz-2,(zc+3)|0),m=q.r*.4;
+   wob=Math.max(-m,Math.min(m,u[j*gw+i]*q.r*2.4))*f}
+  dent(q.x,q.r,d);
   ctx.fillStyle=`rgba(${PAL.sh},${PAL.sa*s})`;ctx.beginPath();
-  ctx.ellipse(p.x,F+2,p.r*(.5+.9*s),p.r*.2*(.4+.6*s),0,0,7);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.rect(0,F,W,H-F);ctx.clip();ctx.translate(0,2*F);ctx.scale(1,-1);
-  ctx.globalAlpha=.3*s;ball(p,1);ctx.restore()}
- for(const p of P)ball(p,0)}
+  ctx.ellipse(q.x,F+2,q.r*(.5+.9*s),q.r*.2*(.4+.6*s),0,0,7);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.rect(0,F,W,H-F);ctx.clip();
+  ctx.translate(wob,2*F);ctx.scale(1,-1);
+  ctx.globalAlpha=.3*s;ball(q,1);ctx.restore()}
+ for(const q of P)ball(q,0)}
 function frame(now){
  const c=(now-t0)/1000;
- if(c>=CF+GL+.2){done=true;draw(CF+9);return}
+ if(c>=END){done=true;draw(CF+9);return}
  draw(c);requestAnimationFrame(frame)}
 function go(){requestAnimationFrame(now=>{
  started=true;document.documentElement.classList.add('go');
@@ -182,9 +238,7 @@ function go(){requestAnimationFrame(now=>{
  t0=now;frame(now)})}
 size();addEventListener('resize',size);
 if(ENTER_URL){const a=document.getElementById('enter');a.href=ENTER_URL;a.hidden=false}
-Promise.race([
- document.fonts?Promise.all([document.fonts.load('500 20px Archivo'),document.fonts.load('italic 600 20px Archivo')]).catch(()=>0):0,
- new Promise(r=>setTimeout(r,1500))]).then(go);
+go();
 })();
 </script>
 </body>
