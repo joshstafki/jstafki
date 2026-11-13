@@ -15,12 +15,6 @@
   --ink:#0b0f1a;
   --mut:#6b7280;
   --line:#e5e7eb;
-  --c1:#2563eb;
-  --c2:#111827;
-  --c3:#d97706;
-  --c4:#64748b;
-  --c5:#0d9488;
-  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 }
 
 * {
@@ -30,7 +24,8 @@
 }
 
 body {
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
   background:#fff;
   color:var(--ink);
   padding:env(safe-area-inset-top) 16px calc(48px + env(safe-area-inset-bottom));
@@ -291,115 +286,191 @@ pre {
   font-size:.92rem;
 }
 
-.dk {
-  margin-top:14px;
-  border:1px solid var(--ink);
-  border-radius:2px;
-  background:#fff;
-  font-family:var(--mono);
+.pn {
+  min-width:0;
+  padding-top:10px;
+  border-top:2px solid var(--ink);
 }
 
-.dk h3 {
+.pn h3 {
   display:flex;
   justify-content:space-between;
   gap:12px;
-  padding:8px 12px;
-  border-bottom:1px solid var(--ink);
-  font-size:.72rem;
+  margin-bottom:14px;
+  font-size:.92rem;
   font-weight:600;
 }
 
-.dk h3 em {
+.pn h3 em {
   font-style:normal;
   font-weight:400;
+  font-size:.8rem;
   color:var(--mut);
 }
 
-.bd {
-  padding:14px 12px;
-}
-
-.big {
-  font-size:2rem;
-  font-weight:600;
-  line-height:1.1;
-  font-variant-numeric:tabular-nums;
-}
-
-.cap {
-  margin:4px 0 12px;
-  font-size:.72rem;
-  color:var(--mut);
-}
-
-.gauge {
-  position:relative;
-  height:14px;
-  border:1px solid var(--ink);
-}
-
-.gauge::after {
-  content:"";
-  position:absolute;
-  inset:0;
-  background:repeating-linear-gradient(90deg,transparent 0 calc(25% - 1px),#fff calc(25% - 1px) 25%);
-}
-
-.ticks {
-  display:flex;
-  justify-content:space-between;
-  margin-top:4px;
-  font-size:.65rem;
-  color:var(--mut);
-}
-
-.kp {
+.ana {
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:1px;
-  border:1px solid var(--line);
-  background:var(--line);
+  gap:30px 28px;
+  margin-top:20px;
 }
 
-.kp div {
-  padding:10px;
-  background:#fff;
+.stk {
+  display:grid;
+  gap:30px;
+  align-content:start;
 }
 
-.kp small {
+.band {
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px 28px;
+  align-items:flex-end;
+  padding-top:14px;
+  border-top:2px solid var(--ink);
+}
+
+.net {
+  flex:1 1 280px;
+}
+
+.net small,
+.k small {
   display:block;
-  font-size:.68rem;
+  font-size:.78rem;
   color:var(--mut);
 }
 
-.kp b {
-  font-size:1.2rem;
+.net b {
+  display:block;
+  font-size:clamp(2.4rem,6vw,3.6rem);
+  font-weight:300;
+  letter-spacing:-.03em;
+  line-height:1.05;
+  font-variant-numeric:tabular-nums;
+}
+
+.net span {
+  font-size:.85rem;
+  color:var(--mut);
+}
+
+.k {
+  flex:1 1 110px;
+  max-width:180px;
+  padding-left:16px;
+  border-left:1px solid var(--line);
+}
+
+.k b {
+  font-size:1.5rem;
+  font-weight:400;
+  font-variant-numeric:tabular-nums;
+}
+
+.ch {
+  display:block;
+  width:100%;
+  height:auto;
+}
+
+.ch text {
+  font:12px "Helvetica Neue",Helvetica,Arial,sans-serif;
+  fill:var(--ink);
+}
+
+.ch .m {
+  fill:var(--mut);
+}
+
+.ch .b {
+  font-weight:700;
+  font-size:13px;
+}
+
+.ch .gl,
+.ch .ax,
+.ch .ld {
+  fill:none;
+  stroke-width:1;
+}
+
+.ch .gl {
+  stroke:var(--line);
+}
+
+.ch .ax,
+.ch .ld {
+  stroke:var(--ink);
+}
+
+.ch .cage {
+  fill:none;
+  stroke:var(--ink);
+  stroke-width:1;
+  stroke-dasharray:3 3;
+}
+
+.ch .fl {
+  fill:#eef0f3;
+}
+
+.rise polygon {
+  stroke:#fff;
+  stroke-width:1;
+  stroke-linejoin:round;
+}
+
+.rise {
+  transform-box:fill-box;
+  transform-origin:50% 100%;
+  animation:rise .55s cubic-bezier(.2,.7,.2,1) both;
+}
+
+@keyframes rise {
+  from { transform:scaleY(.02); }
+}
+
+.note {
+  margin-top:8px;
+  font-size:.78rem;
+  color:var(--mut);
+}
+
+.er {
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) 2fr auto;
+  gap:12px;
+  align-items:center;
+  padding:6px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.er .nm {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:.88rem;
+}
+
+.er b {
   font-weight:600;
   font-variant-numeric:tabular-nums;
 }
 
-.stack {
-  display:flex;
-  gap:2px;
-  height:18px;
-}
-
-.seg {
+.hb {
   display:block;
-  width:0;
-  min-width:0;
-  background:var(--c);
-  transition:width .5s ease-out;
+  width:100%;
+  height:auto;
 }
 
 .lg {
   min-width:0;
-  margin-top:12px;
+  margin-top:10px;
 }
 
 .lg td {
   padding:6px 0;
-  font-size:.78rem;
+  font-size:.85rem;
 }
 
 .lg tr:last-child td {
@@ -414,63 +485,39 @@ pre {
   background:var(--c);
 }
 
-.rw+.rw {
-  margin-top:12px;
-}
+@media (min-width:900px) {
+  body {
+    padding-left:32px;
+    padding-right:32px;
+  }
 
-.rl {
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:5px;
-  font-size:.8rem;
-  font-variant-numeric:tabular-nums;
-}
+  .wrap {
+    max-width:1280px;
+  }
 
-.rl span {
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
+  .pick select {
+    flex:0 1 420px;
+  }
 
-.bar {
-  height:8px;
-  background:#eef0f3;
-}
+  #p-data {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(380px,1fr));
+    gap:0 16px;
+    align-items:start;
+  }
 
-.fill {
-  display:block;
-  width:0;
-  height:100%;
-  background:var(--c,var(--c1));
-  transition:width .5s ease-out;
-}
+  .ana {
+    grid-template-columns:repeat(12,1fr);
+  }
 
-.area {
-  display:block;
-  width:100%;
-  max-width:520px;
-}
-
-.area text {
-  font:9px var(--mono);
-  fill:var(--mut);
-}
-
-.area .gl {
-  stroke:var(--line);
-  stroke-width:1;
-}
-
-.area .ax {
-  stroke:var(--ink);
-  stroke-width:1;
+  .c12 { grid-column:span 12; }
+  .c7 { grid-column:span 7; }
+  .c5 { grid-column:span 5; }
 }
 
 @media (prefers-reduced-motion:reduce) {
-  .seg,.fill {
-    transition:none;
+  .rise {
+    animation:none;
   }
 }
 </style>
@@ -809,47 +856,69 @@ function renderData(s) {
 
 /* ---------- Analysis helpers ---------- */
 
+const PAL = ['#2563eb','#111827','#d97706','#64748b','#0d9488'];
+const GREY = '#d1d5db';
+
 const pct = (v, d) => d > 0 ? (v / d * 100).toFixed(1) + '%' : '—';
 
 const ts = (d) => +new Date(+d.slice(0,4), +d.slice(5,7)-1, +d.slice(8,10));
 
-const pn = (title, tag, body) => `
-  <div class="dk">
+/* lighten (t > 0) or darken (t < 0) a hex color: flat shades, no gradients */
+const mix = (h, t) =>
+  '#' + [1,3,5].map((i) => {
+    const v = parseInt(h.slice(i, i + 2), 16);
+    return Math.round(t < 0 ? v * (1 + t) : v + (255 - v) * t)
+      .toString(16).padStart(2, '0');
+  }).join('');
+
+const pn = (cls, title, tag, body) => `
+  <section class="pn ${cls}">
     <h3><span>${title}</span><em>${tag || ''}</em></h3>
-    <div class="bd">${body}</div>
-  </div>`;
+    ${body}
+  </section>`;
 
-const gauge = (frac, c) => `
-  <div class="gauge">
-    <i class="fill" style="--c:${c}" data-w="${(Math.min(Math.max(frac,0),1) * 100).toFixed(1)}%"></i>
-  </div>
-  <div class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100%</span></div>`;
+/* extruded block: x,y = front bottom-left, h up, depth d drawn up and to the right */
+const box = (x, y, w, h, d, c, i = 0) => {
 
-const stack = (parts, denom) => {
+  if (h < .5 || w < .5) return '';
 
-  parts = parts.filter((p) => p[1] > 0);
+  const ox = d * .6, oy = d * .45;
 
-  if (!parts.length) {
-    return '<p class="cap">No data.</p>';
-  }
+  const p = (a) => a.map((q) => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' ');
 
   return `
-    <div class="stack">
-      ${parts.map((p) => `<i class="seg" style="--c:${p[2]}" data-w="${(p[1] / (denom || 1) * 100).toFixed(2)}%"></i>`).join('')}
-    </div>
-
-    <table class="lg">
-      <tbody>
-        ${parts.map((p) => `
-          <tr>
-            <td><i class="sw" style="--c:${p[2]}"></i>${p[0]}</td>
-            <td class="r">${money(p[1])}</td>
-            <td class="r mut">${pct(p[1], denom)}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>
-  `;
+    <g class="rise" style="animation-delay:${i * 60}ms">
+      <polygon points="${p([[x,y],[x+w,y],[x+w,y-h],[x,y-h]])}" fill="${c}"/>
+      <polygon points="${p([[x,y-h],[x+ox,y-h-oy],[x+w+ox,y-h-oy],[x+w,y-h]])}" fill="${mix(c,.35)}"/>
+      <polygon points="${p([[x+w,y],[x+w+ox,y-oy],[x+w+ox,y-h-oy],[x+w,y-h]])}" fill="${mix(c,-.3)}"/>
+    </g>`;
 };
+
+/* one horizontal extruded bar, split into parts */
+const hbar = (parts, total, i0 = 0, h = 14) => {
+
+  let x = 0;
+
+  return `<svg class="hb" viewBox="0 0 300 ${h + 10}" aria-hidden="true">` +
+    parts.filter((p) => p[1] > 0).map((p, i) => {
+      const w = p[1] / (total || 1) * 280;
+      const b = box(x, h + 6, w, h, 10, p[2], i0 + i);
+      x += w;
+      return b;
+    }).join('') + '</svg>';
+};
+
+const legend = (parts, denom) => `
+  <table class="lg">
+    <tbody>
+      ${parts.filter((p) => p[1] > 0).map((p) => `
+        <tr>
+          <td><i class="sw" style="--c:${p[2]}"></i>${p[0]}</td>
+          <td class="r">${money(p[1])}</td>
+          <td class="r mut">${pct(p[1], denom)}</td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
 
 
 /* ---------- Analysis tab ---------- */
@@ -875,165 +944,198 @@ function renderAna(s) {
     n(T.estGas) +
     n(T.estGroceries);
 
-  const share = income > 0 ? spent / income : 0;
-
-
-  /* Net position */
-
-  const hero = pn('Net position', 'spent / income', `
-    <div class="big${net < 0 ? ' neg' : ''}">${money(net)}</div>
-    <div class="cap">True net revenue</div>
-    ${gauge(share, share > 1 ? '#b91c1c' : 'var(--c1)')}
-    <div class="cap" style="margin:10px 0 0">${(share * 100).toFixed(1)}% spent: ${money(spent)} of ${money(income)}</div>
-  `);
-
-
-  /* Key figures */
-
   const rc = [R.bank,R.grocery]
     .filter((r) => r && r.reconciled).length;
 
-  const kpis = pn('Key figures', '', `
-    <div class="kp">
+
+  /* Header band */
+
+  const band = `
+    <section class="band c12">
+      <div class="net">
+        <small>True net revenue</small>
+        <b class="${net < 0 ? 'neg' : ''}">${money(net)}</b>
+        <span>${pct(spent, income)} of ${money(income)} income spent</span>
+      </div>
+
       ${[
         ['Burn / day',T.burnPerDay == null ? '—' : money(T.burnPerDay)],
         ['Days',se.days ?? '—'],
         ['Transactions',exps.length],
         ['Reconciled',rc + '/2']
-      ].map((k) => `<div><small>${k[0]}</small><b>${esc(k[1])}</b></div>`).join('')}
-    </div>
-  `);
+      ].map((k) => `<div class="k"><small>${k[0]}</small><b>${esc(k[1])}</b></div>`).join('')}
+    </section>`;
 
 
-  /* Where it went */
+  /* Where it went: stacked tower, dashed outline = income */
 
   const parts = [
-    ['Out of pocket',n(T.outOfPocket),'var(--c1)'],
-    ['Bank initiated',n(T.bankInitiated),'var(--c2)'],
-    ['Gas',n(T.estGas),'var(--c3)'],
-    ['Groceries',n(T.estGroceries),'var(--c4)'],
-    ['Remaining',Math.max(0,income-spent),'var(--c5)']
-  ];
+    ['Out of pocket',n(T.outOfPocket),PAL[0]],
+    ['Bank initiated',n(T.bankInitiated),PAL[1]],
+    ['Gas',n(T.estGas),PAL[2]],
+    ['Groceries',n(T.estGroceries),PAL[3]],
+    ['Remaining',Math.max(0,income-spent),PAL[4]]
+  ].filter((p) => p[1] > 0);
 
-  const where = pn('Where it went', 'share of ' + money(Math.max(income,spent)), stack(parts,Math.max(income,spent)));
+  let tower = '<p class="note">No data.</p>';
+
+  if (parts.length) {
+
+    const TX = 24, TW = 110, TD = 70, FY = 300, TH = 230;
+    const OX = TD * .6, OY = TD * .45;
+    const k = TH / Math.max(income, spent, 1);
+
+    let acc = 0;
+    const mids = [];
+
+    const slabs = parts.map((p,i) => {
+      const h = p[1] * k;
+      mids.push(FY - acc - h / 2);
+      const b = box(TX, FY - acc, TW, h, TD, p[2], i);
+      acc += h;
+      return b;
+    }).join('');
+
+    const a = FY - income * k;
+
+    const cage = income > 0
+      ? `<path class="cage" d="M${TX} ${FY} V${a} H${TX+TW} V${FY} M${TX} ${a} L${TX+OX} ${a-OY} H${TX+TW+OX} L${TX+TW} ${a} M${TX+TW+OX} ${a-OY} V${FY-OY}"/>`
+      : '';
+
+    const labels = parts.map((_, j) => {
+      const i = parts.length - 1 - j;
+      const p = parts[i];
+      const ly = 34 + j * 54;
+      const px = TX + TW + OX / 2;
+      const py = mids[i] - OY / 2;
+      return `
+        <path class="ld" d="M${px.toFixed(1)} ${py.toFixed(1)} L228 ${ly}"/>
+        <rect x="232" y="${ly - 4}" width="9" height="9" fill="${p[2]}"/>
+        <text class="b" x="248" y="${ly + 5}">${p[0]}</text>
+        <text class="m" x="248" y="${ly + 22}">${money(p[1])}  ·  ${pct(p[1], Math.max(income, spent))}</text>`;
+    }).join('');
+
+    tower = `
+      <svg class="ch" viewBox="0 0 470 316" role="img" aria-label="Spending breakdown, ${money(spent)} spent of ${money(income)} income">
+        <line class="ax" x1="8" x2="462" y1="${FY}" y2="${FY}"/>
+        ${slabs}
+        ${cage}
+        ${labels}
+      </svg>
+      <p class="note">Block height is proportional to dollars. The dashed outline marks income.</p>`;
+  }
+
+  const where = pn('c5', 'Where it went', 'spent ' + pct(spent, income), tower);
 
 
-  /* Biggest expenses */
+  /* Daily spend: extruded columns on a floor plane */
+
+  const byDay = {};
+
+  exps.forEach((e) => {
+    if (DAY.test(e.date)) {
+      byDay[e.date] = (byDay[e.date] || 0) + Math.max(0, n(e.amount));
+    }
+  });
+
+  const days = Object.keys(byDay).sort();
+
+  let cols = '<p class="note">No dated expenses.</p>';
+  let tag = '';
+
+  if (days.length) {
+
+    const X0 = 56, X1 = 596, Y1 = 262, H = 190, FOX = 24, FOY = 18, YB = Y1 - 6;
+    const t0 = ts(days[0]);
+    const N = Math.round((ts(days[days.length-1]) - t0) / 864e5) + 1;
+    const spread = N <= 120;
+    const slots = spread ? N : days.length;
+    const sw = (X1 - X0) / slots;
+    const bw = Math.min(sw * .62, 40);
+    const mx = Math.max(...days.map((d) => byDay[d])) || 1;
+    const peak = days.find((d) => byDay[d] === mx);
+
+    const grid = [0,1,2,3,4].map((g) => {
+      const y = YB - g / 4 * H;
+      return `
+        <line class="${g ? 'gl' : 'ax'}" x1="${X0}" x2="${X1 + FOX}" y1="${y}" y2="${y}"/>
+        <text class="m" x="${X0 - 8}" y="${y + 4}" text-anchor="end">$${Math.round(mx * g / 4).toLocaleString('en-US')}</text>`;
+    }).join('');
+
+    const bars = days.map((d,i) => {
+      const idx = spread ? Math.round((ts(d) - t0) / 864e5) : i;
+      return box(X0 + idx * sw + (sw - bw) / 2, YB, bw, byDay[d] / mx * H, 16, d === peak ? PAL[1] : PAL[0], i);
+    }).join('');
+
+    cols = `
+      <svg class="ch" viewBox="0 0 640 290" role="img" aria-label="Daily spending, peak ${money(mx)} on ${day(peak)}">
+        <polygon class="fl" points="${X0},${Y1} ${X1},${Y1} ${X1 + FOX},${Y1 - FOY} ${X0 + FOX},${Y1 - FOY}"/>
+        ${grid}
+        ${bars}
+        <text class="m" x="${X0}" y="${Y1 + 18}">${day(days[0])}</text>
+        ${days.length > 1 ? `<text class="m" x="${X1}" y="${Y1 + 18}" text-anchor="end">${day(days[days.length-1])}</text>` : ''}
+      </svg>
+      <p class="note">Spend per day. The darkest column is the peak, ${money(mx)} on ${day(peak)}.</p>`;
+
+    tag = `${days.length} ${days.length === 1 ? 'day' : 'days'} logged`;
+  }
+
+  const daily = pn('c7', 'Daily spend', tag, cols);
+
+
+  /* Biggest expenses: extruded bars */
 
   const top = exps
     .filter((e) => n(e.amount) > 0)
     .sort((a,b) => n(b.amount)-n(a.amount))
     .slice(0,5);
 
-  const mx = n(top[0]?.amount) || 1;
+  const mxe = n(top[0]?.amount) || 1;
 
-  const biggest = pn('Biggest expenses', `top ${top.length} of ${exps.length}`,
+  const biggest = pn('c7', 'Biggest expenses', `top ${top.length} of ${exps.length}`,
     top.length
-      ? top.map((e) => `
-          <div class="rw">
-            <div class="rl"><span>${esc(e.name)}</span><b>${money(e.amount)}</b></div>
-            <div class="bar"><i class="fill" data-w="${(n(e.amount)/mx*100).toFixed(1)}%"></i></div>
+      ? top.map((e,i) => `
+          <div class="er">
+            <span class="nm">${esc(e.name)}</span>
+            ${hbar([[n(e.amount), i ? PAL[0] : PAL[1]]], mxe, i)}
+            <b>${money(e.amount)}</b>
           </div>`).join('')
-      : '<p class="cap">No expenses logged.</p>'
+      : '<p class="note">No expenses logged.</p>'
   );
 
 
-  /* Spending over time (cumulative, step) */
-
-  const byDay = {};
-
-  exps.forEach((e) => {
-    if (DAY.test(e.date)) {
-      byDay[e.date] = (byDay[e.date] || 0) + n(e.amount);
-    }
-  });
-
-  const days = Object.keys(byDay).sort();
-
-  let run = 0;
-
-  const pts = days.map((d) => (run += byDay[d]));
-
-  let trend = `<p class="cap">${pts.length ? 'All spending was logged on one day.' : 'No dated expenses.'}</p>`;
-
-  if (pts.length > 1 && run > 0) {
-
-    const X0 = 52, X1 = 352, Y0 = 14, Y1 = 134;
-    const t0 = ts(days[0]);
-    const span = ts(days[days.length-1]) - t0;
-    const f = (v) => v.toFixed(1);
-
-    const xy = pts.map((v,i) => [
-      X0 + (ts(days[i]) - t0) / span * (X1 - X0),
-      Y1 - v / run * (Y1 - Y0)
-    ]);
-
-    const step = xy.map((p,i) =>
-      i ? `H${f(p[0])} V${f(p[1])}` : `M${f(p[0])} ${f(p[1])}`
-    ).join(' ');
-
-    const grid = [0,1,2,3,4].map((k) => {
-      const y = Y1 - k / 4 * (Y1 - Y0);
-      return `
-        <line class="${k ? 'gl' : 'ax'}" x1="${X0}" x2="${X1}" y1="${f(y)}" y2="${f(y)}"/>
-        <text x="${X0 - 6}" y="${f(y + 3)}" text-anchor="end">$${Math.round(run * k / 4).toLocaleString('en-US')}</text>`;
-    }).join('');
-
-    trend = `
-      <svg class="area" viewBox="0 0 360 160" role="img" aria-label="Cumulative spending over the session, ${money(run)} total">
-        ${grid}
-        <path d="${step}" fill="none" stroke="var(--c1)" stroke-width="1.5"/>
-        ${xy.map((p) => `<rect x="${f(p[0]-2.5)}" y="${f(p[1]-2.5)}" width="5" height="5" fill="var(--c1)"/>`).join('')}
-        <text x="${X0}" y="153">${day(days[0])}</text>
-        <text x="${X1}" y="153" text-anchor="end">${day(days[days.length-1])}</text>
-      </svg>
-    `;
-  }
-
-  const trendCard = pn('Spending over time', 'cumulative', trend);
-
-
-  /* Paid vs owed */
+  /* Paid vs owed, goal */
 
   const paid = sum(exps.filter((e) => e.status === 'PAID'), (e) => e.amount);
   const owed = sum(exps.filter((e) => e.status === 'UNPAID'), (e) => e.amount);
 
-  const status = pn('Paid vs still owed', '', stack([
-    ['Paid',paid,'var(--c5)'],
-    ['Still owed',owed,'var(--c3)']
-  ],paid+owed));
+  const pv = [['Paid',paid,PAL[4]],['Still owed',owed,PAL[2]]];
 
+  const status = pn('', 'Paid vs still owed', money(paid + owed) + ' total',
+    paid + owed > 0
+      ? hbar(pv, paid + owed, 0, 24) + legend(pv, paid + owed)
+      : '<p class="note">No payment status logged.</p>'
+  );
 
-  /* Goal progress */
+  const cur = n(G.current), tgt = n(G.target);
 
-  const goal = n(G.target) > 0
-    ? pn(`Σ ${esc(G.name || 'Goal')}`, pct(n(G.current), n(G.target)), `
-        <div class="rl"><span>${money(G.current)}</span><b>of ${money(G.target)}</b></div>
-        ${gauge(n(G.current) / n(G.target), 'var(--c5)')}
-      `)
+  const goal = tgt > 0
+    ? pn('', `Σ ${esc(G.name || 'Goal')}`, pct(cur, tgt),
+        hbar([[cur,PAL[4]],[Math.max(0,tgt-cur),GREY]], Math.max(tgt,cur), 0, 24) +
+        `<p class="note">${money(cur)} of ${money(tgt)}</p>`)
     : '';
 
 
   /* Render analysis */
 
-  const root = $('p-ana');
-
-  root.innerHTML =
-    hero +
-    kpis +
-    where +
-    biggest +
-    trendCard +
-    status +
-    goal;
-
-  requestAnimationFrame(() =>
-    requestAnimationFrame(() => {
-      root.querySelectorAll('[data-w]').forEach((el) => {
-        el.style.width = el.dataset.w;
-      });
-    })
-  );
+  $('p-ana').innerHTML = `
+    <div class="ana">
+      ${band}
+      ${where}
+      ${daily}
+      ${biggest}
+      <div class="c5 stk">${status}${goal}</div>
+    </div>`;
 }
 
 
