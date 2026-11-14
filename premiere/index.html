@@ -35,14 +35,17 @@
   *{box-sizing:border-box}
   html{scroll-snap-type:y mandatory;overscroll-behavior:none;background:#141415}
   body{margin:0;background:#141415;-webkit-text-size-adjust:100%}
-  .snap{height:100vh;height:100dvh;scroll-snap-align:start}
+  .snap{position:relative;z-index:1;height:100vh;height:100svh;scroll-snap-align:start;scroll-snap-stop:always}
+  .snap-2{overflow:hidden;overflow:clip}
   .stage{
-    position:fixed;inset:0;height:100vh;height:100dvh;
+    position:fixed;top:0;left:0;right:0;z-index:0;height:100vh;height:100lvh;
     overflow:hidden;perspective:1400px;background:#111112;
+    contain:layout paint style;transform:translateZ(0);backface-visibility:hidden;
   }
 
   /* ---------- WALL ---------- */
   .wall{
+    isolation:isolate;
     position:absolute;left:-12%;right:-12%;top:-2%;height:80%;
     transform:rotateY(-5deg);transform-origin:50% 50%;
     background:linear-gradient(180deg,#3b3b3e 0%,#353538 45%,#2c2c2f 100%);
@@ -126,7 +129,7 @@
 
   /* ---------- SCROLL CUE ---------- */
   .cue{
-    position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));
+    position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));
     transform:translateX(-50%);z-index:6;pointer-events:none;
     display:flex;flex-direction:column;align-items:center;gap:2px;
   }
@@ -138,10 +141,9 @@
   /* ---------- SCREEN ---------- */
   .screen{
     --sh:clamp(170px,40vh,420px);
-    position:fixed;left:-8vw;width:116vw;z-index:4;
+    position:absolute;left:-8vw;width:116vw;z-index:4;
     top:calc(39% - var(--sh) / 2);height:var(--sh);
-    transform:translate3d(0,110vh,0);will-change:transform;
-    background:#050506;overflow:hidden;
+    background:#050506;overflow:hidden;isolation:isolate;
     display:grid;place-items:center;
     box-shadow:
       0 30px 60px -10px rgba(0,0,0,.9),
@@ -161,7 +163,7 @@
     background-size:4px 4px;
   }
   .screen .dust{
-    position:absolute;inset:-20%;opacity:0;mix-blend-mode:screen;pointer-events:none;transition:opacity 1s;
+    position:absolute;inset:-20%;opacity:0;pointer-events:none;transition:opacity 1s;will-change:transform;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='d'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 9 -7.6'/></filter><rect width='100%' height='100%' filter='url(%23d)'/></svg>");
   }
   .billing{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;width:100vw;padding:0 6vw}
@@ -189,7 +191,7 @@
   }
   .screen.lit .silver{opacity:1}
   .screen.lit .dust{opacity:.22;animation:dust 1.6s steps(6) infinite}
-  .screen.lit .title{opacity:1;filter:blur(.35px);animation:flicker 4.5s linear 1.3s infinite}
+  .screen.lit .title{will-change:opacity;opacity:1;filter:blur(.35px);animation:flicker 4.5s linear 1.3s infinite}
   .screen.lit .subtitle{opacity:.92;filter:blur(.25px)}
   @keyframes flicker{0%,100%{opacity:1}4%{opacity:.93}6%{opacity:1}41%{opacity:.97}43%{opacity:1}71%{opacity:.95}72%{opacity:1}88%{opacity:.98}}
   @keyframes dust{0%{transform:translate(0,0)}25%{transform:translate(-4%,3%)}50%{transform:translate(3%,-2%)}75%{transform:translate(-2%,-4%)}100%{transform:translate(0,0)}}
@@ -256,11 +258,14 @@
   <div class="vignette"></div>
 </div>
 
-<div class="cue" id="cue" aria-hidden="true">
-  <svg viewBox="0 0 22 10"><path d="M2 2l9 6 9-6"/></svg>
-  <svg viewBox="0 0 22 10"><path d="M2 2l9 6 9-6"/></svg>
+<div class="snap snap-1">
+  <div class="cue" aria-hidden="true">
+    <svg viewBox="0 0 22 10"><path d="M2 2l9 6 9-6"/></svg>
+    <svg viewBox="0 0 22 10"><path d="M2 2l9 6 9-6"/></svg>
+  </div>
 </div>
 
+<div class="snap snap-2" id="snap2">
 <section class="screen" id="screen">
   <div class="silver"></div>
   <div class="dust"></div>
@@ -269,13 +274,12 @@
     <p class="subtitle">A countdown for every premiere</p>
   </div>
 </section>
+</div>
 
 <a class="go" id="go" href="https://www.jstafki.com/premiere/videre/" aria-label="Enter Premiere" tabindex="-1">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
 </a>
 
-<div class="snap"></div>
-<div class="snap"></div>
 
 <script>
 (function(){
@@ -287,9 +291,8 @@
   ];
   var root = document.getElementById('tiles');
   var screen = document.getElementById('screen');
-  var cue = document.getElementById('cue');
   var go = document.getElementById('go');
-  var raf = 0, ticking = false;
+  var raf = 0;
 
   function build(){
     var probe = document.createElement('div');
@@ -319,25 +322,44 @@
     root.appendChild(frag);
   }
 
-  function ease(t){ return 1 - Math.pow(1 - t, 3); }
-  function update(){
-    ticking = false;
-    var vh = window.innerHeight || 1;
-    var p = Math.max(0, Math.min(1, window.scrollY / vh));
-    var y = (1 - ease(p)) * vh * 1.1;
-    screen.style.transform = 'translate3d(0,' + y.toFixed(1) + 'px,0)';
-    cue.style.opacity = Math.max(0, 1 - p * 4).toFixed(2);
-    if (p > 0.92){ screen.classList.add('lit'); go.classList.add('on'); go.tabIndex = 0; }
-    else if (p < 0.8){ screen.classList.remove('lit'); go.classList.remove('on'); go.tabIndex = -1; }
+  function setLit(on){
+    screen.classList.toggle('lit', on);
+    go.classList.toggle('on', on);
+    go.tabIndex = on ? 0 : -1;
   }
-  function onScroll(){ if (!ticking){ ticking = true; requestAnimationFrame(update); } }
+
+  // Lighting is driven by visibility, not per-frame scroll math.
+  var snap2 = document.getElementById('snap2');
+  if ('IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      var r = entries[0].intersectionRatio;
+      if (r > 0.9) setLit(true);
+      else if (r < 0.75) setLit(false);
+    }, {threshold:[0, 0.75, 0.9, 1]}).observe(snap2);
+  } else {
+    var ticking = false;
+    window.addEventListener('scroll', function(){
+      if (ticking) return; ticking = true;
+      requestAnimationFrame(function(){
+        ticking = false;
+        var p = window.scrollY / (window.innerHeight || 1);
+        if (p > 0.92) setLit(true); else if (p < 0.8) setLit(false);
+      });
+    }, {passive:true});
+  }
 
   build();
-  update();
-  window.addEventListener('scroll', onScroll, {passive:true});
+
+  // Rebuild tiles only when width actually changes (ignores mobile toolbar show/hide).
+  var lastW = window.innerWidth, timer = 0;
   window.addEventListener('resize', function(){
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(function(){ build(); update(); });
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+      if (Math.abs(window.innerWidth - lastW) < 2) return;
+      lastW = window.innerWidth;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(build);
+    }, 150);
   });
 })();
 </script>
