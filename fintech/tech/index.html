@@ -1,15 +1,19 @@
 <!DOCTYPE html>
+<!-- Deployment requirements: enforce owner-only schema-validating Firestore Rules; enable Firebase App Check; restrict the Google API key to the production host; and send CSP with frame-ancestors 'none', HSTS, and X-Content-Type-Options as HTTP response headers. A standalone HTML file cannot configure those server controls. -->
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; 
-               script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://www.gstatic.com https://apis.google.com; 
-               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
-               font-src 'self' data: https://fonts.gstatic.com; 
-               connect-src 'self' https://cdn.jsdelivr.net https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com;
-               frame-src 'self' https://*.firebaseapp.com https://apis.google.com;">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' 'sha256-tr4FZ4euJU7ccL2679A66JsjRGwqVnF42eCThEB4vYg=' 'sha256-dNIuFSy/bp2uC7lIqYOOWSVjYU20u1I6BlktZpwqpqw=' 'sha256-oYykZwlw+1jOoUdIjhRU77CsgbMLfBLpaybyUoUuJ4I=' 'sha256-/34KTq+Jpvn0CUv6a3Q7JPI2nbxVkJCvYrsKgJofeKg=' 'sha256-JZvBCvAhrZCl8Ks9sqU8WWXqFsnC316tLbU289Zk7+0=' 'sha256-2Eq7cKkke0G5AzXqrVeM5+t8OMbvAU1nwr/gUC67RSc=' 'sha256-YsKUG7jPyEvoqPmi+COvVQzxXOjlPWpArLZjYtNeEac=' https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/ https://www.gstatic.com/firebasejs/12.15.0/;
+               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+               font-src 'self' data: https://fonts.gstatic.com;
+               img-src 'self' https://www.jstafki.com;
+               connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com;
+               frame-src 'self' https://*.firebaseapp.com https://apis.google.com;
+               object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self';">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <meta name="theme-color" content="#f4f7f9">
     <script>
         /* Apply the saved theme and background before first paint so there is no flash of the wrong look.
@@ -118,6 +122,8 @@
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; align-items: start; }
         .card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .card-header { padding: 1rem 1.25rem; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
+          .table-title-with-sigma { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+          .table-title-with-sigma .table-sigma { font: inherit; color: inherit; line-height: 1; text-decoration: none; cursor: pointer; padding: 0.25rem; margin: -0.25rem; }
         
         .header-blue { background-color: var(--header-blue); color: #1d4ed8; }
         .header-red { background-color: var(--header-red); color: #b91c1c; }
@@ -380,6 +386,7 @@
         :root[data-theme="dark"] .menu-item-privacy, :root[data-theme="dark"] .menu-item-privacy svg { color: #f87171; }
         .menu-item-privacy:active { background: rgba(220, 38, 38, 0.1); }
         @media (hover: hover) { .menu-item-privacy:hover { background: rgba(220, 38, 38, 0.1); } }
+        .menu-sigma { flex: none; width: 18px; text-align: center; font-size: 1.2rem; font-weight: 700; line-height: 1; color: var(--accent-text); }
         .menu-sep { height: 1px; margin: 6px 8px; background: var(--border-color); }
 
         /* Phones: email + menu become a slim bar above the title, menu button on the right. */
@@ -570,7 +577,7 @@
         <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <h1>Financial Dashboard</h1>
-                <p style="color: var(--page-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) v1.00.100</p>
+                <p style="color: var(--page-muted); margin-top: 0.25rem;">Live Data Connected (Firebase) v1.00.120</p>
                 <button id="btn-hard-reset" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem;">
                     Hard Reset (Wipe Session Data)
                 </button>
@@ -605,9 +612,18 @@
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             Export CSV
                         </button>
+                        <button type="button" id="btn-export-json" class="menu-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export JSON
+                        </button>
                         <button type="button" id="btn-save-pdf" class="menu-item">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                             Save PDF
+                        </button>
+                        <div class="menu-sep" role="separator"></div>
+                        <button type="button" id="btn-sum" class="menu-item">
+                            <span class="menu-sigma" aria-hidden="true">Σ</span>
+                            SUM
                         </button>
                         <div class="menu-sep" role="separator"></div>
                         <a id="btn-version" class="menu-item" href="https://www.jstafki.com/fintech/version" target="_blank" rel="noopener">
@@ -627,7 +643,7 @@
             <!-- Column 1: Expenses & Scratchpad -->
             <div>
                 <div class="card">
-                    <div class="card-header header-blue">Out of Pocket Expenses</div>
+                    <div class="card-header header-blue table-title-with-sigma"><span>Out of Pocket Expenses</span><a class="table-sigma" href="https://www.jstafki.com/sigma/aggregate/" target="_blank" rel="noopener noreferrer" title="https://www.jstafki.com/sigma/aggregate/" aria-label="Open Sigma Aggregate">Σ</a></div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table>
@@ -640,7 +656,7 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header header-red">Bank Initiated Expenses</div>
+                    <div class="card-header header-red table-title-with-sigma"><span>Bank Initiated Expenses</span><a class="table-sigma" href="https://www.jstafki.com/sigma/aggregate/" target="_blank" rel="noopener noreferrer" title="https://www.jstafki.com/sigma/aggregate/" aria-label="Open Sigma Aggregate">Σ</a></div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table>
@@ -850,8 +866,7 @@
     <dialog id="privacy-shield" class="privacy-shield" aria-label="Privacy screen">
         <canvas class="privacy-canvas" aria-hidden="true"></canvas>
         <button type="button" class="privacy-logo" aria-label="Exit privacy mode">
-            <img src="https://www.jstafki.com/assets/fintech/favicon.svg" alt="" width="80" height="80" draggable="false"
-                 onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
+            <img src="https://www.jstafki.com/assets/fintech/favicon.svg" alt="" width="80" height="80" draggable="false">
             <span class="logo-tile" hidden>F</span>
         </button>
     </dialog>
@@ -872,6 +887,11 @@
         var canvas = shield.querySelector('.privacy-canvas');
         var ctx = canvas.getContext('2d');
         var logoBtn = shield.querySelector('.privacy-logo');
+          var logoImg = logoBtn ? logoBtn.querySelector('img') : null;
+          if (logoImg) logoImg.addEventListener('error', function () {
+              logoImg.hidden = true;
+              if (logoImg.nextElementSibling) logoImg.nextElementSibling.hidden = false;
+          });
         var themeMeta = document.querySelector('meta[name="theme-color"]');
         var root = document.documentElement;
         var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -1086,7 +1106,7 @@
     <!-- Application Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-        import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, onSnapshot, getDocs, writeBatch, serverTimestamp, query, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
         /* --- 1. UTILITIES --- */
@@ -1324,6 +1344,109 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
+        };
+
+        /* --- SESSION JSON + SUM (Aggregate) --- */
+        const r2 = (n) => Math.round(n * 100) / 100;
+        const entryDate = (item) => {
+            if (item.createdAt?.toDate) return item.createdAt.toDate().toISOString().split('T')[0];
+            if (item.localTime) return new Date(item.localTime).toISOString().split('T')[0];
+            return null;
+        };
+
+        const buildSessionJSON = () => {
+            const spendable = parseFloat(DOM.spendableIncome.value) || 0;
+            const estGas = parseFloat(DOM.estGas.value) || 0;
+            const estGroceries = parseFloat(DOM.estGroceries.value) || 0;
+            const oop = expenseTotals.Out_Of_Pocket || 0;
+            const bank = expenseTotals.Bank_Initiated || 0;
+            const actualRevenue = spendable - oop - bank;
+            const start = DOM.sessionStart.value || null;
+            const end = DOM.sessionEnd.value || null;
+            let days = null;
+            if (start && end) {
+                const a = new Date(start), b = new Date(end);
+                a.setHours(0, 0, 0, 0); b.setHours(0, 0, 0, 0);
+                days = Math.ceil(Math.abs(b - a) / 86400000) || 1;
+            }
+            const rows = (cat) => (liveData[cat] || []).filter(i => i.name).map(i => ({
+                id: i.id, name: i.name, amount: Number(i.amount) || 0, status: i.status || '', date: entryDate(i)
+            }));
+            const recon = (tab) => {
+                const s = reconBalances[tab]?.start || 0, spent = reconBalances[tab]?.expenses || 0;
+                return { startingBalance: r2(s), deducted: r2(spent), endingBalance: r2(s - spent), reconciled: Math.abs(s - spent) < 0.005 };
+            };
+            const base = spendable > 0 ? spendable : 0;
+            return {
+                schema: 'fintech.session.v1',
+                exportedAt: new Date().toISOString(),
+                session: { start, end, days },
+                totals: {
+                    spendableIncome: r2(spendable), outOfPocket: r2(oop), bankInitiated: r2(bank), totalExpenses: r2(oop + bank),
+                    actualRevenue: r2(actualRevenue), estGas: r2(estGas), estGroceries: r2(estGroceries),
+                    trueNetRevenue: r2(actualRevenue - estGas - estGroceries),
+                    burnPerDay: days ? r2((oop + bank) / days) : null
+                },
+                split: { savings: r2(base * 0.5), fun: r2(base * 0.3), invest: r2(base * 0.2) },
+                goal: { name: DOM.goalName.value.trim(), current: parseFloat(DOM.goalCurrent.value) || 0, target: parseFloat(DOM.goalTarget.value) || 0 },
+                entries: { outOfPocket: rows('Out_Of_Pocket'), bankInitiated: rows('Bank_Initiated'), fillUps: rows('Fill_Ups'), bankReconciliation: rows('Bank_Reconciliation'), groceryBudget: rows('Grocery_Budget') },
+                reconciliation: { bank: recon('Bank_Reconciliation'), grocery: recon('Grocery_Budget') },
+                scratchpad: DOM.scratchpadInput.value
+            };
+        };
+
+        const exportToJSON = () => {
+            const data = buildSessionJSON();
+            data.account = { email: auth.currentUser?.email || null };
+            const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Fintech Ledger Session ${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        };
+
+        // Local calendar day (YYYY-MM-DD). One new session per day; existing sessions can be overwritten any time.
+        const localDayKey = (d = new Date()) =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        let sumBusy = false;
+        const sendSum = async () => {
+            if (sumBusy) return;
+            const user = auth.currentUser;
+            if (!user) { alert('Please sign in first.'); return; }
+            const data = buildSessionJSON();
+            const { start, end } = data.session;
+            if (!start || !end) { alert('Set the session start and end dates before sending to Aggregate.'); return; }
+            if (start > end) { alert('Session start must be on or before the end date.'); return; }
+
+            const sessionId = `${start}_${end}`;
+            const ref = doc(db, 'users', user.uid, 'sessions', sessionId);
+            const quotaRef = doc(db, 'users', user.uid, 'meta', 'sumQuota');
+            const today = localDayKey();
+
+            if (!confirm(`Send this session (${start} to ${end}) to Aggregate?\n\nSending the same dates again updates the saved copy. Only one new session can be saved per day.`)) return;
+
+            sumBusy = true;
+            try {
+                await runTransaction(db, async (tx) => {
+                    const existing = await tx.get(ref);
+                    const quota = await tx.get(quotaRef);
+                    if (!existing.exists()) {
+                        const q = quota.exists() ? quota.data() : null;
+                        if (q && q.day === today) throw new Error('DAILY_LIMIT');
+                        tx.set(quotaRef, { day: today, sessionId, at: serverTimestamp() });
+                    }
+                    tx.set(ref, { ...data, savedAt: serverTimestamp() });
+                });
+                alert('Session sent to Aggregate.');
+            } catch (err) {
+                if (err.message === 'DAILY_LIMIT') {
+                    alert('A new session was already saved today. You can still update that one; a different date range can be sent after midnight.');
+                } else {
+                    console.error(err);
+                    alert("Couldn't send to Aggregate — check your connection and try again.");
+                }
+            } finally { sumBusy = false; }
         };
 
         const importFromCSV = (file) => {
@@ -1683,7 +1806,7 @@
             
             if (hasAmount) htmlString += `<td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01" min="0"></td>`;
             
-            htmlString += `<td><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="${hasAmount ? 'Name' : 'Name (e.g. Fill Up 1)'}"></td>
+            htmlString += `<td><input type="text" id="input-name-${tbodyId}" class="inline-input" maxlength="200" placeholder="${hasAmount ? 'Name' : 'Name (e.g. Fill Up 1)'}"></td>
                 <td><div style="display: flex; gap: 0.5rem; align-items: center;">
                     <select id="input-status-${tbodyId}" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select>
                     <button class="save-btn" data-tbody="${tbodyId}" data-tab="${tabName}" ${!hasAmount ? 'data-fillup="true"' : ''}>Save</button>
@@ -1726,7 +1849,7 @@
             htmlString += `<tr class="add-row-btn" data-tbody="${tbodyId}"><td colspan="2">+ Add New</td></tr>
                 <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
                     <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01" min="0"></td>
-                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"><button class="save-btn" data-tbody="${tbodyId}" data-tab="${tabName}" data-recon="true">Save</button></div></td>
+                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><input type="text" id="input-name-${tbodyId}" class="inline-input" maxlength="200" placeholder="Name"><button class="save-btn" data-tbody="${tbodyId}" data-tab="${tabName}" data-recon="true">Save</button></div></td>
                 </tr>`;
 
             tbody.innerHTML = htmlString;
@@ -1919,6 +2042,7 @@
             }
 
             if (!name) { alert("Please enter a name."); return; }
+              if (name.length > MAX_NAME_LENGTH) { alert(`Name must be ${MAX_NAME_LENGTH} characters or fewer.`); return; }
 
             try {
                 await addDoc(entriesCol, {
@@ -1965,15 +2089,32 @@
         /* --- 7. EVENT DELEGATION & LIFECYCLE --- */
         document.addEventListener('DOMContentLoaded', () => {
             initDOM();
+              document.querySelectorAll('a[target="_blank"]').forEach((a) => {
+                  const rel = new Set((a.getAttribute('rel') || '').split(/\s+/).filter(Boolean));
+                  rel.add('noopener'); rel.add('noreferrer');
+                  a.setAttribute('rel', Array.from(rel).join(' '));
+              });
 
             DOM.btnGoogleSignin.addEventListener('click', async () => {
                 const errorEl = document.getElementById('auth-error');
                 errorEl.style.display = 'none';
                 try { await signInWithPopup(auth, provider); } catch (err) { errorEl.innerText = "Sign-in failed."; errorEl.style.display = 'block'; }
             });
-            DOM.btnSignOut.addEventListener('click', () => signOut(auth));
+            DOM.btnSignOut.addEventListener('click', async () => {
+                  try {
+                      await signOut(auth);
+                      document.querySelectorAll('input, textarea').forEach((el) => { if (el.type !== 'file') el.value = ''; });
+                      document.querySelectorAll('tbody').forEach((el) => { el.textContent = ''; });
+                      location.reload();
+                  } catch (err) {
+                      console.error(err);
+                      alert("Couldn't sign out. Please try again.");
+                  }
+              });
             DOM.btnSavePdf.addEventListener('click', () => window.print());
             DOM.btnExportCsv.addEventListener('click', exportToCSV);
+            document.getElementById('btn-export-json').addEventListener('click', exportToJSON);
+            document.getElementById('btn-sum').addEventListener('click', sendSum);
             DOM.btnImportCsv.addEventListener('click', () => DOM.csvUploadInput.click());
             DOM.csvUploadInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
@@ -2320,7 +2461,7 @@
             ['goal', 'goal-name', 'Savings Goal', 1, 0], ['chart', 'revenueChart', 'Revenue vs. Expenses', 1, 1],
             ['summary', 'summary-lines', 'Summary', 1, 0], ['fillups', 'fill-ups-body', 'Fill Ups', 1, 1],
             ['recon', 'bank-recon-body', 'Bank Reconciliation', 1, 1], ['grocery', 'grocery-budget-body', 'Grocery Budget', 1, 1],
-            ['ledger', 'session-start', 'Ledger Session', 1, 0]
+            ['ledger', 'session-start', 'Ledger Session', 0, 0]
         ];
         var SUBS = [['gas', 'est-gas', 'Gas'], ['groc', 'est-groceries', 'Groceries'], ['tiny', 'true-net-revenue', 'Small total']];
         var SIZES = ['l', 'm', 's'], SIZE_NAME = { l: 'Large', m: 'Medium', s: 'Small' };
