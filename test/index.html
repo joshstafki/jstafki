@@ -1,15 +1,19 @@
 <!DOCTYPE html>
+<!-- Deployment requirements: enforce owner-only schema-validating Firestore Rules; enable Firebase App Check; restrict the Google API key to the production host; and send CSP with frame-ancestors 'none', HSTS, and X-Content-Type-Options as HTTP response headers. A standalone HTML file cannot configure those server controls. -->
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; 
-               script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://www.gstatic.com https://apis.google.com; 
-               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
-               font-src 'self' data: https://fonts.gstatic.com; 
-               connect-src 'self' https://cdn.jsdelivr.net https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com;
-               frame-src 'self' https://*.firebaseapp.com https://apis.google.com;">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' 'sha256-tr4FZ4euJU7ccL2679A66JsjRGwqVnF42eCThEB4vYg=' 'sha256-dNIuFSy/bp2uC7lIqYOOWSVjYU20u1I6BlktZpwqpqw=' 'sha256-oYykZwlw+1jOoUdIjhRU77CsgbMLfBLpaybyUoUuJ4I=' 'sha256-/34KTq+Jpvn0CUv6a3Q7JPI2nbxVkJCvYrsKgJofeKg=' 'sha256-JZvBCvAhrZCl8Ks9sqU8WWXqFsnC316tLbU289Zk7+0=' 'sha256-2Eq7cKkke0G5AzXqrVeM5+t8OMbvAU1nwr/gUC67RSc=' 'sha256-YsKUG7jPyEvoqPmi+COvVQzxXOjlPWpArLZjYtNeEac=' https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/ https://www.gstatic.com/firebasejs/12.15.0/;
+               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+               font-src 'self' data: https://fonts.gstatic.com;
+               img-src 'self' https://www.jstafki.com;
+               connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com;
+               frame-src 'self' https://*.firebaseapp.com https://apis.google.com;
+               object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self';">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <meta name="theme-color" content="#f4f7f9">
     <script>
         /* Apply the saved theme and background before first paint so there is no flash of the wrong look.
@@ -862,8 +866,7 @@
     <dialog id="privacy-shield" class="privacy-shield" aria-label="Privacy screen">
         <canvas class="privacy-canvas" aria-hidden="true"></canvas>
         <button type="button" class="privacy-logo" aria-label="Exit privacy mode">
-            <img src="https://www.jstafki.com/assets/fintech/favicon.svg" alt="" width="80" height="80" draggable="false"
-                 onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
+            <img src="https://www.jstafki.com/assets/fintech/favicon.svg" alt="" width="80" height="80" draggable="false">
             <span class="logo-tile" hidden>F</span>
         </button>
     </dialog>
@@ -884,6 +887,11 @@
         var canvas = shield.querySelector('.privacy-canvas');
         var ctx = canvas.getContext('2d');
         var logoBtn = shield.querySelector('.privacy-logo');
+          var logoImg = logoBtn ? logoBtn.querySelector('img') : null;
+          if (logoImg) logoImg.addEventListener('error', function () {
+              logoImg.hidden = true;
+              if (logoImg.nextElementSibling) logoImg.nextElementSibling.hidden = false;
+          });
         var themeMeta = document.querySelector('meta[name="theme-color"]');
         var root = document.documentElement;
         var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -1798,7 +1806,7 @@
             
             if (hasAmount) htmlString += `<td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01" min="0"></td>`;
             
-            htmlString += `<td><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="${hasAmount ? 'Name' : 'Name (e.g. Fill Up 1)'}"></td>
+            htmlString += `<td><input type="text" id="input-name-${tbodyId}" class="inline-input" maxlength="200" placeholder="${hasAmount ? 'Name' : 'Name (e.g. Fill Up 1)'}"></td>
                 <td><div style="display: flex; gap: 0.5rem; align-items: center;">
                     <select id="input-status-${tbodyId}" class="inline-input"><option value="PAID">PAID</option><option value="UNPAID">UNPAID</option></select>
                     <button class="save-btn" data-tbody="${tbodyId}" data-tab="${tabName}" ${!hasAmount ? 'data-fillup="true"' : ''}>Save</button>
@@ -1841,7 +1849,7 @@
             htmlString += `<tr class="add-row-btn" data-tbody="${tbodyId}"><td colspan="2">+ Add New</td></tr>
                 <tr id="inline-form-${tbodyId}" class="highlight-row" style="display: none;">
                     <td><input type="number" id="input-amount-${tbodyId}" class="inline-input" placeholder="0.00" step="0.01" min="0"></td>
-                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><input type="text" id="input-name-${tbodyId}" class="inline-input" placeholder="Name"><button class="save-btn" data-tbody="${tbodyId}" data-tab="${tabName}" data-recon="true">Save</button></div></td>
+                    <td><div style="display: flex; gap: 0.5rem; align-items: center;"><input type="text" id="input-name-${tbodyId}" class="inline-input" maxlength="200" placeholder="Name"><button class="save-btn" data-tbody="${tbodyId}" data-tab="${tabName}" data-recon="true">Save</button></div></td>
                 </tr>`;
 
             tbody.innerHTML = htmlString;
@@ -2034,6 +2042,7 @@
             }
 
             if (!name) { alert("Please enter a name."); return; }
+              if (name.length > MAX_NAME_LENGTH) { alert(`Name must be ${MAX_NAME_LENGTH} characters or fewer.`); return; }
 
             try {
                 await addDoc(entriesCol, {
@@ -2080,13 +2089,28 @@
         /* --- 7. EVENT DELEGATION & LIFECYCLE --- */
         document.addEventListener('DOMContentLoaded', () => {
             initDOM();
+              document.querySelectorAll('a[target="_blank"]').forEach((a) => {
+                  const rel = new Set((a.getAttribute('rel') || '').split(/\s+/).filter(Boolean));
+                  rel.add('noopener'); rel.add('noreferrer');
+                  a.setAttribute('rel', Array.from(rel).join(' '));
+              });
 
             DOM.btnGoogleSignin.addEventListener('click', async () => {
                 const errorEl = document.getElementById('auth-error');
                 errorEl.style.display = 'none';
                 try { await signInWithPopup(auth, provider); } catch (err) { errorEl.innerText = "Sign-in failed."; errorEl.style.display = 'block'; }
             });
-            DOM.btnSignOut.addEventListener('click', () => signOut(auth));
+            DOM.btnSignOut.addEventListener('click', async () => {
+                  try {
+                      await signOut(auth);
+                      document.querySelectorAll('input, textarea').forEach((el) => { if (el.type !== 'file') el.value = ''; });
+                      document.querySelectorAll('tbody').forEach((el) => { el.textContent = ''; });
+                      location.reload();
+                  } catch (err) {
+                      console.error(err);
+                      alert("Couldn't sign out. Please try again.");
+                  }
+              });
             DOM.btnSavePdf.addEventListener('click', () => window.print());
             DOM.btnExportCsv.addEventListener('click', exportToCSV);
             document.getElementById('btn-export-json').addEventListener('click', exportToJSON);
