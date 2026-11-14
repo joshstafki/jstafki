@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#141415">
+  <meta name="theme-color" content="#141416">
   <title>Premiere — A Countdown for Every Premiere</title>
   <meta name="description" content="Track every movie release with a live countdown. Add a title, a date, and a poster — Premiere handles the rest." />
   <link rel="icon" type="image/png" href="https://www.jstafki.com/assets/prem.png">
@@ -25,103 +25,150 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@1.24.0"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Montserrat:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap');
 
     /* ---------- Premiere palette ----------
-       charcoal wall  #2c2c2f – #3b3b3e
-       screen black   #050506 / #0B0B0C
-       hollywood red  #e3121b (ink) / #ff1c24 (projected)
-       silver text    #EDEAE6
+       charcoal  #141416 / #1C1C1F / #232327
+       gold      #E8B84B  (hi #F6D27A, lo #B8892A)
+       text      #F2EEE6  (secondary #BDB8AF, muted #8E8A84)
     ---------------------------------------- */
-    html { background: #111112; }
+    :root{
+      --gold:#E8B84B; --gold-hi:#F6D27A; --gold-lo:#B8892A;
+      --ink:#F2EEE6; --ink-2:#BDB8AF; --ink-3:#8E8A84;
+      --bg:#141416; --card:#1C1C1F; --card-2:#232327;
+      --line:rgba(242,238,230,0.09);
+    }
+    html { background: var(--bg); }
     body {
-      margin: 0;
-      min-height: 100vh;
-      color: #EDEAE6;
+      margin: 0; min-height: 100vh; color: var(--ink);
+      -webkit-font-smoothing: antialiased;
       background:
-        radial-gradient(ellipse 70% 40% at 30% 0%, rgba(255,236,214,0.07), transparent 70%),
-        radial-gradient(ellipse 60% 35% at 80% 0%, rgba(255,236,214,0.05), transparent 70%),
-        linear-gradient(180deg, #2a2a2d 0%, #1c1c1e 38%, #111112 100%);
+        radial-gradient(ellipse 70% 45% at 25% -5%, rgba(255,226,170,0.10), transparent 70%),
+        radial-gradient(ellipse 55% 40% at 85% -5%, rgba(255,226,170,0.06), transparent 70%),
+        linear-gradient(180deg, #232326 0%, #18181a 40%, #121214 100%);
       background-attachment: fixed;
     }
-    /* press-wall grain + panel seams, fixed behind content */
+    /* press-wall seams + grain, carried over from the landing page */
     body::before {
       content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      background:
-        repeating-linear-gradient(90deg, transparent 0 calc(clamp(170px,48vw,340px) - 2px), rgba(0,0,0,0.35) calc(clamp(170px,48vw,340px) - 2px) calc(clamp(170px,48vw,340px) - 1px), rgba(255,255,255,0.04) calc(clamp(170px,48vw,340px) - 1px) clamp(170px,48vw,340px));
-      -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.25) 60%, transparent 100%);
-              mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.25) 60%, transparent 100%);
+      background: repeating-linear-gradient(90deg, transparent 0 calc(clamp(170px,48vw,340px) - 2px), rgba(0,0,0,0.3) calc(clamp(170px,48vw,340px) - 2px) calc(clamp(170px,48vw,340px) - 1px), rgba(255,255,255,0.035) calc(clamp(170px,48vw,340px) - 1px) clamp(170px,48vw,340px));
+      -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.2) 55%, transparent 100%);
+              mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.2) 55%, transparent 100%);
     }
     body::after {
-      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .35; mix-blend-mode: overlay;
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .3; mix-blend-mode: overlay;
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 1.2 -.1'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     }
     #app { position: relative; z-index: 1; }
 
-    .pm-display { font-family: 'Playfair Display', Didot, 'Bodoni 72', Georgia, serif; font-weight: 900; letter-spacing: .01em; }
-    .pm-stencil { font-family: 'Playfair Display', Didot, Georgia, serif; font-weight: 900; }
-    .pm-body { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; }
-    .pm-ash { color: #9A9893; }
-    .pm-gold-text { color: #ff1c24; }
-    .pm-glow { text-shadow: 0 0 1px rgba(255,90,90,.9), 0 0 14px rgba(255,20,30,.5), 0 0 40px rgba(255,0,20,.3); }
+    /* ---------- type ---------- */
+    .pm-display { font-family: 'Playfair Display', Didot, Georgia, serif; font-weight: 900; letter-spacing: .005em; }
+    .pm-body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; }
+    .pm-stencil { font-family: 'Outfit', 'Inter', system-ui, sans-serif; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .pm-ash { color: var(--ink-2); }
+    .pm-gold-text { color: var(--gold); }
+    .pm-eyebrow { font-family: 'Inter', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); display: inline-flex; align-items: center; gap: .6rem; margin: 0; }
+    .pm-eyebrow::before { content: ""; width: 18px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--gold-hi), var(--gold-lo)); }
 
+    /* ---------- header ---------- */
+    .pm-header {
+      position: sticky; top: 0; z-index: 30;
+      background: linear-gradient(180deg, rgba(20,20,22,0.92), rgba(20,20,22,0.72));
+      backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+      border-bottom: 1px solid var(--line);
+    }
+    .pm-wordmark {
+      font-size: clamp(22px, 5vw, 28px); text-transform: uppercase; letter-spacing: .04em; line-height: 1; margin: 0;
+      background: linear-gradient(180deg, var(--gold-hi) 0%, var(--gold) 55%, var(--gold-lo) 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .pm-logo-badge {
+      width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0;
+      background: linear-gradient(145deg, rgba(232,184,75,.22), rgba(232,184,75,.06));
+      border: 1px solid rgba(232,184,75,.35);
+    }
+
+    /* ---------- buttons ---------- */
     .pm-btn-gold {
-      background: radial-gradient(circle at 35% 30%, #ff4a4f 0%, #ef1520 45%, #b5000b 100%);
-      color: #0a0a0a; border: none; cursor: pointer;
-      box-shadow: 0 0 18px rgba(255,20,30,.35), 0 6px 14px rgba(0,0,0,.5);
-      transition: box-shadow .2s ease, transform .1s ease;
+      background: linear-gradient(180deg, var(--gold-hi) 0%, var(--gold) 50%, #D9A63A 100%);
+      color: #1a1408; border: none; cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 18px -6px rgba(232,184,75,.55);
+      transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
     }
-    .pm-btn-gold:hover { box-shadow: 0 0 28px rgba(255,30,40,.65), 0 6px 14px rgba(0,0,0,.5); }
-    .pm-btn-gold:active { transform: scale(.97); }
-    .pm-btn-gold:disabled { background: rgba(237,234,230,0.08); color: #6b6966; box-shadow: none; cursor: not-allowed; }
-    .pm-btn-ghost { background-color: transparent; color: #EDEAE6; border: 1px solid rgba(237,234,230,0.18); transition: background-color 0.15s ease; cursor: pointer; }
-    .pm-btn-ghost:hover { background-color: rgba(237,234,230,0.07); }
+    .pm-btn-gold:hover { filter: brightness(1.06); box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 10px 26px -8px rgba(232,184,75,.7); }
+    .pm-btn-gold:active { transform: translateY(1px) scale(.99); }
+    .pm-btn-gold:disabled { background: rgba(242,238,230,0.08); color: #6f6b66; box-shadow: none; filter: none; cursor: not-allowed; }
+    .pm-btn-ghost { background: rgba(242,238,230,0.03); color: var(--ink); border: 1px solid rgba(242,238,230,0.16); transition: background-color .15s ease, border-color .15s ease; cursor: pointer; }
+    .pm-btn-ghost:hover { background: rgba(242,238,230,0.08); border-color: rgba(242,238,230,0.28); }
+    .pm-link { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem .85rem; border-radius: 9999px; font-size: 12.5px; font-weight: 600; border: 1px solid var(--line); background: rgba(242,238,230,.04); color: var(--ink-2); transition: all .15s ease; cursor: pointer; }
+    .pm-link:hover { color: var(--ink); border-color: rgba(242,238,230,.25); background: rgba(242,238,230,.08); }
+    .pm-link-gold { color: #1a1408 !important; border-color: transparent !important; background: linear-gradient(180deg, var(--gold-hi), var(--gold)) !important; }
+    .pm-link-gold:hover { filter: brightness(1.06); }
+    .pm-link-danger { color: #F6C3CA !important; border-color: rgba(220,90,105,.5) !important; background: rgba(156,46,61,.28) !important; }
 
-    .pm-field { background-color: rgba(0,0,0,0.35); border: 1px solid rgba(237,234,230,0.14); color: #EDEAE6; }
-    .pm-field:focus { outline: 2px solid rgba(255,28,36,0.45); outline-offset: 1px; border-color: #ff1c24; }
-    .pm-field::placeholder { color: #6E6C69; }
+    /* ---------- fields ---------- */
+    .pm-field { background-color: rgba(0,0,0,0.28); border: 1px solid rgba(242,238,230,0.13); color: var(--ink); transition: border-color .15s ease, background-color .15s ease; }
+    .pm-field:hover { border-color: rgba(242,238,230,0.22); }
+    .pm-field:focus { outline: 3px solid rgba(232,184,75,0.22); outline-offset: 0; border-color: var(--gold); background-color: rgba(0,0,0,0.38); }
+    .pm-field::placeholder { color: #75716B; }
+    .pm-label { font-family: 'Inter', system-ui, sans-serif; font-size: 12px; font-weight: 600; color: var(--ink-2); display: block; margin-bottom: .45rem; }
 
-    .pm-panel-bg { background-color: #0B0B0C; }
-    .pm-poster-frame { border: 1px solid rgba(255,28,36,0.18); aspect-ratio: 2 / 3; background-color: #0B0B0C; box-shadow: 0 14px 28px -10px rgba(0,0,0,.8); }
-    .pm-icon-btn { background-color: rgba(5,5,6,0.78); border: 1px solid rgba(237,234,230,0.15); transition: background-color 0.15s ease; cursor: pointer; }
-    .pm-icon-btn:hover { background-color: rgba(5,5,6,0.95); }
-
-    /* countdown dial = red projector reel */
-    .pm-dial-outer { border-radius: 9999px; border-style: dashed; border-color: #ff1c24; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 18px rgba(255,20,30,.25); }
-    .pm-dial-inner { border-radius: 9999px; background-color: #050506; border: 1px solid rgba(255,28,36,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .pm-dial-inner .pm-stencil { text-shadow: 0 0 1px rgba(255,90,90,.9), 0 0 12px rgba(255,20,30,.5); }
-    .pm-dial-lg { width: clamp(108px, 24vw, 148px); height: clamp(108px, 24vw, 148px); border-width: 4px; }
-    .pm-dial-sm { width: 46px; height: 46px; border-width: 3px; }
-    .pm-dial-num-lg { font-size: clamp(26px, 6vw, 38px); }
-
-    .pm-hero-divider { border-top: 2px dashed rgba(255,28,36,0.3); padding-top: 1.25rem; }
-    @media (min-width: 640px) {
-      .pm-hero-divider { border-top: none; border-left: 2px dashed rgba(255,28,36,0.3); padding-top: 0; padding-left: 2.5rem; }
+    /* ---------- surfaces ---------- */
+    .pm-panel-bg { background: linear-gradient(180deg, var(--card-2), var(--card)); }
+    .pm-card {
+      background: linear-gradient(180deg, rgba(38,38,42,.85), rgba(26,26,29,.85));
+      border: 1px solid var(--line); border-radius: 22px;
+      box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 30px 60px -24px rgba(0,0,0,.8);
     }
-    .pm-perf { border: none; border-top: 2px dashed rgba(255,28,36,0.2); margin: 2.5rem 0 1.25rem; }
-    .pm-modal-backdrop { background-color: rgba(5,5,6,0.85); backdrop-filter: blur(4px); }
+    .pm-hero-card { border-color: rgba(232,184,75,.22); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 40px 80px -30px rgba(0,0,0,.9), 0 0 80px -30px rgba(232,184,75,.25); }
 
-    /* wordmark: projected PREMIERE */
-    .pm-wordmark { font-size: clamp(26px, 6vw, 36px); text-transform: uppercase; letter-spacing: .02em; color: #ff1c24 !important; }
-    .pm-hero-title { font-size: clamp(22px, 4.5vw, 34px); line-height: 1.15; }
+    .pm-poster-frame {
+      aspect-ratio: 2 / 3; border-radius: 14px;
+      border: 1px solid rgba(242,238,230,0.1);
+      background: linear-gradient(160deg, #2a2a2e, #18181b);
+      box-shadow: 0 18px 32px -14px rgba(0,0,0,.85);
+      transition: border-color .25s ease, box-shadow .25s ease;
+    }
+    .pm-tile { transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+    .pm-tile:hover { transform: translateY(-4px); }
+    .pm-tile:hover .pm-poster-frame { border-color: rgba(232,184,75,.45); box-shadow: 0 24px 40px -14px rgba(0,0,0,.9), 0 0 30px -10px rgba(232,184,75,.35); }
+    .pm-tile-actions { transition: opacity .2s ease; }
+    @media (hover: hover) { .pm-tile-actions { opacity: 0; } .pm-tile:hover .pm-tile-actions, .pm-tile:focus-within .pm-tile-actions { opacity: 1; } }
 
-    /* silver-screen surface for hero + empty states */
-    .pm-screen { position: relative; background-color: #050506; box-shadow: 0 30px 60px -12px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.04), inset 0 1px 0 rgba(255,255,255,.06); }
-    .pm-screen::before {
-      content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-      background: radial-gradient(ellipse 55% 75% at 50% 50%, rgba(205,210,220,.10), rgba(150,155,165,.04) 55%, transparent 80%);
-    }
-    .pm-screen::after {
-      content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; opacity: .45;
-      background-image: radial-gradient(rgba(0,0,0,.55) .6px, transparent .9px); background-size: 4px 4px;
-    }
-    .pm-screen > *:not(.absolute) { position: relative; z-index: 1; }
-    .pm-screen > .absolute { z-index: 0; }
+    .pm-icon-btn { background-color: rgba(14,14,16,0.82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(242,238,230,0.18); transition: background-color 0.15s ease, border-color .15s ease; cursor: pointer; }
+    .pm-icon-btn:hover { background-color: rgba(14,14,16,0.96); border-color: rgba(232,184,75,.5); }
 
-    .pm-focus-visible:focus-visible { outline: 2px solid #ff1c24; outline-offset: 2px; }
-    @media (prefers-reduced-motion: reduce) {
-      * { transition-duration: 0.01ms !important; }
+    /* ---------- countdown dial: gold ring, sans numerals ---------- */
+    .pm-dial-outer {
+      border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      background: conic-gradient(from 210deg, var(--gold-hi), var(--gold) 35%, var(--gold-lo) 60%, var(--gold) 80%, var(--gold-hi));
+      box-shadow: 0 10px 30px -10px rgba(232,184,75,.5), 0 0 0 1px rgba(0,0,0,.5);
     }
+    .pm-dial-inner {
+      border-radius: 9999px; background: radial-gradient(circle at 50% 30%, #2a2a2e, #141416 70%);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,.65);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .pm-dial-lg { width: clamp(112px, 25vw, 150px); height: clamp(112px, 25vw, 150px); }
+    .pm-dial-lg .pm-dial-inner { width: 88%; height: 88%; }
+    .pm-dial-sm { width: 46px; height: 46px; }
+    .pm-dial-sm .pm-dial-inner { width: 84%; height: 84%; }
+    .pm-dial-num { color: var(--ink); line-height: 1; }
+    .pm-dial-num-lg { font-size: clamp(32px, 7.5vw, 46px); }
+    .pm-dial-num-sm { font-size: 12px; }
+    .pm-dial-num-word { font-size: clamp(20px, 4.6vw, 26px); }
+
+    .pm-hero-divider { border-top: 1px solid var(--line); padding-top: 1.5rem; }
+    @media (min-width: 640px) { .pm-hero-divider { border-top: none; border-left: 1px solid var(--line); padding-top: 0; padding-left: 2.5rem; } }
+    .pm-perf { border: none; height: 1px; background: linear-gradient(90deg, transparent, rgba(232,184,75,.3), transparent); margin: 3rem 0 1.5rem; }
+    .pm-modal-backdrop { background-color: rgba(8,8,9,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .pm-modal { animation: pmIn .22s cubic-bezier(.2,.8,.2,1); }
+    @keyframes pmIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+    .pm-hero-title { font-size: clamp(26px, 5.2vw, 40px); line-height: 1.1; }
+    .pm-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .7rem; border-radius: 9999px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); background: rgba(242,238,230,.06); border: 1px solid var(--line); }
+
+    .pm-focus-visible:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation: none !important; } }
   </style>
 </head>
 <body class="pm-body">
@@ -496,7 +543,7 @@
       if (!url || errored) {
         return `
           <div class="pm-poster-frame rounded-lg w-full flex items-center justify-center">
-            <i data-lucide="film" class="w-1/4 h-1/4" style="color: rgba(255,28,36,0.3)" stroke-width="1.5"></i>
+            <i data-lucide="clapperboard" class="w-1/4 h-1/4" style="color: rgba(232,184,75,0.45)" stroke-width="1.5"></i>
           </div>
         `;
       }
@@ -506,18 +553,18 @@
     const CountdownDialTpl = (days, size) => {
       const isLg = size === 'lg';
       let label;
-      if (days <= 0) label = isLg ? 'TODAY' : 'NOW';
-      else if (days === 1) label = isLg ? 'TOMORROW' : '1D';
+      if (days <= 0) label = isLg ? 'Today' : 'NOW';
       else label = isLg ? String(days) : `${days}D`;
-      const showUnit = isLg && days > 1;
+      const showUnit = isLg && days >= 1;
+      const numClass = !isLg ? 'pm-dial-num-sm' : (days <= 0 ? 'pm-dial-num-word' : 'pm-dial-num-lg');
 
       return `
         <div class="pm-dial-outer ${isLg ? 'pm-dial-lg' : 'pm-dial-sm'}">
-          <div class="pm-dial-inner" style="width: 78%; height: 78%">
-            <span class="pm-stencil pm-gold-text leading-none font-extrabold ${isLg ? 'pm-dial-num-lg' : 'text-xs'}">
+          <div class="pm-dial-inner">
+            <span class="pm-stencil pm-dial-num ${numClass}">
               ${label}
             </span>
-            ${showUnit ? `<span class="pm-body tracking-widest mt-1" style="color: #ff5a5f; font-size: 10px;">DAYS TO GO</span>` : ''}
+            ${showUnit ? `<span class="pm-body mt-1.5" style="color: #E8B84B; font-size: 10px; font-weight: 700; letter-spacing: .16em;">${days === 1 ? 'DAY TO GO' : 'DAYS TO GO'}</span>` : ''}
           </div>
         </div>
       `;
@@ -526,28 +573,28 @@
     const MovieCardTpl = (movie, days, released) => {
       const isConfirming = confirmDeleteId === movie.id;
       return `
-        <div>
+        <div class="pm-tile">
           <div class="relative">
             ${PosterTpl(movie.posterUrl, movie.title, imgErrors[movie.id], movie.id)}
             ${!released ? `<div class="absolute -top-2 -right-2">${CountdownDialTpl(days, 'sm')}</div>` : ''}
 
-            <div class="absolute top-1.5 left-1.5 flex gap-1">
-              <button onclick="openEdit('${movie.id}')" aria-label="Edit movie" class="pm-icon-btn pm-focus-visible rounded-full w-6 h-6 flex items-center justify-center">
-                <i data-lucide="pencil" class="w-3 h-3" style="color: #EDEAE6"></i>
+            <div class="pm-tile-actions absolute top-2 left-2 flex gap-1">
+              <button onclick="openEdit('${movie.id}')" aria-label="Edit movie" class="pm-icon-btn pm-focus-visible rounded-full w-7 h-7 flex items-center justify-center">
+                <i data-lucide="pencil" class="w-3 h-3" style="color: #F2EEE6"></i>
               </button>
               ${!released ? `
-              <a href="${escapeHtml(calendarUrl(movie))}" target="_blank" rel="noopener noreferrer" aria-label="Add to Google Calendar" class="pm-icon-btn pm-focus-visible rounded-full w-6 h-6 flex items-center justify-center">
-                <i data-lucide="calendar-plus" class="w-3 h-3" style="color: #EDEAE6"></i>
+              <a href="${escapeHtml(calendarUrl(movie))}" target="_blank" rel="noopener noreferrer" aria-label="Add to Google Calendar" class="pm-icon-btn pm-focus-visible rounded-full w-7 h-7 flex items-center justify-center">
+                <i data-lucide="calendar-plus" class="w-3 h-3" style="color: #F2EEE6"></i>
               </a>
               ` : ''}
-              <button onclick="requestDelete('${movie.id}')" aria-label="Remove movie" class="pm-icon-btn pm-focus-visible rounded-full h-6 px-1.5 flex items-center justify-center" style="background-color: ${isConfirming ? '#9C2E3D' : ''}">
-                <i data-lucide="trash-2" class="w-3 h-3" style="color: #EDEAE6"></i>
-                ${isConfirming ? `<span class="pm-body ml-1 text-xs" style="color: #EDEAE6">Sure?</span>` : ''}
+              <button onclick="requestDelete('${movie.id}')" aria-label="Remove movie" class="pm-icon-btn pm-focus-visible rounded-full h-7 px-2 flex items-center justify-center" style="background-color: ${isConfirming ? '#9C2E3D' : ''}">
+                <i data-lucide="trash-2" class="w-3 h-3" style="color: #F2EEE6"></i>
+                ${isConfirming ? `<span class="pm-body ml-1 text-xs" style="color: #F2EEE6">Sure?</span>` : ''}
               </button>
             </div>
           </div>
-          <p class="pm-body mt-2 text-sm font-semibold truncate" style="color: #EDEAE6">${escapeHtml(movie.title)}</p>
-          <p class="pm-body pm-ash text-xs">${released ? formatAgo(days) : formatDate(movie.releaseDate)}</p>
+          <p class="pm-body mt-3 text-sm font-semibold truncate" style="color: #F2EEE6">${escapeHtml(movie.title)}</p>
+          <p class="pm-body pm-ash text-xs mt-0.5">${released ? formatAgo(days) : formatDate(movie.releaseDate)}</p>
         </div>
       `;
     };
@@ -560,40 +607,40 @@
 
       return `
         <div class="pm-modal-backdrop fixed inset-0 flex items-center justify-center p-4 z-50" onclick="closeForm()">
-          <div id="pm-modal-panel" role="dialog" aria-modal="true" aria-labelledby="pm-modal-title" class="pm-screen pm-panel-bg w-full max-w-md rounded-2xl p-6 overflow-y-auto" style="max-height: 88vh; border: 1px solid rgba(237,234,230,0.1)" onclick="event.stopPropagation()">
+          <div id="pm-modal-panel" role="dialog" aria-modal="true" aria-labelledby="pm-modal-title" class="pm-modal pm-panel-bg w-full max-w-md rounded-3xl p-6 sm:p-7 overflow-y-auto" style="max-height: 88vh; border: 1px solid rgba(232,184,75,0.22); box-shadow: 0 40px 80px -20px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between mb-5">
-              <h3 id="pm-modal-title" class="pm-display text-2xl uppercase pm-gold-text pm-glow">${editingId ? 'Edit Movie' : 'Add Movie'}</h3>
-              <button onclick="closeForm()" aria-label="Close" class="pm-focus-visible">
-                <i data-lucide="x" class="w-5 h-5 pm-ash"></i>
+              <h3 id="pm-modal-title" class="pm-display text-2xl" style="color: #F2EEE6">${editingId ? 'Edit Movie' : 'Add Movie'}</h3>
+              <button onclick="closeForm()" aria-label="Close" class="pm-icon-btn pm-focus-visible rounded-full w-8 h-8 flex items-center justify-center">
+                <i data-lucide="x" class="w-4 h-4 pm-ash"></i>
               </button>
             </div>
 
             <div class="space-y-4">
               <div>
-                <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Title</label>
-                <input id="form-title" type="text" value="${escapeHtml(movie.title)}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" placeholder="e.g. Dune: Part Three" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" />
+                <label class="pm-label">Title</label>
+                <input id="form-title" type="text" value="${escapeHtml(movie.title)}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" placeholder="e.g. Dune: Part Three" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm" />
               </div>
               <div>
-                <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Release Date</label>
-                <input id="form-release" type="date" value="${escapeHtml(movie.releaseDate)}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" style="color-scheme: dark" />
+                <label class="pm-label">Release Date</label>
+                <input id="form-release" type="date" value="${escapeHtml(movie.releaseDate)}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm" style="color-scheme: dark" />
               </div>
               <div>
-                <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Poster Image URL</label>
-                <input id="form-poster" type="text" value="${escapeHtml(movie.posterUrl)}" oninput="updatePreview(this.value)" onkeydown="submitOnEnter(event)" placeholder="https://…" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm" />
+                <label class="pm-label">Poster Image URL</label>
+                <input id="form-poster" type="text" value="${escapeHtml(movie.posterUrl)}" oninput="updatePreview(this.value)" onkeydown="submitOnEnter(event)" placeholder="https://…" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm" />
 
                 <div id="poster-preview-container" class="pm-poster-frame rounded-lg overflow-hidden mt-2" style="width: 72px; display: ${movie.posterUrl ? 'block' : 'none'}">
                   <img id="poster-preview-img" src="${escapeHtml(movie.posterUrl)}" alt="Preview" class="w-full h-full object-cover" onerror="this.style.display='none'" />
                 </div>
               </div>
               <div>
-                <label class="pm-body pm-ash text-xs uppercase tracking-widest block mb-1.5">Notes</label>
-                <textarea id="form-notes" placeholder="Genre, who you're seeing it with, why you're hyped…" rows="2" class="pm-field pm-body w-full rounded-lg px-3 py-2 text-sm resize-none">${escapeHtml(movie.notes || '')}</textarea>
+                <label class="pm-label">Notes</label>
+                <textarea id="form-notes" placeholder="Genre, who you're seeing it with, why you're hyped…" rows="2" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm resize-none">${escapeHtml(movie.notes || '')}</textarea>
               </div>
             </div>
 
             <div class="flex gap-3 mt-6">
-              <button onclick="closeForm()" class="pm-btn-ghost pm-body flex-1 rounded-full py-2.5 text-sm font-medium">Cancel</button>
-              <button id="form-submit-btn" onclick="submitForm()" ${!movie.title || !movie.releaseDate ? 'disabled' : ''} class="pm-btn-gold pm-body flex-1 rounded-full py-2.5 text-sm font-semibold">
+              <button onclick="closeForm()" class="pm-btn-ghost pm-body flex-1 rounded-full py-3 text-sm font-medium">Cancel</button>
+              <button id="form-submit-btn" onclick="submitForm()" ${!movie.title || !movie.releaseDate ? 'disabled' : ''} class="pm-btn-gold pm-body flex-1 rounded-full py-3 text-sm font-semibold">
                 ${editingId ? 'Save Changes' : 'Add Movie'}
               </button>
             </div>
@@ -620,25 +667,26 @@
       const heroDays = hero ? daysUntil(hero.releaseDate) : 0;
       const isHeroConfirming = hero && confirmDeleteId === hero.id;
 
-      html += `<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">`;
+      
 
       // Header Area (with Auth Controls)
       html += `
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-          <div class="flex items-center gap-2">
-            <i data-lucide="clapperboard" class="w-6 h-6" style="color: #ff1c24; filter: drop-shadow(0 0 6px rgba(255,20,30,.5))"></i>
-            <h1 class="pm-display pm-wordmark pm-glow">Premiere</h1>
-          </div>
-
-          <div class="flex items-center gap-4">
+        <header class="pm-header">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+          <a href="https://www.jstafki.com/projects/premiere/" class="flex items-center gap-2.5 pm-focus-visible rounded-lg">
+            <span class="pm-logo-badge"><i data-lucide="clapperboard" class="w-[18px] h-[18px]" style="color: #E8B84B"></i></span>
+            <h1 class="pm-display pm-wordmark">Premiere</h1>
+          </a>
+          <div class="flex items-center gap-3 sm:gap-4">
             ${currentUser
               ? `
                 <div class="flex items-center gap-3">
-                  ${currentUser.photoURL ? `<img src="${escapeHtml(currentUser.photoURL)}" alt="Avatar" class="w-8 h-8 rounded-full border border-neutral-700">` : ''}
-                  <button onclick="logout()" class="pm-body pm-ash text-sm hover:text-white transition-colors pm-focus-visible">Sign Out</button>
+                  ${currentUser.photoURL ? `<img src="${escapeHtml(currentUser.photoURL)}" alt="Avatar" class="w-8 h-8 rounded-full" style="box-shadow: 0 0 0 2px #141416, 0 0 0 3px rgba(232,184,75,.55)">` : ''}
+                  <button onclick="logout()" class="pm-body pm-ash text-sm font-medium hover:text-white transition-colors pm-focus-visible hidden sm:inline">Sign out</button>
+                  <button onclick="logout()" aria-label="Sign out" class="pm-body pm-ash hover:text-white transition-colors pm-focus-visible sm:hidden"><i data-lucide="log-out" class="w-4 h-4"></i></button>
                 </div>
                 <button onclick="openAdd()" class="pm-btn-gold pm-body flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold pm-focus-visible">
-                  <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add Movie
+                  <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> <span class="hidden sm:inline">Add Movie</span><span class="sm:hidden">Add</span>
                 </button>
               `
               : `
@@ -649,25 +697,27 @@
             }
           </div>
         </div>
+        </header>
       `;
+      html += `<main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">`;
 
       // Main Content State Logic
       if (!ready) {
-        html += `<div class="pm-body pm-ash text-center py-24">Rolling film…</div>`;
+        html += `<div class="pm-body pm-ash text-center py-24 flex flex-col items-center gap-4"><i data-lucide="loader-circle" class="w-6 h-6 animate-spin" style="color: #E8B84B"></i>Rolling film…</div>`;
       }
       else if (!currentUser) {
         // Logged Out State
         html += `
-          <div class="pm-screen text-center py-24 px-6 rounded-3xl">
-            <i data-lucide="ticket" class="w-12 h-12 mx-auto mb-5" style="color: rgba(255,28,36,0.5)"></i>
-            <h2 class="pm-display text-3xl sm:text-4xl uppercase mb-3 pm-gold-text pm-glow">Your Personal Watchlist</h2>
-            <p class="pm-body pm-ash max-w-md mx-auto mb-8">Sign in to sync your upcoming movie hype across all your devices and never miss a release date.</p>
+          <div class="pm-card pm-hero-card text-center py-20 sm:py-24 px-6">
+            <div class="pm-logo-badge mx-auto mb-6" style="width:64px;height:64px;border-radius:18px"><i data-lucide="ticket" class="w-7 h-7" style="color: #E8B84B"></i></div>
+            <h2 class="pm-display text-3xl sm:text-4xl mb-3" style="color: #F2EEE6">Your personal watchlist</h2>
+            <p class="pm-body pm-ash max-w-md mx-auto mb-8 leading-relaxed">Sign in to sync your upcoming movie hype across all your devices and never miss a release date.</p>
             ${authError ? `
-              <p class="pm-body text-xs mb-5 max-w-sm mx-auto rounded-lg px-3 py-2" style="color: #EDEAE6; background-color: rgba(156,46,61,0.25); border: 1px solid rgba(156,46,61,0.5)">
+              <p class="pm-body text-xs mb-5 max-w-sm mx-auto rounded-lg px-3 py-2" style="color: #F6D5DA; background-color: rgba(156,46,61,0.22); border: 1px solid rgba(220,90,105,0.45)">
                 Sign-in didn't go through. Check that popups are allowed for this site and try again.
               </p>
             ` : ''}
-            <button onclick="loginWithGoogle()" class="pm-btn-gold pm-body inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg pm-focus-visible">
+            <button onclick="loginWithGoogle()" class="pm-btn-gold pm-body inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold pm-focus-visible"><i data-lucide="log-in" class="w-4 h-4"></i>
               Sign in with Google
             </button>
           </div>
@@ -677,7 +727,7 @@
         // Logged In States
         if (legacyMovies && legacyMovies.length > 0) {
           html += `
-            <div class="pm-body text-xs mb-6 rounded-lg px-3 py-3 flex items-center justify-between gap-3 flex-wrap" style="color: #EDEAE6; background-color: rgba(255,28,36,0.12); border: 1px solid rgba(255,28,36,0.35)">
+            <div class="pm-body text-xs mb-6 rounded-lg px-3 py-3 flex items-center justify-between gap-3 flex-wrap" style="color: #F2EEE6; background-color: rgba(232,184,75,0.12); border: 1px solid rgba(232,184,75,0.35)">
               <span>Found ${legacyMovies.length} movie${legacyMovies.length > 1 ? 's' : ''} from before this update — want to bring ${legacyMovies.length > 1 ? 'them' : 'it'} over?</span>
               <div class="flex gap-2">
                 <button onclick="importLegacyMovies()" class="pm-btn-gold pm-body rounded-full px-3 py-1.5 text-xs font-semibold pm-focus-visible">Import</button>
@@ -689,7 +739,7 @@
 
         if (saveIssue) {
           html += `
-            <div class="pm-body text-xs mb-6 rounded-lg px-3 py-2" style="color: #EDEAE6; background-color: rgba(156,46,61,0.25); border: 1px solid rgba(156,46,61,0.5)">
+            <div class="pm-body text-xs mb-6 rounded-lg px-3 py-2" style="color: #F6D5DA; background-color: rgba(156,46,61,0.22); border: 1px solid rgba(220,90,105,0.45)">
               Changes aren't syncing to the cloud right now. Check your connection or Firestore security rules.
             </div>
           `;
@@ -697,9 +747,9 @@
 
         if (movies.length === 0) {
           html += `
-            <div class="pm-screen text-center py-20 px-6 rounded-3xl">
-              <i data-lucide="sparkles" class="w-8 h-8 mx-auto mb-4" style="color: rgba(255,28,36,0.6)"></i>
-              <p class="pm-display text-3xl uppercase pm-gold-text pm-glow">No movies yet</p>
+            <div class="pm-card text-center py-20 px-6">
+              <div class="pm-logo-badge mx-auto mb-5" style="width:56px;height:56px;border-radius:16px"><i data-lucide="sparkles" class="w-6 h-6" style="color: #E8B84B"></i></div>
+              <p class="pm-display text-3xl" style="color: #F2EEE6">No movies yet</p>
               <p class="pm-body pm-ash mt-2 mb-6">Add the next release you can't stop thinking about.</p>
               <button onclick="openAdd()" class="pm-btn-gold pm-body inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold pm-focus-visible">
                 <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add a movie
@@ -710,34 +760,34 @@
           // Hero Section
           if (hero) {
             html += `
-              <div class="pm-screen relative rounded-2xl overflow-hidden">
+              <div class="pm-card pm-hero-card relative overflow-hidden">
                 <div class="absolute inset-0">
                   ${hero.posterUrl && !imgErrors[hero.id]
-                    ? `<img src="${escapeHtml(hero.posterUrl)}" alt="" class="w-full h-full object-cover blur-2xl scale-110 opacity-40" />`
-                    : `<div class="w-full h-full pm-panel-bg"></div>`
+                    ? `<img src="${escapeHtml(hero.posterUrl)}" alt="" class="w-full h-full object-cover blur-3xl scale-125 opacity-50" />`
+                    : `<div class="w-full h-full" style="background: radial-gradient(ellipse at 20% 30%, rgba(232,184,75,.12), transparent 60%)"></div>`
                   }
-                  <div class="absolute inset-0" style="background: linear-gradient(to top, #050506 15%, rgba(5,5,6,0.9) 55%, rgba(5,5,6,0.6) 100%)"></div>
+                  <div class="absolute inset-0" style="background: linear-gradient(105deg, rgba(20,20,22,.55) 0%, rgba(20,20,22,.88) 45%, rgba(20,20,22,.96) 100%)"></div>
                 </div>
-                <div class="relative flex flex-col sm:flex-row items-center gap-6 p-6 sm:p-9">
+                <div class="relative flex flex-col sm:flex-row items-center gap-7 p-6 sm:p-10">
                   <div class="flex flex-col sm:flex-row items-center gap-5 shrink-0">
-                    <div style="width: clamp(92px, 22vw, 128px)">
+                    <div style="width: clamp(104px, 24vw, 140px)">
                       ${PosterTpl(hero.posterUrl, hero.title, imgErrors[hero.id], hero.id)}
                     </div>
                     ${CountdownDialTpl(heroDays, 'lg')}
                   </div>
                   <div class="pm-hero-divider text-center sm:text-left w-full sm:flex-1">
-                    <p class="pm-body text-xs uppercase tracking-widest font-bold mb-2" style="color: #EDEAE6">Up Next</p>
-                    <h2 class="pm-display pm-hero-title pm-gold-text pm-glow">${escapeHtml(hero.title)}</h2>
-                    <p class="pm-body pm-ash text-sm mt-1.5">${formatDate(hero.releaseDate)}</p>
-                    ${hero.notes ? `<p class="pm-body text-sm mt-3 mx-auto sm:mx-0" style="color: rgba(237,234,230,0.7); max-width: 440px">${escapeHtml(hero.notes)}</p>` : ''}
-                    <div class="flex items-center gap-4 justify-center sm:justify-start mt-4 flex-wrap">
-                      <button onclick="openEdit('${hero.id}')" class="pm-body pm-ash flex items-center gap-1 text-xs pm-focus-visible">
+                    <p class="pm-eyebrow mb-3">Up next</p>
+                    <h2 class="pm-display pm-hero-title" style="color: #F2EEE6">${escapeHtml(hero.title)}</h2>
+                    <p class="mt-3"><span class="pm-chip pm-body"><i data-lucide="calendar" class="w-3.5 h-3.5"></i>${formatDate(hero.releaseDate)}</span></p>
+                    ${hero.notes ? `<p class="pm-body text-sm mt-3 mx-auto sm:mx-0" style="color: #BDB8AF; max-width: 460px; line-height: 1.6">${escapeHtml(hero.notes)}</p>` : ''}
+                    <div class="flex items-center gap-2 justify-center sm:justify-start mt-6 flex-wrap">
+                      <button onclick="openEdit('${hero.id}')" class="pm-link pm-body pm-focus-visible">
                         <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
                       </button>
-                      <a href="${escapeHtml(calendarUrl(hero))}" target="_blank" rel="noopener noreferrer" class="pm-body pm-gold-text flex items-center gap-1 text-xs font-semibold pm-focus-visible">
+                      <a href="${escapeHtml(calendarUrl(hero))}" target="_blank" rel="noopener noreferrer" class="pm-link pm-link-gold pm-body pm-focus-visible">
                         <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> Add to Calendar
                       </a>
-                      <button onclick="requestDelete('${hero.id}')" class="pm-body flex items-center gap-1 text-xs pm-focus-visible" style="color: ${isHeroConfirming ? '#E8828F' : '#9A9893'}; font-weight: ${isHeroConfirming ? 600 : 400}">
+                      <button onclick="requestDelete('${hero.id}')" class="pm-link pm-body pm-focus-visible ${isHeroConfirming ? 'pm-link-danger' : ''}">
                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> ${isHeroConfirming ? 'Tap again to remove' : 'Remove'}
                       </button>
                     </div>
@@ -751,8 +801,8 @@
           if (restUpcoming.length > 0) {
             html += `
               <hr class="pm-perf" />
-              <p class="pm-body pm-gold-text text-xs uppercase tracking-widest font-bold mb-4">Coming Soon</p>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6">
+              <div class="flex items-baseline justify-between mb-5"><p class="pm-eyebrow">Coming soon</p><span class="pm-body text-xs pm-ash">${restUpcoming.length} title${restUpcoming.length > 1 ? 's' : ''}</span></div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 sm:gap-x-5 gap-y-7">
                 ${restUpcoming.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), false)).join('')}
               </div>
             `;
@@ -762,8 +812,8 @@
           if (released.length > 0) {
             html += `
               ${hero ? '<hr class="pm-perf" />' : ''}
-              <p class="pm-body text-xs uppercase tracking-widest font-semibold mb-4" style="color: #6E6C69">Now Showing</p>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6 opacity-60">
+              <div class="flex items-baseline justify-between mb-5"><p class="pm-eyebrow" style="color: #BDB8AF">Now showing</p><span class="pm-body text-xs pm-ash">${released.length} title${released.length > 1 ? 's' : ''}</span></div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 sm:gap-x-5 gap-y-7" style="filter: saturate(.6); opacity: .75">
                 ${released.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), true)).join('')}
               </div>
             `;
@@ -771,7 +821,7 @@
         }
       }
 
-      html += `</div>`;
+      html += `</main>`;
       html += FormModalTpl();
 
       appContainer.innerHTML = html;
