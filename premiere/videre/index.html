@@ -5,28 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#141416">
   <title>Premiere — A Countdown for Every Premiere</title>
-  <meta name="description" content="Track every movie release with a live countdown. Add a title, a date, and a poster — Premiere handles the rest." />
+  <meta name="description" content="Track every movie, TV show, and video game release with a live countdown. Add a title, a date, and a poster — Premiere handles the rest." />
   <link rel="icon" type="image/png" href="https://www.jstafki.com/assets/prem.png">
   <link rel="apple-touch-icon" href="https://www.jstafki.com/assets/prem.png">
-
   <!-- Open Graph (Facebook, LinkedIn, Slack, iMessage, etc.) -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Premiere — A Countdown for Every Premiere" />
-  <meta property="og:description" content="Track every movie release with a live countdown. Add a title, a date, and a poster — Premiere handles the rest." />
+  <meta property="og:description" content="Track every movie, TV show, and video game release with a live countdown. Add a title, a date, and a poster — Premiere handles the rest." />
   <meta property="og:image" content="https://www.jstafki.com/assets/premiere/IMG_5730.png" />
   <meta property="og:url" content="https://www.jstafki.com/premiere/videre/" />
-
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Premiere — A Countdown for Every Premiere" />
-  <meta name="twitter:description" content="Track every movie release with a live countdown. Add a title, a date, and a poster — Premiere handles the rest." />
+  <meta name="twitter:description" content="Track every movie, TV show, and video game release with a live countdown. Add a title, a date, and a poster — Premiere handles the rest." />
   <meta name="twitter:image" content="https://www.jstafki.com/assets/premiere/IMG_5730.png" />
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@1.24.0"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap');
-
     /* ---------- Premiere palette ----------
        charcoal  #141416 / #1C1C1F / #232327
        gold      #E8B84B  (hi #F6D27A, lo #B8892A)
@@ -60,7 +56,6 @@
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 1.2 -.1'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     }
     #app { position: relative; z-index: 1; }
-
     /* ---------- type ---------- */
     .pm-display { font-family: 'Playfair Display', Didot, Georgia, serif; font-weight: 900; letter-spacing: .005em; }
     .pm-body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; }
@@ -69,7 +64,6 @@
     .pm-gold-text { color: var(--gold); }
     .pm-eyebrow { font-family: 'Inter', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); display: inline-flex; align-items: center; gap: .6rem; margin: 0; }
     .pm-eyebrow::before { content: ""; width: 18px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--gold-hi), var(--gold-lo)); }
-
     /* ---------- header ---------- */
     .pm-header {
       position: sticky; top: 0; z-index: 30;
@@ -87,7 +81,6 @@
       background: linear-gradient(145deg, rgba(232,184,75,.22), rgba(232,184,75,.06));
       border: 1px solid rgba(232,184,75,.35);
     }
-
     /* ---------- buttons ---------- */
     .pm-btn-gold {
       background: linear-gradient(180deg, var(--gold-hi) 0%, var(--gold) 50%, #D9A63A 100%);
@@ -105,14 +98,30 @@
     .pm-link-gold { color: #1a1408 !important; border-color: transparent !important; background: linear-gradient(180deg, var(--gold-hi), var(--gold)) !important; }
     .pm-link-gold:hover { filter: brightness(1.06); }
     .pm-link-danger { color: #F6C3CA !important; border-color: rgba(220,90,105,.5) !important; background: rgba(156,46,61,.28) !important; }
-
     /* ---------- fields ---------- */
     .pm-field { background-color: rgba(0,0,0,0.28); border: 1px solid rgba(242,238,230,0.13); color: var(--ink); transition: border-color .15s ease, background-color .15s ease; }
     .pm-field:hover { border-color: rgba(242,238,230,0.22); }
     .pm-field:focus { outline: 3px solid rgba(232,184,75,0.22); outline-offset: 0; border-color: var(--gold); background-color: rgba(0,0,0,0.38); }
     .pm-field::placeholder { color: #75716B; }
     .pm-label { font-family: 'Inter', system-ui, sans-serif; font-size: 12px; font-weight: 600; color: var(--ink-2); display: block; margin-bottom: .45rem; }
-
+    /* ---------- category picker (form) ---------- */
+    .pm-seg { display: block; cursor: pointer; }
+    .pm-seg span {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem;
+      padding: .7rem .5rem; border-radius: 12px; font-size: 12px; font-weight: 600; text-align: center;
+      color: var(--ink-2); background: rgba(0,0,0,0.28); border: 1px solid rgba(242,238,230,0.13);
+      transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+    }
+    .pm-seg:hover span { border-color: rgba(242,238,230,0.25); }
+    .pm-seg input:checked + span { color: var(--ink); border-color: var(--gold); background: rgba(232,184,75,0.12); box-shadow: inset 0 0 0 1px rgba(232,184,75,.35); }
+    .pm-seg input:checked + span svg { color: var(--gold); }
+    .pm-seg input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: 2px; }
+    /* ---------- section tabs (mobile/tablet only) ---------- */
+    .pm-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; padding: .3rem; border-radius: 9999px; background: rgba(0,0,0,0.3); border: 1px solid var(--line); }
+    .pm-tab { display: flex; align-items: center; justify-content: center; gap: .4rem; padding: .55rem .4rem; border-radius: 9999px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); background: transparent; border: none; cursor: pointer; transition: all .15s ease; white-space: nowrap; }
+    .pm-tab:hover { color: var(--ink); }
+    .pm-tab[aria-selected="true"] { color: #1a1408; background: linear-gradient(180deg, var(--gold-hi), var(--gold)); }
+    .pm-tab-count { font-size: 11px; opacity: .7; font-variant-numeric: tabular-nums; }
     /* ---------- surfaces ---------- */
     .pm-panel-bg { background: linear-gradient(180deg, var(--card-2), var(--card)); }
     .pm-card {
@@ -121,7 +130,8 @@
       box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 30px 60px -24px rgba(0,0,0,.8);
     }
     .pm-hero-card { border-color: rgba(232,184,75,.22); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 40px 80px -30px rgba(0,0,0,.9), 0 0 80px -30px rgba(232,184,75,.25); }
-
+    .pm-section-head { border-bottom: 1px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.25rem; }
+    .pm-sub-divider { border: none; height: 1px; background: linear-gradient(90deg, transparent, rgba(232,184,75,.25), transparent); margin: 1.75rem 0 1.25rem; }
     .pm-poster-frame {
       aspect-ratio: 2 / 3; border-radius: 14px;
       border: 1px solid rgba(242,238,230,0.1);
@@ -134,10 +144,8 @@
     .pm-tile:hover .pm-poster-frame { border-color: rgba(232,184,75,.45); box-shadow: 0 24px 40px -14px rgba(0,0,0,.9), 0 0 30px -10px rgba(232,184,75,.35); }
     .pm-tile-actions { transition: opacity .2s ease; }
     @media (hover: hover) { .pm-tile-actions { opacity: 0; } .pm-tile:hover .pm-tile-actions, .pm-tile:focus-within .pm-tile-actions { opacity: 1; } }
-
     .pm-icon-btn { background-color: rgba(14,14,16,0.82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(242,238,230,0.18); transition: background-color 0.15s ease, border-color .15s ease; cursor: pointer; }
     .pm-icon-btn:hover { background-color: rgba(14,14,16,0.96); border-color: rgba(232,184,75,.5); }
-
     /* ---------- countdown dial: gold ring, sans numerals ---------- */
     .pm-dial-outer {
       border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
@@ -157,7 +165,6 @@
     .pm-dial-num-lg { font-size: clamp(32px, 7.5vw, 46px); }
     .pm-dial-num-sm { font-size: 12px; }
     .pm-dial-num-word { font-size: clamp(20px, 4.6vw, 26px); }
-
     .pm-hero-divider { border-top: 1px solid var(--line); padding-top: 1.5rem; }
     @media (min-width: 640px) { .pm-hero-divider { border-top: none; border-left: 1px solid var(--line); padding-top: 0; padding-left: 2.5rem; } }
     .pm-perf { border: none; height: 1px; background: linear-gradient(90deg, transparent, rgba(232,184,75,.3), transparent); margin: 3rem 0 1.5rem; }
@@ -166,15 +173,13 @@
     @keyframes pmIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
     .pm-hero-title { font-size: clamp(26px, 5.2vw, 40px); line-height: 1.1; }
     .pm-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .7rem; border-radius: 9999px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); background: rgba(242,238,230,.06); border: 1px solid var(--line); }
-
+    .pm-chip-gold { color: var(--gold); border-color: rgba(232,184,75,.35); background: rgba(232,184,75,.08); }
     .pm-focus-visible:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
     @media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation: none !important; } }
   </style>
 </head>
 <body class="pm-body">
-
   <div id="app"></div>
-
   <script type="module">
     // 1. Firebase SDK Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -183,14 +188,14 @@
 
     // 2. PASTE YOUR CONFIG HERE
     const firebaseConfig = {
-    apiKey: "AIzaSyBHa2f-ThkmbzYNVKjz4XHtM87mSI2dkLI",
-    authDomain: "premiere-47ace.firebaseapp.com",
-    projectId: "premiere-47ace",
-    storageBucket: "premiere-47ace.firebasestorage.app",
-    messagingSenderId: "644651181200",
-    appId: "1:644651181200:web:2ad450077763fa1483e415",
-    measurementId: "G-TFF1TE9T3R"
-  };
+      apiKey: "AIzaSyBHa2f-ThkmbzYNVKjz4XHtM87mSI2dkLI",
+      authDomain: "premiere-47ace.firebaseapp.com",
+      projectId: "premiere-47ace",
+      storageBucket: "premiere-47ace.firebasestorage.app",
+      messagingSenderId: "644651181200",
+      appId: "1:644651181200:web:2ad450077763fa1483e415",
+      measurementId: "G-TFF1TE9T3R"
+    };
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
@@ -198,9 +203,37 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
+    // --- Categories ---
+    // Each title stores a `category` field. Anything saved before this update
+    // has no category, so categoryOf() treats it as a movie — no migration needed.
+    const CATEGORIES = {
+      movie: {
+        label: 'Movies', single: 'Movie', icon: 'clapperboard',
+        releasedLabel: 'Now showing', verb: 'Released', dayLabel: 'Release Day',
+        placeholder: 'e.g. Dune: Part Three',
+        emptyText: 'No movies on the list yet.',
+      },
+      tv: {
+        label: 'TV Shows', single: 'TV Show', icon: 'tv',
+        releasedLabel: 'Now airing', verb: 'Premiered', dayLabel: 'Premiere',
+        placeholder: 'e.g. Severance — Season 3',
+        emptyText: 'No shows on the list yet.',
+      },
+      game: {
+        label: 'Video Games', single: 'Game', icon: 'gamepad-2',
+        releasedLabel: 'Out now', verb: 'Released', dayLabel: 'Launch Day',
+        placeholder: 'e.g. Grand Theft Auto VI',
+        emptyText: 'No games on the list yet.',
+      },
+    };
+    const CATEGORY_ORDER = ['movie', 'tv', 'game'];
+    function categoryOf(item) {
+      return item && Object.prototype.hasOwnProperty.call(CATEGORIES, item.category) ? item.category : 'movie';
+    }
+
     // --- State Variables ---
     let currentUser = null;
-    let movies = [];
+    let movies = []; // all titles, every category (Firestore collection name kept as "movies" so existing data still loads)
     let ready = false;
     let saveIssue = false;
     let authError = false;
@@ -211,6 +244,8 @@
     let unsubscribeMovies = null;
     let legacyMovies = null; // movies found in the old single-document format, awaiting import
     let legacyChecked = false;
+    let activeSection = 'movie'; // which section the tab bar shows on phones/tablets (desktop shows all three)
+    let formCategory = 'movie';  // category preselected when the form opens
 
     // --- Auth Observers & Actions ---
     onAuthStateChanged(auth, (user) => {
@@ -228,9 +263,7 @@
         legacyMovies = null;
         render();
 
-        // Real-time listener on this user's movies subcollection.
-        // Each movie is its own document, so adds/edits/deletes from any
-        // device are independent writes instead of one shared array.
+        // Real-time listener on this user's titles subcollection.
         const moviesRef = collection(db, "users", user.uid, "movies");
         unsubscribeMovies = onSnapshot(
           moviesRef,
@@ -239,10 +272,8 @@
             saveIssue = false;
             ready = true;
 
-            // One-time check for movies saved under the old single-document
-            // format (from before this version). Only runs once per sign-in,
-            // and only offers an import if the new subcollection is empty —
-            // it will never overwrite or duplicate movies you already have here.
+            // One-time check for movies saved under the old single-document format.
+            // Only offers an import if the new subcollection is empty.
             if (!legacyChecked) {
               legacyChecked = true;
               if (movies.length === 0) {
@@ -269,9 +300,6 @@
       } else {
         currentUser = null;
         movies = [];
-        // Close out any open form — there's nothing to edit if you're signed out,
-        // and leaving this open risks the modal referencing a movie that no
-        // longer exists in `movies`.
         showForm = false;
         editingId = null;
         confirmDeleteId = null;
@@ -301,7 +329,7 @@
       }
     };
 
-    // --- Firestore Writes (each movie is its own document) ---
+    // --- Firestore Writes (each title is its own document) ---
     async function addMovie(data) {
       if (!currentUser) return;
       try {
@@ -348,26 +376,24 @@
       return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     }
 
-    function formatAgo(days) {
+    function formatAgo(days, verb = 'Released') {
       const n = Math.abs(days);
-      if (n === 0) return 'Released today';
-      if (n === 1) return 'Released yesterday';
-      if (n < 7) return `Released ${n} days ago`;
+      if (n === 0) return `${verb} today`;
+      if (n === 1) return `${verb} yesterday`;
+      if (n < 7) return `${verb} ${n} days ago`;
       if (n < 30) {
         const w = Math.round(n / 7);
-        return `Released ${w} week${w > 1 ? 's' : ''} ago`;
+        return `${verb} ${w} week${w > 1 ? 's' : ''} ago`;
       }
       if (n < 365) {
         const m = Math.round(n / 30);
-        return `Released ${m} month${m > 1 ? 's' : ''} ago`;
+        return `${verb} ${m} month${m > 1 ? 's' : ''} ago`;
       }
       const y = Math.round(n / 365);
-      return `Released ${y} year${y > 1 ? 's' : ''} ago`;
+      return `${verb} ${y} year${y > 1 ? 's' : ''} ago`;
     }
 
-    // Escapes user-supplied text before it's dropped into an HTML template
-    // string. Every field that came from the Add/Edit form (title, notes,
-    // posterUrl) must go through this before being interpolated anywhere.
+    // Escapes user-supplied text before it's dropped into an HTML template string.
     function escapeHtml(value) {
       return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
         '&': '&amp;',
@@ -385,33 +411,30 @@
       return `${y}${m}${d}`;
     }
 
-    // Builds a Google Calendar "quick add" link for a movie's release date.
-    // This opens a pre-filled event in a new tab; the user still clicks
-    // Save on Google's side, so no extra OAuth scopes are needed.
+    // Builds a Google Calendar "quick add" link for a title's release date.
     function calendarUrl(movie) {
+      const cat = CATEGORIES[categoryOf(movie)];
       const start = new Date(`${movie.releaseDate}T00:00:00`);
       const end = new Date(start);
       end.setDate(end.getDate() + 1); // all-day events use an exclusive end date
-
       const params = new URLSearchParams({
         action: 'TEMPLATE',
-        text: `${movie.title} — Release Day`,
+        text: `${movie.title} — ${cat.dayLabel}`,
         dates: `${ymd(start)}/${ymd(end)}`,
         details: movie.notes ? movie.notes : `Marking the release of ${movie.title}.`,
       });
-
       return `https://calendar.google.com/calendar/render?${params.toString()}`;
     }
 
     window.importLegacyMovies = async () => {
       if (!currentUser || !legacyMovies) return;
       const toImport = legacyMovies;
-      legacyMovies = null; // hide the banner right away
+      legacyMovies = null;
       render();
       try {
         for (const m of toImport) {
-          const { id, ...data } = m; // drop the old client-generated id; Firestore assigns a fresh one
-          await addDoc(collection(db, "users", currentUser.uid, "movies"), data);
+          const { id, ...data } = m;
+          await addDoc(collection(db, "users", currentUser.uid, "movies"), { category: 'movie', ...data });
         }
       } catch (e) {
         console.error("Import failed:", e);
@@ -426,9 +449,17 @@
     };
 
     // --- UI Actions ---
-    window.openAdd = () => {
+    window.setSection = (key) => {
+      if (!CATEGORIES[key]) return;
+      activeSection = key;
+      confirmDeleteId = null;
+      render();
+    };
+
+    window.openAdd = (category) => {
       editingId = null;
       confirmDeleteId = null;
+      formCategory = CATEGORIES[category] ? category : activeSection;
       showForm = true;
       render();
       document.getElementById('form-title')?.focus();
@@ -437,6 +468,7 @@
     window.openEdit = (id) => {
       editingId = id;
       confirmDeleteId = null;
+      formCategory = categoryOf(movies.find((m) => m.id === id));
       showForm = true;
       render();
       document.getElementById('form-title')?.focus();
@@ -479,7 +511,7 @@
         const panel = document.getElementById('pm-modal-panel');
         if (!panel) return;
         const focusable = Array.from(panel.querySelectorAll('input, textarea, button, a[href]')).filter(
-          (el) => !el.disabled
+          (el) => !el.disabled && !(el.type === 'radio' && !el.checked)
         );
         if (focusable.length === 0) return;
         const first = focusable[0];
@@ -499,6 +531,15 @@
       const title = document.getElementById('form-title').value.trim();
       const date = document.getElementById('form-release').value;
       document.getElementById('form-submit-btn').disabled = !(title && date);
+    };
+
+    // Changing the category in the form only swaps the title placeholder —
+    // no re-render, so anything already typed stays put.
+    window.onCategoryChange = (key) => {
+      if (!CATEGORIES[key]) return;
+      formCategory = key;
+      const titleInput = document.getElementById('form-title');
+      if (titleInput) titleInput.placeholder = CATEGORIES[key].placeholder;
     };
 
     window.updatePreview = (val) => {
@@ -525,25 +566,27 @@
       const releaseDate = document.getElementById('form-release').value;
       const posterUrl = document.getElementById('form-poster').value.trim();
       const notes = document.getElementById('form-notes').value.trim();
-
+      const checked = document.querySelector('input[name="form-category"]:checked');
+      const category = checked && CATEGORIES[checked.value] ? checked.value : 'movie';
       if (!title || !releaseDate) return;
 
-      const cleaned = { title, releaseDate, posterUrl, notes };
-
+      const cleaned = { title, releaseDate, posterUrl, notes, category };
       if (editingId) {
         updateMovie(editingId, cleaned);
       } else {
         addMovie(cleaned);
       }
+      // Jump the mobile tab to where the title just landed
+      activeSection = category;
       closeForm();
     };
 
     // --- Component Templates ---
-    const PosterTpl = (url, alt, errored, id) => {
+    const PosterTpl = (url, alt, errored, id, icon = 'clapperboard') => {
       if (!url || errored) {
         return `
           <div class="pm-poster-frame rounded-lg w-full flex items-center justify-center">
-            <i data-lucide="clapperboard" class="w-1/4 h-1/4" style="color: rgba(232,184,75,0.45)" stroke-width="1.5"></i>
+            <i data-lucide="${icon}" class="w-1/4 h-1/4" style="color: rgba(232,184,75,0.45)" stroke-width="1.5"></i>
           </div>
         `;
       }
@@ -557,13 +600,10 @@
       else label = isLg ? String(days) : `${days}D`;
       const showUnit = isLg && days >= 1;
       const numClass = !isLg ? 'pm-dial-num-sm' : (days <= 0 ? 'pm-dial-num-word' : 'pm-dial-num-lg');
-
       return `
         <div class="pm-dial-outer ${isLg ? 'pm-dial-lg' : 'pm-dial-sm'}">
           <div class="pm-dial-inner">
-            <span class="pm-stencil pm-dial-num ${numClass}">
-              ${label}
-            </span>
+            <span class="pm-stencil pm-dial-num ${numClass}">${label}</span>
             ${showUnit ? `<span class="pm-body mt-1.5" style="color: #E8B84B; font-size: 10px; font-weight: 700; letter-spacing: .16em;">${days === 1 ? 'DAY TO GO' : 'DAYS TO GO'}</span>` : ''}
           </div>
         </div>
@@ -572,14 +612,14 @@
 
     const MovieCardTpl = (movie, days, released) => {
       const isConfirming = confirmDeleteId === movie.id;
+      const cat = CATEGORIES[categoryOf(movie)];
       return `
         <div class="pm-tile">
           <div class="relative">
-            ${PosterTpl(movie.posterUrl, movie.title, imgErrors[movie.id], movie.id)}
+            ${PosterTpl(movie.posterUrl, movie.title, imgErrors[movie.id], movie.id, cat.icon)}
             ${!released ? `<div class="absolute -top-2 -right-2">${CountdownDialTpl(days, 'sm')}</div>` : ''}
-
             <div class="pm-tile-actions absolute top-2 left-2 flex gap-1">
-              <button onclick="openEdit('${movie.id}')" aria-label="Edit movie" class="pm-icon-btn pm-focus-visible rounded-full w-7 h-7 flex items-center justify-center">
+              <button onclick="openEdit('${movie.id}')" aria-label="Edit ${escapeHtml(movie.title)}" class="pm-icon-btn pm-focus-visible rounded-full w-7 h-7 flex items-center justify-center">
                 <i data-lucide="pencil" class="w-3 h-3" style="color: #F2EEE6"></i>
               </button>
               ${!released ? `
@@ -587,61 +627,126 @@
                 <i data-lucide="calendar-plus" class="w-3 h-3" style="color: #F2EEE6"></i>
               </a>
               ` : ''}
-              <button onclick="requestDelete('${movie.id}')" aria-label="Remove movie" class="pm-icon-btn pm-focus-visible rounded-full h-7 px-2 flex items-center justify-center" style="background-color: ${isConfirming ? '#9C2E3D' : ''}">
+              <button onclick="requestDelete('${movie.id}')" aria-label="Remove ${escapeHtml(movie.title)}" class="pm-icon-btn pm-focus-visible rounded-full h-7 px-2 flex items-center justify-center" style="background-color: ${isConfirming ? '#9C2E3D' : ''}">
                 <i data-lucide="trash-2" class="w-3 h-3" style="color: #F2EEE6"></i>
                 ${isConfirming ? `<span class="pm-body ml-1 text-xs" style="color: #F2EEE6">Sure?</span>` : ''}
               </button>
             </div>
           </div>
           <p class="pm-body mt-3 text-sm font-semibold truncate" style="color: #F2EEE6">${escapeHtml(movie.title)}</p>
-          <p class="pm-body pm-ash text-xs mt-0.5">${released ? formatAgo(days) : formatDate(movie.releaseDate)}</p>
+          <p class="pm-body pm-ash text-xs mt-0.5">${released ? formatAgo(days, cat.verb) : formatDate(movie.releaseDate)}</p>
         </div>
+      `;
+    };
+
+    // One section (Movies / TV Shows / Video Games).
+    // Desktop (lg+): all three sit side by side. Below lg: only the active tab's section shows.
+    const SectionTpl = (key, upcoming, released) => {
+      const cat = CATEGORIES[key];
+      const total = upcoming.length + released.length;
+      const visibility = key === activeSection ? '' : 'hidden lg:block';
+      const gridCls = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2 gap-x-4 sm:gap-x-5 gap-y-7';
+
+      let body = '';
+      if (total === 0) {
+        body = `
+          <div class="text-center py-10 px-2">
+            <p class="pm-body pm-ash text-sm mb-4">${cat.emptyText}</p>
+            <button type="button" onclick="openAdd('${key}')" class="pm-btn-ghost pm-body inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold pm-focus-visible">
+              <i data-lucide="plus" class="w-3.5 h-3.5" stroke-width="2.5"></i> Add a ${cat.single.toLowerCase()}
+            </button>
+          </div>
+        `;
+      } else {
+        if (upcoming.length > 0) {
+          body += `
+            <div class="flex items-baseline justify-between mb-5"><p class="pm-eyebrow">Coming soon</p><span class="pm-body text-xs pm-ash">${upcoming.length} title${upcoming.length > 1 ? 's' : ''}</span></div>
+            <div class="${gridCls}">
+              ${upcoming.map((m) => MovieCardTpl(m, daysUntil(m.releaseDate), false)).join('')}
+            </div>
+          `;
+        }
+        if (released.length > 0) {
+          body += `
+            ${upcoming.length > 0 ? '<hr class="pm-sub-divider" />' : ''}
+            <div class="flex items-baseline justify-between mb-5"><p class="pm-eyebrow" style="color: #BDB8AF">${cat.releasedLabel}</p><span class="pm-body text-xs pm-ash">${released.length} title${released.length > 1 ? 's' : ''}</span></div>
+            <div class="${gridCls}" style="filter: saturate(.6); opacity: .75">
+              ${released.map((m) => MovieCardTpl(m, daysUntil(m.releaseDate), true)).join('')}
+            </div>
+          `;
+        }
+      }
+
+      return `
+        <section id="section-${key}" role="tabpanel" aria-labelledby="section-title-${key}" class="pm-card p-4 sm:p-5 ${visibility}">
+          <div class="pm-section-head flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="pm-logo-badge"><i data-lucide="${cat.icon}" class="w-[18px] h-[18px]" style="color: #E8B84B"></i></span>
+              <h2 id="section-title-${key}" class="pm-display text-xl truncate" style="color: #F2EEE6">${cat.label}</h2>
+              <span class="pm-body text-xs pm-ash">${total}</span>
+            </div>
+            <button type="button" onclick="openAdd('${key}')" aria-label="Add to ${cat.label}" class="pm-icon-btn pm-focus-visible rounded-full w-8 h-8 flex items-center justify-center shrink-0">
+              <i data-lucide="plus" class="w-4 h-4" style="color: #E8B84B" stroke-width="2.5"></i>
+            </button>
+          </div>
+          ${body}
+        </section>
       `;
     };
 
     const FormModalTpl = () => {
       if (!showForm) return '';
-      const movie = editingId
-        ? (movies.find((m) => m.id === editingId) || { title: '', releaseDate: '', posterUrl: '', notes: '' })
-        : { title: '', releaseDate: '', posterUrl: '', notes: '' };
+      const blank = { title: '', releaseDate: '', posterUrl: '', notes: '' };
+      const movie = editingId ? (movies.find((m) => m.id === editingId) || blank) : blank;
+      const selected = CATEGORIES[formCategory] ? formCategory : 'movie';
 
       return `
         <div class="pm-modal-backdrop fixed inset-0 flex items-center justify-center p-4 z-50" onclick="closeForm()">
           <div id="pm-modal-panel" role="dialog" aria-modal="true" aria-labelledby="pm-modal-title" class="pm-modal pm-panel-bg w-full max-w-md rounded-3xl p-6 sm:p-7 overflow-y-auto" style="max-height: 88vh; border: 1px solid rgba(232,184,75,0.22); box-shadow: 0 40px 80px -20px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between mb-5">
-              <h3 id="pm-modal-title" class="pm-display text-2xl" style="color: #F2EEE6">${editingId ? 'Edit Movie' : 'Add Movie'}</h3>
+              <h3 id="pm-modal-title" class="pm-display text-2xl" style="color: #F2EEE6">${editingId ? 'Edit Title' : 'Add Title'}</h3>
               <button onclick="closeForm()" aria-label="Close" class="pm-icon-btn pm-focus-visible rounded-full w-8 h-8 flex items-center justify-center">
                 <i data-lucide="x" class="w-4 h-4 pm-ash"></i>
               </button>
             </div>
 
             <div class="space-y-4">
+              <fieldset>
+                <legend class="pm-label">Category</legend>
+                <div class="grid grid-cols-3 gap-2">
+                  ${CATEGORY_ORDER.map((key) => `
+                    <label class="pm-seg">
+                      <input type="radio" name="form-category" value="${key}" ${key === selected ? 'checked' : ''} onchange="onCategoryChange(this.value)" class="sr-only" />
+                      <span><i data-lucide="${CATEGORIES[key].icon}" class="w-5 h-5"></i>${CATEGORIES[key].single}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              </fieldset>
               <div>
-                <label class="pm-label">Title</label>
-                <input id="form-title" type="text" value="${escapeHtml(movie.title)}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" placeholder="e.g. Dune: Part Three" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm" />
+                <label class="pm-label" for="form-title">Title</label>
+                <input id="form-title" type="text" value="${escapeHtml(movie.title)}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" placeholder="${escapeHtml(CATEGORIES[selected].placeholder)}" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm" />
               </div>
               <div>
-                <label class="pm-label">Release Date</label>
+                <label class="pm-label" for="form-release">Release Date</label>
                 <input id="form-release" type="date" value="${escapeHtml(movie.releaseDate)}" oninput="checkFormValidity()" onkeydown="submitOnEnter(event)" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm" style="color-scheme: dark" />
               </div>
               <div>
-                <label class="pm-label">Poster Image URL</label>
+                <label class="pm-label" for="form-poster">Poster Image URL</label>
                 <input id="form-poster" type="text" value="${escapeHtml(movie.posterUrl)}" oninput="updatePreview(this.value)" onkeydown="submitOnEnter(event)" placeholder="https://…" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm" />
-
                 <div id="poster-preview-container" class="pm-poster-frame rounded-lg overflow-hidden mt-2" style="width: 72px; display: ${movie.posterUrl ? 'block' : 'none'}">
                   <img id="poster-preview-img" src="${escapeHtml(movie.posterUrl)}" alt="Preview" class="w-full h-full object-cover" onerror="this.style.display='none'" />
                 </div>
               </div>
               <div>
-                <label class="pm-label">Notes</label>
-                <textarea id="form-notes" placeholder="Genre, who you're seeing it with, why you're hyped…" rows="2" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm resize-none">${escapeHtml(movie.notes || '')}</textarea>
+                <label class="pm-label" for="form-notes">Notes</label>
+                <textarea id="form-notes" placeholder="Genre, platform, who you're watching or playing with…" rows="2" class="pm-field pm-body w-full rounded-xl px-3.5 py-2.5 text-sm resize-none">${escapeHtml(movie.notes || '')}</textarea>
               </div>
             </div>
 
             <div class="flex gap-3 mt-6">
               <button onclick="closeForm()" class="pm-btn-ghost pm-body flex-1 rounded-full py-3 text-sm font-medium">Cancel</button>
               <button id="form-submit-btn" onclick="submitForm()" ${!movie.title || !movie.releaseDate ? 'disabled' : ''} class="pm-btn-gold pm-body flex-1 rounded-full py-3 text-sm font-semibold">
-                ${editingId ? 'Save Changes' : 'Add Movie'}
+                ${editingId ? 'Save Changes' : 'Add Title'}
               </button>
             </div>
           </div>
@@ -657,26 +762,34 @@
       const upcoming = movies
         .filter((m) => daysUntil(m.releaseDate) >= 0)
         .sort((a, b) => daysUntil(a.releaseDate) - daysUntil(b.releaseDate));
-
       const released = movies
         .filter((m) => daysUntil(m.releaseDate) < 0)
         .sort((a, b) => daysUntil(b.releaseDate) - daysUntil(a.releaseDate));
 
+      // Hero = next upcoming title across ALL categories
       const hero = upcoming[0];
-      const restUpcoming = upcoming.slice(1);
       const heroDays = hero ? daysUntil(hero.releaseDate) : 0;
+      const heroCat = hero ? CATEGORIES[categoryOf(hero)] : null;
       const isHeroConfirming = hero && confirmDeleteId === hero.id;
 
-      
+      // Per-category buckets (already sorted, since they're filtered from sorted lists)
+      const bySection = {};
+      CATEGORY_ORDER.forEach((key) => {
+        bySection[key] = {
+          upcoming: upcoming.filter((m) => categoryOf(m) === key),
+          released: released.filter((m) => categoryOf(m) === key),
+        };
+      });
 
       // Header Area (with Auth Controls)
       html += `
         <header class="pm-header">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
           <a href="https://www.jstafki.com/projects/premiere/" class="flex items-center gap-2.5 pm-focus-visible rounded-lg">
             <span class="pm-logo-badge"><i data-lucide="clapperboard" class="w-[18px] h-[18px]" style="color: #E8B84B"></i></span>
             <h1 class="pm-display pm-wordmark">Premiere</h1>
           </a>
+
           <div class="flex items-center gap-3 sm:gap-4">
             ${currentUser
               ? `
@@ -686,7 +799,7 @@
                   <button onclick="logout()" aria-label="Sign out" class="pm-body pm-ash hover:text-white transition-colors pm-focus-visible sm:hidden"><i data-lucide="log-out" class="w-4 h-4"></i></button>
                 </div>
                 <button onclick="openAdd()" class="pm-btn-gold pm-body flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold pm-focus-visible">
-                  <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> <span class="hidden sm:inline">Add Movie</span><span class="sm:hidden">Add</span>
+                  <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> <span class="hidden sm:inline">Add Title</span><span class="sm:hidden">Add</span>
                 </button>
               `
               : `
@@ -699,19 +812,18 @@
         </div>
         </header>
       `;
-      html += `<main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">`;
 
-      // Main Content State Logic
+      html += `<main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">`;
+
       if (!ready) {
         html += `<div class="pm-body pm-ash text-center py-24 flex flex-col items-center gap-4"><i data-lucide="loader-circle" class="w-6 h-6 animate-spin" style="color: #E8B84B"></i>Rolling film…</div>`;
       }
       else if (!currentUser) {
-        // Logged Out State
         html += `
           <div class="pm-card pm-hero-card text-center py-20 sm:py-24 px-6">
             <div class="pm-logo-badge mx-auto mb-6" style="width:64px;height:64px;border-radius:18px"><i data-lucide="ticket" class="w-7 h-7" style="color: #E8B84B"></i></div>
             <h2 class="pm-display text-3xl sm:text-4xl mb-3" style="color: #F2EEE6">Your personal watchlist</h2>
-            <p class="pm-body pm-ash max-w-md mx-auto mb-8 leading-relaxed">Sign in to sync your upcoming movie hype across all your devices and never miss a release date.</p>
+            <p class="pm-body pm-ash max-w-md mx-auto mb-8 leading-relaxed">Sign in to sync upcoming movies, shows, and games across all your devices and never miss a release date.</p>
             ${authError ? `
               <p class="pm-body text-xs mb-5 max-w-sm mx-auto rounded-lg px-3 py-2" style="color: #F6D5DA; background-color: rgba(156,46,61,0.22); border: 1px solid rgba(220,90,105,0.45)">
                 Sign-in didn't go through. Check that popups are allowed for this site and try again.
@@ -724,7 +836,6 @@
         `;
       }
       else {
-        // Logged In States
         if (legacyMovies && legacyMovies.length > 0) {
           html += `
             <div class="pm-body text-xs mb-6 rounded-lg px-3 py-3 flex items-center justify-between gap-3 flex-wrap" style="color: #F2EEE6; background-color: rgba(232,184,75,0.12); border: 1px solid rgba(232,184,75,0.35)">
@@ -749,15 +860,15 @@
           html += `
             <div class="pm-card text-center py-20 px-6">
               <div class="pm-logo-badge mx-auto mb-5" style="width:56px;height:56px;border-radius:16px"><i data-lucide="sparkles" class="w-6 h-6" style="color: #E8B84B"></i></div>
-              <p class="pm-display text-3xl" style="color: #F2EEE6">No movies yet</p>
-              <p class="pm-body pm-ash mt-2 mb-6">Add the next release you can't stop thinking about.</p>
+              <p class="pm-display text-3xl" style="color: #F2EEE6">Nothing tracked yet</p>
+              <p class="pm-body pm-ash mt-2 mb-6">Add the next movie, show, or game you can't stop thinking about.</p>
               <button onclick="openAdd()" class="pm-btn-gold pm-body inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold pm-focus-visible">
-                <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add a movie
+                <i data-lucide="plus" class="w-4 h-4" stroke-width="2.5"></i> Add a title
               </button>
             </div>
           `;
         } else {
-          // Hero Section
+          // Hero Section — next upcoming release, regardless of category
           if (hero) {
             html += `
               <div class="pm-card pm-hero-card relative overflow-hidden">
@@ -771,14 +882,17 @@
                 <div class="relative flex flex-col sm:flex-row items-center gap-7 p-6 sm:p-10">
                   <div class="flex flex-col sm:flex-row items-center gap-5 shrink-0">
                     <div style="width: clamp(104px, 24vw, 140px)">
-                      ${PosterTpl(hero.posterUrl, hero.title, imgErrors[hero.id], hero.id)}
+                      ${PosterTpl(hero.posterUrl, hero.title, imgErrors[hero.id], hero.id, heroCat.icon)}
                     </div>
                     ${CountdownDialTpl(heroDays, 'lg')}
                   </div>
                   <div class="pm-hero-divider text-center sm:text-left w-full sm:flex-1">
                     <p class="pm-eyebrow mb-3">Up next</p>
                     <h2 class="pm-display pm-hero-title" style="color: #F2EEE6">${escapeHtml(hero.title)}</h2>
-                    <p class="mt-3"><span class="pm-chip pm-body"><i data-lucide="calendar" class="w-3.5 h-3.5"></i>${formatDate(hero.releaseDate)}</span></p>
+                    <p class="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+                      <span class="pm-chip pm-chip-gold pm-body"><i data-lucide="${heroCat.icon}" class="w-3.5 h-3.5"></i>${heroCat.single}</span>
+                      <span class="pm-chip pm-body"><i data-lucide="calendar" class="w-3.5 h-3.5"></i>${formatDate(hero.releaseDate)}</span>
+                    </p>
                     ${hero.notes ? `<p class="pm-body text-sm mt-3 mx-auto sm:mx-0" style="color: #BDB8AF; max-width: 460px; line-height: 1.6">${escapeHtml(hero.notes)}</p>` : ''}
                     <div class="flex items-center gap-2 justify-center sm:justify-start mt-6 flex-wrap">
                       <button onclick="openEdit('${hero.id}')" class="pm-link pm-body pm-focus-visible">
@@ -794,30 +908,33 @@
                   </div>
                 </div>
               </div>
-            `;
-          }
-
-          // Upcoming Grid
-          if (restUpcoming.length > 0) {
-            html += `
               <hr class="pm-perf" />
-              <div class="flex items-baseline justify-between mb-5"><p class="pm-eyebrow">Coming soon</p><span class="pm-body text-xs pm-ash">${restUpcoming.length} title${restUpcoming.length > 1 ? 's' : ''}</span></div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 sm:gap-x-5 gap-y-7">
-                ${restUpcoming.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), false)).join('')}
-              </div>
             `;
           }
 
-          // Released Grid
-          if (released.length > 0) {
-            html += `
-              ${hero ? '<hr class="pm-perf" />' : ''}
-              <div class="flex items-baseline justify-between mb-5"><p class="pm-eyebrow" style="color: #BDB8AF">Now showing</p><span class="pm-body text-xs pm-ash">${released.length} title${released.length > 1 ? 's' : ''}</span></div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 sm:gap-x-5 gap-y-7" style="filter: saturate(.6); opacity: .75">
-                ${released.map(m => MovieCardTpl(m, daysUntil(m.releaseDate), true)).join('')}
-              </div>
-            `;
-          }
+          // Section tabs — phones/tablets only; desktop shows all three columns
+          html += `
+            <div class="lg:hidden mb-5 pm-tabs" role="tablist" aria-label="Sections">
+              ${CATEGORY_ORDER.map((key) => {
+                const count = bySection[key].upcoming.length + bySection[key].released.length;
+                const sel = key === activeSection;
+                return `
+                  <button type="button" role="tab" aria-selected="${sel}" aria-controls="section-${key}" onclick="setSection('${key}')" class="pm-tab pm-body pm-focus-visible">
+                    <i data-lucide="${CATEGORIES[key].icon}" class="w-4 h-4"></i>
+                    <span class="hidden min-[400px]:inline">${CATEGORIES[key].label}</span>
+                    <span class="pm-tab-count">${count}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          `;
+
+          // Sections — side by side on desktop
+          html += `
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-5 items-start">
+              ${CATEGORY_ORDER.map((key) => SectionTpl(key, bySection[key].upcoming, bySection[key].released)).join('')}
+            </div>
+          `;
         }
       }
 
@@ -827,7 +944,6 @@
       appContainer.innerHTML = html;
       lucide.createIcons();
     }
-
   </script>
 </body>
 </html>
